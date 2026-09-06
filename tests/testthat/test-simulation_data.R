@@ -279,10 +279,29 @@ test_that("negative_binomial_regression estimates the rate by the sample mean", 
   expect_true(is.finite(result$se_log_rate) && result$se_log_rate > 0)
 })
 
+test_that("negative_binomial_regression rejects data that are not counts", {
+  expect_error(negative_binomial_regression(c(1, 2, NA)), "finite counts")
+  expect_error(negative_binomial_regression(c(1, Inf)), "finite counts")
+  expect_error(negative_binomial_regression(numeric(0)), "finite counts")
+  expect_error(negative_binomial_regression(c(1, -2, 3)), "non-negative integer")
+  expect_error(negative_binomial_regression(c(1, 2.5, 3)), "non-negative integer")
+})
+
+test_that("negative_binomial_regression reports all-zero counts as inestimable", {
+  # The maximum likelihood rate is 0, the negative binomial is degenerate
+  # there, and the log rate has no finite standard error
+  expect_warning(
+    result <- negative_binomial_regression(rep(0, 20)),
+    "All counts are zero"
+  )
+  expect_identical(result$rate_estimate, 0)
+  expect_identical(result$se_log_rate, NA_real_)
+  expect_identical(result$se_rate, NA_real_)
+})
+
 test_that("negative_binomial_inverse_dispersion falls back to the Poisson limit", {
   # Underdispersed data: the profile likelihood is maximised at 1 / theta = 0
   counts <- c(2, 2, 2, 3, 2, 2, 3, 2, 2, 2)
-  expect_true(sum((counts - mean(counts))^2) <= length(counts) * mean(counts))
   expect_equal(
     RBExT:::negative_binomial_inverse_dispersion(counts, mean(counts)),
     0
@@ -296,42 +315,60 @@ test_that("negative_binomial_inverse_dispersion falls back to the Poisson limit"
   )
 })
 
-test_that("negative_binomial_inverse_dispersion maximises the profile likelihood", {
+test_that("negative_binomial_inverse_dispersion beats a dense scan of the profile", {
+  # Profile log likelihood of theta at mu = mean(counts), evaluated without
+  # subtracting nearly equal lgamma values so that it stays accurate for
+  # large theta. The theta -> Inf limit is the Poisson log likelihood.
   profile_loglikelihood <- function(counts, theta) {
     n_observations <- length(counts)
     rate <- mean(counts)
-    sum(lgamma(counts + theta) - lgamma(theta)) +
-      n_observations * theta * log(theta / (theta + rate)) +
+    if (!is.finite(theta)) {
+      return(sum(counts) * log(rate) - n_observations * rate)
+    }
+    rising <- sum(vapply(
+      counts,
+      function(value) {
+        if (value == 0) 0 else sum(log(theta + seq_len(value) - 1))
+      },
+      numeric(1)
+    ))
+    rising - n_observations * theta * log1p(rate / theta) +
       sum(counts) * log(rate / (rate + theta))
   }
 
   set.seed(616)
+  candidates <- c(Inf, exp(seq(log(1e-6), log(1e8), length.out = 400)))
   for (n_observations in c(9, 25, 100)) {
     counts <- stats::rnbinom(n_observations, size = 0.8, mu = 1.74)
+    if (all(counts == 0)) next
+
     inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
       counts, mean(counts)
     )
-    if (inverse_dispersion == 0) next
+    chosen <- profile_loglikelihood(
+      counts,
+      if (inverse_dispersion == 0) Inf else 1 / inverse_dispersion
+    )
 
-    theta <- 1 / inverse_dispersion
-    best <- profile_loglikelihood(counts, theta)
-
-    # No neighbouring theta, and not the Poisson boundary, does better
-    neighbours <- theta * c(0.5, 0.9, 0.99, 1.01, 1.1, 2)
-    expect_true(all(vapply(
-      neighbours,
-      function(candidate) profile_loglikelihood(counts, candidate),
+    # Nothing on a dense independent scan, the Poisson boundary included,
+    # attains a higher profile likelihood than the returned estimate
+    best_elsewhere <- max(vapply(
+      candidates,
+      function(theta) profile_loglikelihood(counts, theta),
       numeric(1)
-    ) <= best + 1e-8))
-    expect_gt(best, profile_loglikelihood(counts, 1e10))
+    ))
+    expect_gt(chosen, best_elsewhere - 1e-6)
   }
 })
 
-test_that("negative_binomial_regression handles all-zero data", {
-  expect_warning(
-    result <- negative_binomial_regression(rep(0, 20)),
-    "All values are zero"
-  )
-  expect_true(is.finite(result$rate_estimate))
-  expect_true(is.finite(result$se_log_rate))
+test_that("negative_binomial_inverse_dispersion does not allocate on the largest count", {
+  # A sparse frequency representation keeps a single extreme count cheap
+  counts <- c(0, 1, 3, 10000000)
+  elapsed <- system.time(
+    inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
+      counts, mean(counts)
+    )
+  )[["elapsed"]]
+  expect_true(is.finite(inverse_dispersion))
+  expect_lt(elapsed, 5)
 })
