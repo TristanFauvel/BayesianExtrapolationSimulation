@@ -44,6 +44,8 @@ preposterior_proba_FP_MC <- function(conditional_proba_success,
     samples_in_null_space <- design_prior_samples <= theta_0
   } else if (null_space == "right") {
     samples_in_null_space <- design_prior_samples >= theta_0
+  } else {
+    stop("Null space must be either 'left' or 'right'.")
   }
 
   p <- mean(conditional_proba_success * samples_in_null_space)
@@ -77,6 +79,8 @@ preposterior_proba_TP_MC <- function(conditional_proba_success,
     samples_in_alt_space <- design_prior_samples > theta_0
   } else if (null_space == "right") {
     samples_in_alt_space <- design_prior_samples < theta_0
+  } else {
+    stop("Null space must be either 'left' or 'right'.")
   }
 
   p <- mean(conditional_proba_success * samples_in_alt_space)
@@ -263,6 +267,8 @@ preposterior_proba_FP <- function(conditional_proba_success,
     values_in_null_space <- treatment_effect_values <= theta_0
   } else if (null_space == "right") {
     values_in_null_space <- treatment_effect_values >= theta_0
+  } else {
+    stop("Null space must be either 'left' or 'right'.")
   }
 
   design_prior_pdf <- design_prior_pdf[values_in_null_space]
@@ -294,6 +300,8 @@ preposterior_proba_TP <- function(conditional_proba_success,
     values_in_alt_space <- treatment_effect_values > theta_0
   } else if (null_space == "right") {
     values_in_alt_space <- treatment_effect_values < theta_0
+  } else {
+    stop("Null space must be either 'left' or 'right'.")
   }
 
   if (sum(values_in_alt_space) < 2) {
@@ -471,6 +479,8 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                     prior_proba_no_benefit <- design_prior$cdf(theta_0)
                   } else if (null_space == "right") {
                     prior_proba_no_benefit <- 1 - design_prior$cdf(theta_0)
+                  } else {
+                    stop("Null space must be either 'left' or 'right'.")
                   }
 
                   prior_proba_benefit <- 1 - prior_proba_no_benefit
