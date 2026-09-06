@@ -475,6 +475,41 @@ Model <- R6::R6Class(
         }
       }
 
+      stan_draws_path <- NULL
+      next_stan_cleanup <- NULL
+
+      cleanup_stan_draws <- function() {
+        draw_files <- list.files(stan_draws_path, full.names = TRUE)
+
+        if (length(draw_files) == 0) {
+          return(invisible(NULL))
+        }
+
+        creation_times <- file.info(draw_files)$ctime
+        file_ages <- as.numeric(difftime(Sys.time(), creation_times, units = "secs"))
+        stale_files <- draw_files[!is.na(file_ages) & file_ages > 60]
+
+        if (length(stale_files) > 0) {
+          file.remove(stale_files)
+        }
+
+        invisible(NULL)
+      }
+
+      if (self$mcmc) {
+        package_path <- system.file("", package = "RBExT")
+        stan_draws_path <- paste0(
+          package_path,
+          "/stan/draws/",
+          tolower(case_study),
+          "_",
+          method,
+          "/"
+        )
+        cleanup_stan_draws()
+        next_stan_cleanup <- Sys.time() + 60
+      }
+
       # Generate data for n_replicates clinical trials
       target_data_samples <- target_data$generate(n_replicates)
 
@@ -592,25 +627,11 @@ Model <- R6::R6Class(
             print(paste0("Duration of iteration ", r, " is ", time_taken, " seconds."))
           }
 
-          # Remove old stan csv files to avoid to storage issue (~10MB of data per replicate)
-          # Do not remove all files to avoid missing draw files when parallelization is True
-          # Only remove files older than 60 seconds because each iteration is shorter
-          package_path <- system.file("", package = "RBExT")
-          stan_draws_path <- paste0(package_path, "/stan/draws/", tolower(case_study), "_", method, "/")
-          draw_files <- list.files(stan_draws_path, full.names = TRUE)
-          # Get the current time
-          current_time <- Sys.time()
-          for (file in draw_files) {
-            # Get the file information
-            file_info <- file.info(file)
-            # Get the file creation time
-            creation_time <- file_info$ctime
-            # Calculate the time difference in minutes
-            time_diff <- as.numeric(difftime(current_time, creation_time, units = "secs"))
-            # If the file is older than 60 seconds, delete it
-            if (!(is.na(time_diff)) && time_diff > 60) {
-              file.remove(file)
-            }
+          # Avoid scanning the draws directory after every replicate. Files cannot
+          # become eligible for age-based cleanup more often than once per minute.
+          if (self$mcmc && Sys.time() >= next_stan_cleanup) {
+            cleanup_stan_draws()
+            next_stan_cleanup <- Sys.time() + 60
           }
         }
       }
