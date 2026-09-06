@@ -8,14 +8,14 @@ check_probability_value <- function(p) {
   }
 
   if (p < 0) {
-    warnings("Invalid value for the probability, should be between 0 and 1. Rounding the value to 0.")
+    warning("Invalid value for the probability, should be between 0 and 1. Rounding the value to 0.")
     futile.logger::flog.warn("Invalid value for the probability, should be between 0 and 1. Rounding the value to 0.")
     p <- 0
   }
 
   if (p > 1) {
-    warnings("Invalid value for the probability, should be between 0 and 1. Rounding the value to 1.")
-    futile.logger::flog.warn("Invalid value for the probability, should be between 0 and 1. Rounding the value to 0.")
+    warning("Invalid value for the probability, should be between 0 and 1. Rounding the value to 1.")
+    futile.logger::flog.warn("Invalid value for the probability, should be between 0 and 1. Rounding the value to 1.")
     p <- 1
   }
   return(p)

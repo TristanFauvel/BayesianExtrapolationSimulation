@@ -971,7 +971,7 @@ BinaryTargetData <- R6::R6Class(
 #' @export
 negative_binomial_regression <- function(input_data) {
   if (all(input_data == 0)) {
-    warnings("All values are zero. Negative binomial regression will fail. Adding random noise.")
+    warning("All values are zero. Negative binomial regression will fail. Adding random noise.")
     futile.logger::flog.warn("All values are zero. Negative binomial regression will fail. Adding random noise.")
     input_data[sample(1:length(input_data), 1)] <- 1
   }

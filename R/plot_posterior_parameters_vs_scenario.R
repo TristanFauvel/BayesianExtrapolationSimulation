@@ -21,7 +21,7 @@ plot_posterior_vs_prior_parameters <- function(input_df,
     )
 
   if (nrow(results_metrics_df) == 0) {
-    warnings("Dataframe is empty.")
+    warning("Dataframe is empty.")
     return()
   }
 
