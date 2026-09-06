@@ -92,3 +92,22 @@ test_that("compute_freq_power preserves its return structure for missing alpha",
   expect_true(is.na(result$power))
   expect_equal(result$conf_int_power, rep(NA_real_, 2))
 })
+
+test_that("compute_power_with_tie_ci preserves its return structure for a missing interval", {
+  result <- compute_power_with_tie_ci(
+    alpha = list(
+      mean = 0.05,
+      conf_int_lower = NA_real_,
+      conf_int_upper = 0.06
+    ),
+    target_data = NULL,
+    frequentist_test = "t-test",
+    theta_0 = 0,
+    null_space = "left",
+    simulation_config = list()
+  )
+
+  expect_named(result, c("power", "conf_int_power"))
+  expect_true(is.na(result$power))
+  expect_equal(result$conf_int_power, rep(NA_real_, 2))
+})

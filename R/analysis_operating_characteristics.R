@@ -313,7 +313,10 @@ compute_power_with_tie_ci <- function(alpha,
                                       n_replicates = 100,
                                       n_samples = 100) {
   if (is.na(alpha$conf_int_upper) || is.na(alpha$conf_int_lower)) {
-    return(NA)
+    return(list(
+      power = NA_real_,
+      conf_int_power = rep(NA_real_, 2)
+    ))
   }
 
   # Generate samples of alpha (TIE) based on the confidence interval
