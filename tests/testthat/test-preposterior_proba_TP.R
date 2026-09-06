@@ -50,3 +50,28 @@ test_that("true-positive probability rejects an invalid null space", {
     fixed = TRUE
   )
 })
+
+test_that("true-positive probability rejects misaligned inputs", {
+  expect_error(
+    preposterior_proba_TP_MC(
+      conditional_proba_success = c(0.1, 0.9),
+      design_prior_samples = c(-2, -1, 1, 2),
+      theta_0 = 0,
+      null_space = "left"
+    ),
+    "must have the same length",
+    fixed = TRUE
+  )
+
+  expect_error(
+    preposterior_proba_TP(
+      conditional_proba_success = c(0.1, 0.5),
+      treatment_effect_values = c(-1, 0, 1),
+      theta_0 = 0,
+      null_space = "left",
+      design_prior_pdf = c(0.2, 0.6, 0.2)
+    ),
+    "must have the same length",
+    fixed = TRUE
+  )
+})

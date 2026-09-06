@@ -40,6 +40,10 @@ preposterior_proba_FP_MC <- function(conditional_proba_success,
                                      design_prior_samples,
                                      theta_0,
                                      null_space) {
+  if (length(conditional_proba_success) != length(design_prior_samples)) {
+    stop("`conditional_proba_success` and `design_prior_samples` must have the same length.")
+  }
+
   if (null_space == "left") {
     samples_in_null_space <- design_prior_samples <= theta_0
   } else if (null_space == "right") {
@@ -75,6 +79,10 @@ preposterior_proba_TP_MC <- function(conditional_proba_success,
                                      design_prior_samples,
                                      theta_0,
                                      null_space) {
+  if (length(conditional_proba_success) != length(design_prior_samples)) {
+    stop("`conditional_proba_success` and `design_prior_samples` must have the same length.")
+  }
+
   if (null_space == "left") {
     samples_in_alt_space <- design_prior_samples > theta_0
   } else if (null_space == "right") {
@@ -263,6 +271,15 @@ preposterior_proba_FP <- function(conditional_proba_success,
                                   theta_0,
                                   null_space,
                                   design_prior_pdf) {
+  input_lengths <- c(
+    length(conditional_proba_success),
+    length(treatment_effect_values),
+    length(design_prior_pdf)
+  )
+  if (length(unique(input_lengths)) != 1L) {
+    stop("Probability, treatment-effect, and prior-density vectors must have the same length.")
+  }
+
   if (null_space == "left") {
     values_in_null_space <- treatment_effect_values <= theta_0
   } else if (null_space == "right") {
@@ -296,6 +313,15 @@ preposterior_proba_TP <- function(conditional_proba_success,
                                   theta_0,
                                   null_space,
                                   design_prior_pdf) {
+  input_lengths <- c(
+    length(conditional_proba_success),
+    length(treatment_effect_values),
+    length(design_prior_pdf)
+  )
+  if (length(unique(input_lengths)) != 1L) {
+    stop("Probability, treatment-effect, and prior-density vectors must have the same length.")
+  }
+
   if (null_space == "left") {
     values_in_alt_space <- treatment_effect_values > theta_0
   } else if (null_space == "right") {
