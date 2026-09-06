@@ -73,8 +73,8 @@ test_that("sample_rate_ratios samples rate ratios correctly", {
 # Test sample_aggregate_normal_data function
 test_that("sample_aggregate_normal_data samples aggregate normal data correctly", {
   result <- sample_aggregate_normal_data(10, 5, 10, 100)
-  expect_equal(length(result$sample_mean), 10)
-  expect_equal(length(result$sample_standard_error), 10)
+  expect_equal(length(result$treatment_effect_estimate), 10)
+  expect_equal(length(result$treatment_effect_standard_error), 10)
 })
 
 # Test sample_aggregate_binary_data function
