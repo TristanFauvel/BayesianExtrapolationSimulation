@@ -462,7 +462,7 @@ ObservedSourceData <- R6::R6Class(
       } else if (self$endpoint == "recurrent_event") {
         self$treatment_effect_estimate <- case_study_config$source$treatment_effect
         self$standard_error <- case_study_config$source$standard_error
-        self$control_rate <- case_study_config$sourc$control_rate
+        self$control_rate <- case_study_config[["source"]]$control_rate
         self$treatment_rate <- case_study_config$source$treatment_rate
         assertions::assert_number(self$treatment_rate)
         assertions::assert_number(self$control_rate)

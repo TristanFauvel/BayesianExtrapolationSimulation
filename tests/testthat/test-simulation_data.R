@@ -98,3 +98,24 @@ test_that("SourceData preserves the observed binary control rate by default", {
 
   expect_equal(source_data$control_rate, 0.2)
 })
+
+test_that("ObservedSourceData reads recurrent-event rates from source config", {
+  case_study_config <- list(
+    endpoint = "recurrent_event",
+    summary_measure_likelihood = "normal",
+    source = list(
+      control = 100,
+      treatment = 120,
+      treatment_effect = -0.2,
+      standard_error = 0.1,
+      control_rate = 0.8,
+      treatment_rate = 0.65
+    ),
+    source_metadata = list(description = "prevents partial matching")
+  )
+
+  source_data <- ObservedSourceData$new(case_study_config)
+
+  expect_equal(source_data$control_rate, 0.8)
+  expect_equal(source_data$treatment_rate, 0.65)
+})
