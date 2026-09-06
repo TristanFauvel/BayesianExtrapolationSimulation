@@ -218,6 +218,13 @@ simulation_frequentist_ocs <- function(env,
                                        config_dir,
                                        case_studies_config_dir,
                                        logging_file_path){
+  case_studies <- scenarios_config$case_studies
+  methods <- scenarios_config$methods
+
+  if (length(case_studies) == 0 || length(methods) == 0) {
+    stop("Select at least one case study and one method to run the simulation.")
+  }
+
   # Create scenarios and create a summary table
   cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
 
@@ -225,16 +232,9 @@ simulation_frequentist_ocs <- function(env,
 
   results_dir <- paste0("./results/", env, "/", "frequentist")
 
-  case_studies <- scenarios_config$case_studies
-  methods <- scenarios_config$methods
-
   if (!(any("separate" %in% methods))) {
     warning("Separate analysis not included in the methods.")
     futile.logger::flog.warn("Separate analysis not included in the methods.")
-  }
-
-  if (length(case_studies) == 0 & length(methods) == 0) {
-    stop("Select at least one case study and one method to run the simulation.")
   }
 
   for (case_study in case_studies) {
