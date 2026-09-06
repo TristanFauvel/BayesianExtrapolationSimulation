@@ -325,6 +325,13 @@ compute_power_with_tie_ci <- function(alpha,
   # Ensure alpha values stay within valid bounds (0, 1)
   alpha_samples <- alpha_samples[alpha_samples > 0 & alpha_samples < 1]
 
+  if (length(alpha_samples) == 0L) {
+    return(list(
+      power = NA_real_,
+      conf_int_power = rep(NA_real_, 2)
+    ))
+  }
+
   # Compute power for each sampled alpha
   power_samples <- sapply(alpha_samples, function(alpha) {
     compute_freq_power(

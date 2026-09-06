@@ -111,3 +111,23 @@ test_that("compute_power_with_tie_ci preserves its return structure for a missin
   expect_true(is.na(result$power))
   expect_equal(result$conf_int_power, rep(NA_real_, 2))
 })
+
+test_that("compute_power_with_tie_ci handles an empty valid alpha sample", {
+  result <- compute_power_with_tie_ci(
+    alpha = list(
+      mean = 0,
+      conf_int_lower = 0,
+      conf_int_upper = 0
+    ),
+    target_data = NULL,
+    frequentist_test = "t-test",
+    theta_0 = 0,
+    null_space = "left",
+    simulation_config = list(),
+    n_samples = 10
+  )
+
+  expect_named(result, c("power", "conf_int_power"))
+  expect_true(is.na(result$power))
+  expect_equal(result$conf_int_power, rep(NA_real_, 2))
+})
