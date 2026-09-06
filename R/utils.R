@@ -759,7 +759,7 @@ load_data <- function(results_row, type, reload_data_objects = FALSE) {
 
       if (is.null(data$equivalent_source_sample_size_per_arm) |
           any(is.na(data$equivalent_source_sample_size_per_arm))) {
-        data$equivalent_source_sample_size_per_arm <- 2 * data$sample_size_control * data$sample_size_treatment / (data$sample_size_control + source_data$sample_size_treatment)
+        data$equivalent_source_sample_size_per_arm <- 2 * data$sample_size_control * data$sample_size_treatment / (data$sample_size_control + data$sample_size_treatment)
       }
     }
   }
