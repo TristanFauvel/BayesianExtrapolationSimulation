@@ -7,8 +7,10 @@
 bayesian_ocs_scenario_simulation(
   scenario,
   simulation_config,
+  scenarios_config,
   bayes_filename,
-  config_dir
+  config_dir,
+  case_studies_config_dir
 )
 }
 \arguments{
@@ -16,9 +18,13 @@ bayesian_ocs_scenario_simulation(
 
 \item{simulation_config}{Simulation configuration}
 
+\item{scenarios_config}{Scenario-generation configuration}
+
 \item{bayes_filename}{Results were results are stored for Bayesian OCs}
 
 \item{config_dir}{Configuration files directory}
+
+\item{case_studies_config_dir}{Case-study configuration directory}
 }
 \value{
 The results of the simulation.

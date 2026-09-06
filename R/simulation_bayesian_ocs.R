@@ -6,14 +6,18 @@ library(foreach)
 #'
 #' @param scenario The scenario to simulate.
 #' @param simulation_config Simulation configuration
+#' @param scenarios_config Scenario-generation configuration
 #' @param bayes_filename Results were results are stored for Bayesian OCs
 #' @param config_dir Configuration files directory
+#' @param case_studies_config_dir Case-study configuration directory
 #' @return The results of the simulation.
 #' @export
 bayesian_ocs_scenario_simulation <- function(scenario,
                                              simulation_config,
+                                             scenarios_config,
                                              bayes_filename,
-                                             config_dir) {
+                                             config_dir,
+                                             case_studies_config_dir) {
   set.seed(simulation_config$seed)
 
   target_sample_size_per_arm <- scenario$target_sample_size_per_arm[[1]]
@@ -49,10 +53,13 @@ bayesian_ocs_scenario_simulation <- function(scenario,
   json_parameters <- format_parameters_to_json(scenario$parameters)
 
   # Estimate the Bayesian OCs for the model in the scenario considered
-  design_prior_types <- cbind("ui_design_prior", "analysis_prior", "source_posterior")
+  design_prior_types <- c("ui_design_prior", "analysis_prior", "source_posterior")
 
   # Get the current RNG state
-  computation_state <- list(rng_state = .Random.seed, computation_time = 0)
+  computation_state <- list(
+    rng_state = jsonlite::toJSON(.Random.seed),
+    computation_time = 0
+  )
 
   for (design_prior_type in design_prior_types) {
     results_bayesian_ocs <- estimate_bayesian_ocs(
@@ -65,6 +72,7 @@ bayesian_ocs_scenario_simulation <- function(scenario,
       theta_0 = theta_0,
       n_replicates = n_replicates,
       critical_value = critical_value,
+      computation_state = computation_state,
       design_prior_type = design_prior_type,
       json_parameters = json_parameters,
       simulation_config = simulation_config,
@@ -73,9 +81,6 @@ bayesian_ocs_scenario_simulation <- function(scenario,
     )
 
     results_bayesian_ocs$source_denominator <- unlist(results_bayesian_ocs$source_denominator)
-
-    results_bayesian_ocs$rng_state <- jsonlite::toJSON(computation_state$rng_state, pretty = TRUE)
-    results_bayesian_ocs$computation_time <- computation_state$computation_time
 
     if (design_prior_type == "ui_design_prior") {
       results_bayesian_ocs_ui_design_prior <- results_bayesian_ocs
@@ -96,7 +101,7 @@ bayesian_ocs_scenario_simulation <- function(scenario,
   if (scenarios_config$parallelization == FALSE) {
     if (!file.exists(bayes_filename)) {
       # Get the column names
-      fieldnames_bayes <- colnames(results_bayesian_ocs)
+      fieldnames_bayes <- colnames(combined_results)
 
       # Create an empty data frame with these column names
       empty_df <- data.frame(matrix(ncol = length(fieldnames_bayes), nrow = 0))
@@ -113,10 +118,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
       )
     }
 
-    bayes_file <- file(bayes_filename, "a")
-
     write.table(
-      results_bayesian_ocs,
+      combined_results,
       file = bayes_filename,
       sep = ",",
       col.names = FALSE,
@@ -170,7 +173,8 @@ estimate_bayesian_ocs <- function(scenario,
     source_data = source_data,
     case_study_config = case_study_config,
     simulation_config = simulation_config,
-    mcmc_config = mcmc_config
+    mcmc_config = mcmc_config,
+    case_study = scenario$case_study[[1]]
   )
   start_time <- Sys.time()
 
@@ -310,8 +314,10 @@ simulation_bayesian_ocs <- function(env,
           results <- bayesian_ocs_scenario_simulation(
             scenario = scenario,
             simulation_config = simulation_config,
+            scenarios_config = scenarios_config,
             bayes_filename = bayes_filename,
-            config_dir = config_dir
+            config_dir = config_dir,
+            case_studies_config_dir = case_studies_config_dir
           )
           progress(i)
         }
@@ -363,8 +369,10 @@ simulation_bayesian_ocs <- function(env,
           scenario <- cases[i, ]
           bayesian_ocs_scenario_simulation(scenario,
                                            simulation_config,
+                                           scenarios_config,
                                            bayes_filename,
-                                           config_dir)
+                                           config_dir,
+                                           case_studies_config_dir)
         }
         write_csv(results, bayes_filename)
         parallel::stopCluster(cl)
