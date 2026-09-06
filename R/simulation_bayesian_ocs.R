@@ -330,7 +330,7 @@ simulation_bayesian_ocs <- function(env,
           close(bayes_file)
         }
       } else {
-        ncores <- min(parallel::detectCores() - 1, 8) # Leave on core free
+        ncores <- get_parallel_worker_count(max_workers = 8L)
 
         # Set a range of ports for cluster
         options(clusterPort = c(11000, 11999))

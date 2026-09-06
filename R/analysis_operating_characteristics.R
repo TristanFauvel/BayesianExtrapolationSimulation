@@ -431,7 +431,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 
   if (parallelization == TRUE){
     # Set up parallel backend
-    n_cores <- parallel::detectCores() - 1
+    n_cores <- get_parallel_worker_count()
     cl <- parallel::makeCluster(n_cores)
     doParallel::registerDoParallel(cl)
 

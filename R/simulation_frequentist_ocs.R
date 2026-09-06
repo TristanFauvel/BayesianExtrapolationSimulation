@@ -325,7 +325,7 @@ simulation_frequentist_ocs <- function(env,
           close(freq_file)
         }
       } else {
-        ncores <- min(parallel::detectCores() - 1, 96) # Leave on core free
+        ncores <- get_parallel_worker_count(max_workers = 96L)
 
         # Set a range of ports for cluster
         options(clusterPort = c(11000, 11999))
