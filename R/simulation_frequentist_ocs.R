@@ -335,7 +335,7 @@ simulation_frequentist_ocs <- function(env,
         doParallel::registerDoParallel(cl)
 
         # Define the list of libraries to load
-        required_libraries <- c("devtools")
+        required_libraries <- c("RBExT")
 
         # Export the library paths to each worker
         paths <- .libPaths()
@@ -358,7 +358,6 @@ simulation_frequentist_ocs <- function(env,
         parallel::clusterEvalQ(cl, {
           .libPaths(paths)
           sapply(required_libraries, library, character.only = TRUE)
-          devtools::load_all()
         })
 
         # Parallel computation over cases

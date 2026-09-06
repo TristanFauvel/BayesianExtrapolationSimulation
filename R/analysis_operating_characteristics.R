@@ -436,7 +436,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     doParallel::registerDoParallel(cl)
 
     required_libraries <- c(
-      "pwr", "dplyr", "yaml", "BSDA"
+      "RBExT", "pwr", "dplyr", "yaml", "BSDA"
     )
 
     # Export necessary functions and objects to the cluster
@@ -449,7 +449,6 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     parallel::clusterEvalQ(cl, {
       .libPaths(paths)
       sapply(required_libraries, library, character.only = TRUE)
-      devtools::load_all()
     })
 
     # Use foreach for parallel computation
