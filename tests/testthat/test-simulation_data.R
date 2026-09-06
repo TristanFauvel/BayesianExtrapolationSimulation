@@ -265,3 +265,73 @@ test_that("sample_exponential_arm_statistics matches patient-level simulation", 
     stats::ks.test(patient_level[2, ], result$exposure)$p.value
   ), 0.001)
 })
+
+# Test negative_binomial_regression / negative_binomial_inverse_dispersion
+test_that("negative_binomial_regression estimates the rate by the sample mean", {
+  set.seed(515)
+  counts <- stats::rnbinom(60, size = 0.8, mu = 1.74)
+  result <- negative_binomial_regression(counts)
+
+  # The intercept-only maximum likelihood estimate of the mean is exactly the
+  # sample mean, whatever the dispersion
+  expect_identical(result$rate_estimate, mean(counts))
+  expect_equal(result$se_rate, result$se_log_rate * result$rate_estimate)
+  expect_true(is.finite(result$se_log_rate) && result$se_log_rate > 0)
+})
+
+test_that("negative_binomial_inverse_dispersion falls back to the Poisson limit", {
+  # Underdispersed data: the profile likelihood is maximised at 1 / theta = 0
+  counts <- c(2, 2, 2, 3, 2, 2, 3, 2, 2, 2)
+  expect_true(sum((counts - mean(counts))^2) <= length(counts) * mean(counts))
+  expect_equal(
+    RBExT:::negative_binomial_inverse_dispersion(counts, mean(counts)),
+    0
+  )
+
+  # ... so the standard error reduces to the Poisson one
+  result <- negative_binomial_regression(counts)
+  expect_equal(
+    result$se_log_rate,
+    sqrt(1 / (length(counts) * mean(counts)))
+  )
+})
+
+test_that("negative_binomial_inverse_dispersion maximises the profile likelihood", {
+  profile_loglikelihood <- function(counts, theta) {
+    n_observations <- length(counts)
+    rate <- mean(counts)
+    sum(lgamma(counts + theta) - lgamma(theta)) +
+      n_observations * theta * log(theta / (theta + rate)) +
+      sum(counts) * log(rate / (rate + theta))
+  }
+
+  set.seed(616)
+  for (n_observations in c(9, 25, 100)) {
+    counts <- stats::rnbinom(n_observations, size = 0.8, mu = 1.74)
+    inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
+      counts, mean(counts)
+    )
+    if (inverse_dispersion == 0) next
+
+    theta <- 1 / inverse_dispersion
+    best <- profile_loglikelihood(counts, theta)
+
+    # No neighbouring theta, and not the Poisson boundary, does better
+    neighbours <- theta * c(0.5, 0.9, 0.99, 1.01, 1.1, 2)
+    expect_true(all(vapply(
+      neighbours,
+      function(candidate) profile_loglikelihood(counts, candidate),
+      numeric(1)
+    ) <= best + 1e-8))
+    expect_gt(best, profile_loglikelihood(counts, 1e10))
+  }
+})
+
+test_that("negative_binomial_regression handles all-zero data", {
+  expect_warning(
+    result <- negative_binomial_regression(rep(0, 20)),
+    "All values are zero"
+  )
+  expect_true(is.finite(result$rate_estimate))
+  expect_true(is.finite(result$se_log_rate))
+})

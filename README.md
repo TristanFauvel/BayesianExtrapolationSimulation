@@ -22,7 +22,7 @@ Download the latest release.
 You can then install the RBExT package by running :
 
 ```
-install.packages("/path/to/RBExT_0.0.1.tar.gz", repos = NULL, type = "source")
+install.packages("/path/to/RBExT_0.0.2.tar.gz", repos = NULL, type = "source")
 ```
 
 and load it using:

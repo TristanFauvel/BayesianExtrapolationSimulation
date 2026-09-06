@@ -10,7 +10,6 @@
 #' @importFrom knitr opts_chunk
 #' @importFrom latex2exp TeX
 #' @importFrom jsonlite write_json toJSON
-#' @importFrom MASS glm.nb
 #' @importFrom gridExtra grid.arrange
 #' @importFrom kableExtra pack_rows add_header_above kable_styling collapse_rows
 #' @importFrom RBesT sigma ess mixnorm postmix automixfit
