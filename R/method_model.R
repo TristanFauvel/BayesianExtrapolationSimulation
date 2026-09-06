@@ -426,26 +426,35 @@ Model <- R6::R6Class(
                                                        "test_decision",
                                                        "posterior_mean",
                                                        "posterior_median",
+                                                       "posterior_parameters",
                                                        "ess_moment",
                                                        "ess_precision",
+                                                       "ess_elir",
+                                                       "fit_success",
                                                        "mcmc_diagnostics"
                                                      ),
                                                      verbose = 0,
                                                      n_samples_quantiles_estimation) {
       assert_whole_number(n_replicates)
-      test_decisions <- numeric(n_replicates)
-      posterior_means <- numeric(n_replicates)
-      posterior_medians <- numeric(n_replicates)
-      credible_intervals <- matrix(numeric(2 * n_replicates), nrow = n_replicates)
-      prior_proba_no_benefit <- numeric(n_replicates)
-      ess_moments <- numeric(n_replicates)
-      ess_precisions <- numeric(n_replicates)
-      ess_elir <- numeric(n_replicates)
+
+      requested <- function(output) output %in% to_return
+
+      test_decisions <- if (requested("test_decision")) numeric(n_replicates) else NULL
+      posterior_means <- if (requested("posterior_mean")) numeric(n_replicates) else NULL
+      posterior_medians <- if (requested("posterior_median")) numeric(n_replicates) else NULL
+      credible_intervals <- if (requested("credible_interval")) {
+        matrix(numeric(2 * n_replicates), nrow = n_replicates)
+      } else {
+        NULL
+      }
+      ess_moments <- if (requested("ess_moment")) numeric(n_replicates) else NULL
+      ess_precisions <- if (requested("ess_precision")) numeric(n_replicates) else NULL
+      ess_elir <- if (requested("ess_elir")) numeric(n_replicates) else NULL
       posterior_parameters <- NULL
-      fit_success <- numeric(n_replicates)
-      mcmc_ess <- numeric(n_replicates)
-      rhat <- numeric(n_replicates)
-      n_divergences <- numeric(n_replicates)
+      fit_success <- if (requested("fit_success")) character(n_replicates) else NULL
+      mcmc_ess <- if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
+      rhat <- if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
+      n_divergences <- if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
 
       for (string in to_return) {
         if (!(
@@ -454,9 +463,11 @@ Model <- R6::R6Class(
             "test_decision",
             "posterior_mean",
             "posterior_median",
+            "posterior_parameters",
             "ess_moment",
             "ess_precision",
             "ess_elir",
+            "fit_success",
             "mcmc_diagnostics"
           )
         )) {
@@ -475,23 +486,31 @@ Model <- R6::R6Class(
           target_data$sample <- target_data_samples[r, ]
 
           # Fit the model
-          fit_success[r] <- self$inference(target_data = target_data)
+          inference_status <- self$inference(target_data = target_data)
+
+          if (requested("fit_success")) {
+            fit_success[r] <- inference_status
+          }
 
           assertions::assert_number(self$post_mean)
 
-          posterior_means[r] <- self$post_mean
-
-          if (is.null(self$post_median)) {
-            posterior_medians[r] <- self$posterior_median(n_samples_quantiles_estimation)
-          } else {
-            posterior_medians[r] <- self$post_median
+          if (requested("posterior_mean")) {
+            posterior_means[r] <- self$post_mean
           }
 
-          if ("credible_interval" %in% to_return) {
+          if (requested("posterior_median")) {
+            if (is.null(self$post_median)) {
+              posterior_medians[r] <- self$posterior_median(n_samples_quantiles_estimation)
+            } else {
+              posterior_medians[r] <- self$post_median
+            }
+          }
+
+          if (requested("credible_interval")) {
             credible_intervals[r, ] <- self$credible_interval(level = confidence_level)
           }
 
-          if ("test_decision" %in% to_return) {
+          if (requested("test_decision")) {
             test_decisions[r] <- self$test_decision(
               critical_value = critical_value,
               theta_0 = theta_0,
@@ -500,30 +519,31 @@ Model <- R6::R6Class(
             )
           }
 
-          if (is.null(posterior_parameters) &&
-              !is.null(self$posterior_parameters)) {
-            posterior_parameters <- data.frame(self$posterior_parameters)
-          } else if (!is.null(self$posterior_parameters)) {
-            posterior_parameters <- rbind(posterior_parameters,
-                                          data.frame(self$posterior_parameters))
+          if (requested("posterior_parameters")) {
+            if (is.null(posterior_parameters) &&
+                !is.null(self$posterior_parameters)) {
+              posterior_parameters <- data.frame(self$posterior_parameters)
+            } else if (!is.null(self$posterior_parameters)) {
+              posterior_parameters <- rbind(posterior_parameters,
+                                            data.frame(self$posterior_parameters))
+            }
           }
 
-          if ("ess_moment" %in% to_return ||
-              "ess_precision" %in% to_return) {
+          if (requested("ess_moment") || requested("ess_precision")) {
 
             self$posterior_to_RBesT(target_data = target_data, simulation_config)
-            if ("ess_moment" %in% to_return) {
+            if (requested("ess_moment")) {
               ess_moments[r] <- prior_moment_ess(rbest_model = self$RBesT_posterior_normix,
                                                  target_data = target_data)
             }
 
-            if ("ess_precision" %in% to_return) {
+            if (requested("ess_precision")) {
               ess_precisions[r] <- prior_precision_ess(rbest_model = self$RBesT_posterior_normix,
                                                        target_data = target_data)
             }
           }
 
-          if ("ess_elir" %in% to_return) {
+          if (requested("ess_elir")) {
             if (r == 1 || self$empirical_bayes == TRUE){
               # Only Empirical Bayes Methods have a prior that varies from on replicate to another
               self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
@@ -538,7 +558,7 @@ Model <- R6::R6Class(
                                           target_data = target_data)
           }
 
-          if ("mcmc_diagnostics" %in% to_return & self$mcmc) {
+          if (requested("mcmc_diagnostics") && self$mcmc) {
             # If the target ESS is not reached, start the iteration again, increasing the chain length, unless it is already at the maximal value allowed, which is 3x the required ESS.
             # If the target ESS is reached by a large factor, decrease the chain length and proceed to the next iteration.
             factor <- self$mcmc_ess / self$mcmc_config$target_ess
@@ -607,9 +627,6 @@ Model <- R6::R6Class(
           ess_elir = ess_elir,
           fit_success = fit_success,
           mcmc_ess = mcmc_ess,
-          test_decisions = test_decisions,
-          n_divergences = n_divergences,
-          mcmc_ess = mcmc_ess,
           rhat = rhat,
           n_divergences = n_divergences
         )
@@ -658,9 +675,11 @@ Model <- R6::R6Class(
         "posterior_mean",
         "posterior_median",
         "credible_interval",
+        "posterior_parameters",
         "ess_precision",
         "ess_moment",
         "ess_elir",
+        "fit_success",
         "mcmc_diagnostics"
       )
 
