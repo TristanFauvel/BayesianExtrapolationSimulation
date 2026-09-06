@@ -300,7 +300,7 @@ SourceData <- R6::R6Class("SourceData",
                                   # Observed source data (required for the treatment effect estimate in the source data):
 
                                   if (is.na(source_denominator)) {
-                                    odds_control <- self$control_rate / (1 - self$treatment_rate)
+                                    odds_control <- self$control_rate / (1 - self$control_rate)
                                   } else {
                                     odds_control <- source_denominator
                                   }

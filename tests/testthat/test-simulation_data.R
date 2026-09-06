@@ -78,3 +78,19 @@ test_that("sample_aggregate_binary_data samples aggregate binary data correctly"
   result <- sample_aggregate_binary_data(0.3, 100, 10)
   expect_equal(length(result), 10)
 })
+
+test_that("SourceData preserves the observed binary control rate by default", {
+  case_study_config <- list(
+    endpoint = "binary",
+    summary_measure_likelihood = "normal",
+    source = list(
+      control = 100,
+      treatment = 100,
+      responses = list(control = 20, treatment = 30)
+    )
+  )
+
+  source_data <- SourceData$new(case_study_config)
+
+  expect_equal(source_data$control_rate, 0.2)
+})
