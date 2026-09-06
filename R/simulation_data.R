@@ -225,7 +225,7 @@ sample_rate_ratios <- function(control_rate,
                                n_control,
                                n_treatment) {
   sample_treatment_rate <- sample_aggregate_binary_data(treatment_rate, n_treatment, n_replicates)
-  sample_control_rate <- sample_aggregate_binary_data(control_rate, n_treatment, n_replicates)
+  sample_control_rate <- sample_aggregate_binary_data(control_rate, n_control, n_replicates)
 
   return(sample_treatment_rate / sample_control_rate)
 }

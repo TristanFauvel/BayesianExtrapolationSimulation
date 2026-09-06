@@ -55,8 +55,15 @@ test_that("sample_log_odds_ratios samples log odds ratios correctly", {
 
 # Test sample_rate_ratios function
 test_that("sample_rate_ratios samples rate ratios correctly", {
+  set.seed(123)
   result <- sample_rate_ratios(0.3, 0.2, 10, 100, 200)
+
+  set.seed(123)
+  expected <- sample_aggregate_binary_data(0.2, 200, 10) /
+    sample_aggregate_binary_data(0.3, 100, 10)
+
   expect_equal(length(result), 10)
+  expect_equal(result, expected)
 })
 
 # Test sample_aggregate_normal_data function
