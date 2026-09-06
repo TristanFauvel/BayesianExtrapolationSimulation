@@ -93,6 +93,14 @@ rate_from_drift_logRR <- function(arm_drift, source_rate) {
   return(source_rate * exp(arm_drift))
 }
 
+negative_binomial_variance <- function(mu, k) {
+  mu + mu ^ 2 / k
+}
+
+sample_negative_binomial <- function(n, mu, k) {
+  stats::rnbinom(n = n, size = k, mu = mu)
+}
+
 #' Compute odds ratios based on the number of participants and responders in each arm
 #'
 #' @description This function computes odds ratios based on the number of participants and responders in the control and treatment arms.
@@ -354,14 +362,14 @@ SourceData <- R6::R6Class("SourceData",
 
                                 mu_treatment <- self$treatment_rate # Mean of the first rate
                                 mu_control <- self$control_rate # Mean of the second rate
-                                k_treatment <- 0.8 # Size parameter of the first negative binomial distribution
-                                k_control <- 0.8 # Size parameter of the second negative binomial distribution
+                                k_treatment <- 0.8 # Size parameter for the treatment arm
+                                k_control <- 0.8 # Size parameter for the control arm
                                 n_treatment <- case_study_config$source$treatment # Sample size for the first rate
                                 n_control <- case_study_config$source$control # Sample size for the second rate
 
                                 # Compute the standard deviations for the negative binomial distributions
-                                sigma_treatment <- sqrt(mu_treatment + (mu_treatment ^ 2 / k_treatment))
-                                sigma_control <- sqrt(mu_control + (mu_control ^ 2 / k_control))
+                                sigma_treatment <- sqrt(negative_binomial_variance(mu_treatment, k_treatment))
+                                sigma_control <- sqrt(negative_binomial_variance(mu_control, k_control))
 
                                 # Compute the standard errors of the rates
                                 SE_R_treatment <- sigma_treatment / sqrt(n_treatment)
@@ -1000,14 +1008,18 @@ negative_binomial_regression <- function(input_data) {
 #' Recurrent Event Target Data
 #'
 #' @description This class represents target data for recurrent event analysis.
+#' It inherits from the TargetData class.
 #' @field control_rate Rate in the control arm of the target study
 #' @field treatment_rate Rate in the treatment arm of the target study
-#' It inherits from the TargetData class.
+#' @field k_treatment Negative-binomial size parameter in the treatment arm
+#' @field k_control Negative-binomial size parameter in the control arm
 RecurrentEventTargetData <- R6::R6Class(
   inherit = TargetData,
   public = list(
     control_rate = NULL,
     treatment_rate = NULL,
+    k_treatment = NULL,
+    k_control = NULL,
     #
     #' @description Initialize the RecurrentEventTargetData object
     #'
@@ -1017,8 +1029,8 @@ RecurrentEventTargetData <- R6::R6Class(
     #' @param control_drift The control drift.
     #' @param treatment_drift The treatment drift.
     #' @param summary_measure_likelihood The summary measure distribution.
-    #' @param k_treatment Inverse of the size parameter for the negative binomial distribution for the treatment arm.
-    #' @param k_control  Inverse of the size parameter for the negative binomial distribution for the control  arm.
+    #' @param k_treatment Size parameter for the negative binomial distribution in the treatment arm.
+    #' @param k_control Size parameter for the negative binomial distribution in the control arm.
     initialize = function(source_data,
                           sampling_approximation,
                           target_sample_size_per_arm,
@@ -1039,6 +1051,13 @@ RecurrentEventTargetData <- R6::R6Class(
         stop("Invalid endpoint")
       }
       self$sample_size_per_arm <- target_sample_size_per_arm
+      assertions::assert_number(k_treatment)
+      assertions::assert_number(k_control)
+      if (k_treatment <= 0 || k_control <= 0) {
+        stop("Negative-binomial size parameters must be positive.")
+      }
+      self$k_treatment <- k_treatment
+      self$k_control <- k_control
 
       self$control_rate <- rate_from_drift_logRR(control_drift, source_data$control_rate)
       self$treatment_rate <- rate_from_drift_logRR(treatment_drift, source_data$treatment_rate)
@@ -1060,14 +1079,12 @@ RecurrentEventTargetData <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         mu_treatment <- self$treatment_rate # Mean of the first rate
         mu_control <- self$control_rate # Mean of the second rate
-        k_treatment <- k_treatment # Size parameter of the first negative binomial distribution
-        k_control <- k_control # Size parameter of the second negative binomial distribution
         n_treatment <- self$sample_size_per_arm # Sample size for the first rate
         n_control <- self$sample_size_per_arm # Sample size for the second rate
 
         # Compute the standard deviations for the negative binomial distributions
-        sigma_treatment <- sqrt(mu_treatment + (mu_treatment ^ 2 / k_treatment))
-        sigma_control <- sqrt(mu_control + (mu_control ^ 2 / k_control))
+        sigma_treatment <- sqrt(negative_binomial_variance(mu_treatment, self$k_treatment))
+        sigma_control <- sqrt(negative_binomial_variance(mu_control, self$k_control))
 
         # Compute the standard errors of the rates
         SE_R_treatment <- sigma_treatment / sqrt(n_treatment)
@@ -1099,9 +1116,6 @@ RecurrentEventTargetData <- R6::R6Class(
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
-        # Parameters for data generation
-        size <- 1 / 0.8 # size parameter, related to dispersion k=0.8 mentioned in Ortega et al (2014)
-
         treatment_rate <- self$treatment_rate
         control_rate <- self$control_rate
 
@@ -1111,12 +1125,16 @@ RecurrentEventTargetData <- R6::R6Class(
 
         for (i in 1:n_replicates) {
           # Generate the patient-level data by sampling from negative binomial distributions
-          target_data_control <- rnbinom(self$sample_size_per_arm,
-                                         size = size,
-                                         mu = control_rate)
-          target_data_treatment <- rnbinom(self$sample_size_per_arm,
-                                           size = size,
-                                           mu = treatment_rate)
+          target_data_control <- sample_negative_binomial(
+            n = self$sample_size_per_arm,
+            mu = control_rate,
+            k = self$k_control
+          )
+          target_data_treatment <- sample_negative_binomial(
+            n = self$sample_size_per_arm,
+            mu = treatment_rate,
+            k = self$k_treatment
+          )
 
           treatment <- negative_binomial_regression(input_data = target_data_treatment)
 

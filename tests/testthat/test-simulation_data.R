@@ -119,3 +119,82 @@ test_that("ObservedSourceData reads recurrent-event rates from source config", {
   expect_equal(source_data$control_rate, 0.8)
   expect_equal(source_data$treatment_rate, 0.65)
 })
+
+test_that("recurrent-event size parameter is used consistently", {
+  case_study_config <- list(
+    endpoint = "recurrent_event",
+    summary_measure_likelihood = "normal",
+    sampling_approximation = TRUE,
+    source = list(
+      control = 100,
+      treatment = 120,
+      treatment_effect = log(0.5),
+      standard_error = 0.1,
+      control_rate = 2,
+      treatment_rate = 1
+    )
+  )
+  source_data <- SourceData$new(case_study_config)
+
+  source_variance_treatment <- 1 + 1 ^ 2 / 0.8
+  source_variance_control <- 2 + 2 ^ 2 / 0.8
+  expected_source_se <- sqrt(
+    source_variance_treatment / (120 * 1 ^ 2) +
+      source_variance_control / (100 * 2 ^ 2)
+  )
+  expect_equal(source_data$standard_error, expected_source_se)
+
+  target_data <- RecurrentEventTargetData$new(
+    source_data = source_data,
+    sampling_approximation = TRUE,
+    target_sample_size_per_arm = 50,
+    control_drift = 0,
+    treatment_drift = 0,
+    summary_measure_likelihood = "normal",
+    k_treatment = 0.4,
+    k_control = 0.6
+  )
+  expected_target_sd <- sqrt(
+    (1 + 1 ^ 2 / 0.4) / 1 ^ 2 +
+      (2 + 2 ^ 2 / 0.6) / 2 ^ 2
+  )
+
+  expect_equal(target_data$k_treatment, 0.4)
+  expect_equal(target_data$k_control, 0.6)
+  expect_equal(target_data$standard_deviation, expected_target_sd)
+
+  set.seed(5821)
+  expected_samples <- stats::rnbinom(n = 20, size = 0.4, mu = 1)
+  set.seed(5821)
+  observed_samples <- RBExT:::sample_negative_binomial(n = 20, mu = 1, k = 0.4)
+  expect_identical(observed_samples, expected_samples)
+})
+
+test_that("recurrent-event size parameters must be positive", {
+  case_study_config <- list(
+    endpoint = "recurrent_event",
+    summary_measure_likelihood = "normal",
+    sampling_approximation = TRUE,
+    source = list(
+      control = 100,
+      treatment = 100,
+      treatment_effect = 0,
+      standard_error = 0.1,
+      control_rate = 1,
+      treatment_rate = 1
+    )
+  )
+  source_data <- SourceData$new(case_study_config)
+
+  expect_error(
+    RecurrentEventTargetData$new(
+      source_data = source_data,
+      sampling_approximation = TRUE,
+      target_sample_size_per_arm = 50,
+      treatment_drift = 0,
+      summary_measure_likelihood = "normal",
+      k_treatment = 0
+    ),
+    "size parameters must be positive"
+  )
+})

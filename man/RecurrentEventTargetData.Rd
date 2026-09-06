@@ -5,6 +5,7 @@
 \title{Recurrent Event Target Data}
 \description{
 This class represents target data for recurrent event analysis.
+It inherits from the TargetData class.
 }
 \section{Super class}{
 \code{\link[RBExT:TargetData]{RBExT::TargetData}}
@@ -14,8 +15,11 @@ This class represents target data for recurrent event analysis.
 \describe{
 \item{\code{control_rate}}{Rate in the control arm of the target study}
 
-\item{\code{treatment_rate}}{Rate in the treatment arm of the target study
-It inherits from the TargetData class.}
+\item{\code{treatment_rate}}{Rate in the treatment arm of the target study}
+
+\item{\code{k_treatment}}{Negative-binomial size parameter in the treatment arm}
+
+\item{\code{k_control}}{Negative-binomial size parameter in the control arm}
 }
 \if{html}{\out{</div>}}
 }
@@ -68,10 +72,9 @@ Initialize the RecurrentEventTargetData object
 
 \item{\code{summary_measure_likelihood}}{The summary measure distribution.}
 
-\item{\code{k_treatment}}{Inverse of the size parameter for the negative binomial distribution for the treatment arm.}
+\item{\code{k_treatment}}{Size parameter for the negative binomial distribution in the treatment arm.}
 
-\item{\code{k_control}}{Inverse of the size parameter for the negative binomial distribution for the control  arm.
-Generate target data}
+\item{\code{k_control}}{Size parameter for the negative binomial distribution in the control arm.}
 }
 \if{html}{\out{</div>}}
 }
