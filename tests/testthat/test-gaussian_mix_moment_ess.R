@@ -10,13 +10,14 @@ mock_sigma <- function(mix) {
 }
 
 test_that("gaussian_mix_moment_ess calculates ESS correctly with provided sigma", {
-  with_mock(
-    `RBesT::sigma` = mock_sigma,
+  with_mocked_bindings(
     {
       mix <- mock_mixture()
       expected_result <- 2^2 / 1^2
       result <- gaussian_mix_moment_ess(mix)
       expect_equal(result, expected_result, tolerance = 1e-4)
-    }
+    },
+    sigma = mock_sigma,
+    .package = "RBesT"
   )
 })
