@@ -1,45 +1,49 @@
-test_that("DesignPrior create method returns the expected instance", {
-  # Set up test scenario
-  design_prior_type <- "ui_design_prior"
-  model <- NULL
-  source_data <- NULL
+source_data <- list(
+  summary_measure_likelihood = "normal",
+  standard_error = 0.2,
+  equivalent_source_sample_size_per_arm = 25,
+  treatment_effect_estimate = 0.5
+)
 
-  # Call the create method
-  design_prior <- DesignPrior$create(design_prior_type, model, source_data)
+create_unit_information_prior <- function() {
+  UnitInformationDesignPrior$new(
+    source_data = source_data,
+    case_study_config = list(),
+    case_study = "example",
+    simulation_config = list(),
+    mcmc_config = NULL
+  )
+}
 
-  # Perform assertions on the instance
-  expect_true(inherits(design_prior, "UnitInformationDesignPrior"), "Incorrect instance type")
-  expect_equal(design_prior$design_prior_type, design_prior_type, "Incorrect design prior type")
+test_that("DesignPrior creates a unit-information prior", {
+  design_prior <- DesignPrior$new()$create(
+    design_prior_type = "ui_design_prior",
+    model = NULL,
+    source_data = source_data,
+    case_study_config = list(),
+    simulation_config = list(),
+    mcmc_config = NULL,
+    case_study = "example"
+  )
+
+  expect_s3_class(design_prior, "UnitInformationDesignPrior")
+  expect_equal(design_prior$design_prior_type, "ui_design_prior")
+  expect_equal(design_prior$parameters$mean, 0.5)
+  expect_equal(design_prior$parameters$sd, 1)
 })
 
-test_that("UnitInformationDesignPrior sample method returns the expected samples", {
-  # Set up test scenario
-  n_samples <- 100
+test_that("UnitInformationDesignPrior samples the requested number of values", {
+  design_prior <- create_unit_information_prior()
 
-  # Create an instance of UnitInformationDesignPrior
-  design_prior <- UnitInformationDesignPrior$new(NULL)
+  set.seed(123)
+  samples <- design_prior$sample(100)
 
-  # Call the sample method
-  samples <- design_prior$sample(n_samples)
-
-  # Perform assertions on the samples
-  expect_equal(length(samples), n_samples, "Incorrect number of samples")
-  # Add more assertions as needed
+  expect_length(samples, 100)
+  expect_true(is.numeric(samples))
 })
 
-test_that("UnitInformationDesignPrior cdf method returns the expected cumulative distribution", {
-  # Set up test scenario
-  x <- 0
+test_that("UnitInformationDesignPrior evaluates its normal CDF", {
+  design_prior <- create_unit_information_prior()
 
-  # Create an instance of UnitInformationDesignPrior
-  design_prior <- UnitInformationDesignPrior$new(NULL)
-
-  # Call the cdf method
-  cdf <- design_prior$cdf(x)
-
-  # Perform assertions on the cumulative distribution
-  expect_true(is.numeric(cdf), "CDF should be numeric")
-  # Add more assertions as needed
+  expect_equal(design_prior$cdf(0.5), 0.5)
 })
-
-# Add more test cases for SourcePosteriorDesignPrior and AnalysisPriorDesignPrior classes as needed
