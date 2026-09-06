@@ -24,7 +24,6 @@ simulation_analysis <- function(env,
 
   results_dir <- paste0("./results/", env)
   outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
-  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
   simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
 
   freq_filename <- paste0(results_dir,
@@ -102,7 +101,11 @@ simulation_analysis <- function(env,
     readr::write_csv(combined_results_df, freq_filename)
   }
   if ("sweet_spot" %in% to_compute){
-    sweet_spot_df <- sweet_spot(results_freq_subset, frequentist_metrics)
+    sweet_spot_df <- sweet_spot(
+      results_freq_subset,
+      frequentist_metrics,
+      nominal_tie = analysis_config$nominal_tie
+    )
 
     jsonlite::write_json(sweet_spot_df, paste0(results_dir, "/sweet_spot.json"))
   }

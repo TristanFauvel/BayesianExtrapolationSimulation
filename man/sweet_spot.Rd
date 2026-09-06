@@ -4,13 +4,16 @@
 \alias{sweet_spot}
 \title{Calculate Sweet Spots for Multiple Metrics}
 \usage{
-sweet_spot(results_freq_df, metrics, based_on_CI = TRUE)
+sweet_spot(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie = NULL)
 }
 \arguments{
 \item{results_freq_df}{A dataframe containing the results frequency data with columns
 "case_study", "method", "source_denominator_change_factor", "control_drift", and "target_sample_size_per_arm".}
 
 \item{metrics}{A list of metrics to evaluate. Each metric should have a \code{name} attribute.}
+
+\item{nominal_tie}{The nominal type-I error threshold. Required when \code{metrics}
+includes \code{success_proba}.}
 }
 \value{
 A dataframe containing the sweet spots for each metric, case study, method, and combination
@@ -22,6 +25,6 @@ It determines where the metric differences between two methods cross a reference
 }
 \examples{
 \dontrun{
-results <- sweet_spot(results_freq_df, metrics)
+results <- sweet_spot(results_freq_df, metrics, nominal_tie = 0.025)
 }
 }

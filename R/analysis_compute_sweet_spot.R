@@ -125,15 +125,26 @@ compare_metrics <- function(merged_df, metric, based_on_CI = based_on_CI, suffix
 #' @param results_freq_df A dataframe containing the results frequency data with columns
 #' "case_study", "method", "source_denominator_change_factor", "control_drift", and "target_sample_size_per_arm".
 #' @param metrics A list of metrics to evaluate. Each metric should have a `name` attribute.
+#' @param nominal_tie The nominal type-I error threshold. Required when `metrics`
+#' includes `success_proba`.
 #'
 #' @return A dataframe containing the sweet spots for each metric, case study, method, and combination
 #' of parameters.
 #'
 #' @examples
 #' \dontrun{
-#' results <- sweet_spot(results_freq_df, metrics)
+#' results <- sweet_spot(results_freq_df, metrics, nominal_tie = 0.025)
 #' }
-sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE) {
+sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE, nominal_tie = NULL) {
+
+  includes_success_probability <- any(vapply(
+    metrics,
+    function(metric) identical(metric$name, "success_proba"),
+    logical(1)
+  ))
+  if (includes_success_probability && is.null(nominal_tie)) {
+    stop("nominal_tie must be provided when computing success-probability sweet spots.")
+  }
 
   # Initialize an empty dataframe to store the results
   final_df <- data.frame(
@@ -258,7 +269,7 @@ sweet_spot <- function(results_freq_df, metrics, based_on_CI = TRUE) {
                       )
 
                     if (metric$name == "success_proba") {
-                      method_df$metric_diff <- method_df[["success_proba"]] - analysis_config$nominal_tie
+                      method_df$metric_diff <- method_df[["success_proba"]] - nominal_tie
 
                       # Determine the range of drift values for which the success proba is smaller than the nominal TIE
                       sweet_spot <- sweet_spot_determination(method_df$drift,
