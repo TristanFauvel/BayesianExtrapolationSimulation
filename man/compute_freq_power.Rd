@@ -25,6 +25,12 @@ compute_freq_power(
 \item{theta_0}{Boundary of the null hypothesis space}
 
 \item{null_space}{Side of the null space, either left or right.}
+
+\item{simulation_config}{Simulation configuration.}
+
+\item{case_study}{Optional case-study name.}
+
+\item{n_replicates}{Number of Monte Carlo replicates for non-analytical power calculations.}
 }
 \value{
 The power of the test.

@@ -1,70 +1,79 @@
-# Sample target data for testing
 target_data <- list(
   sample_size_per_arm = 30,
   treatment_effect = 1,
-  standard_deviation = 1
+  standard_deviation = 1,
+  summary_measure_likelihood = "normal",
+  endpoint = "continuous"
 )
 
+compute_test_power <- function(frequentist_test, null_space) {
+  compute_freq_power(
+    alpha = 0.05,
+    target_data = target_data,
+    frequentist_test = frequentist_test,
+    theta_0 = 0,
+    null_space = null_space,
+    simulation_config = list()
+  )
+}
+
 test_that("compute_freq_power works for t-test with left null space", {
-  alpha <- 0.05
-  frequentist_test <- "t-test"
-  theta_0 <- 0
-  null_space <- "left"
-  result <- compute_freq_power(alpha, target_data, frequentist_test, theta_0, null_space)
+  result <- compute_test_power("t-test", "left")
+  expected_power <- pwr::pwr.t.test(
+    d = 1,
+    n = 30,
+    sig.level = 0.05,
+    type = "one.sample",
+    alternative = "greater"
+  )$power
 
-  effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
-  expected_power <- pwr::pwr.t.test(d = effect_size, n = target_data$sample_size_per_arm, sig.level = alpha, type = "two.sample", alternative = "greater")$power
-
-  expect_equal(result, expected_power, tolerance = 1e-6)
+  expect_equal(result$power, expected_power, tolerance = 1e-6)
+  expect_equal(result$conf_int_power, rep(expected_power, 2))
 })
 
 test_that("compute_freq_power works for t-test with right null space", {
-  alpha <- 0.05
-  frequentist_test <- "t-test"
-  theta_0 <- 0
-  null_space <- "right"
-  result <- compute_freq_power(alpha, target_data, frequentist_test, theta_0, null_space)
+  result <- compute_test_power("t-test", "right")
+  expected_power <- pwr::pwr.t.test(
+    d = 1,
+    n = 30,
+    sig.level = 0.05,
+    type = "one.sample",
+    alternative = "less"
+  )$power
 
-  effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
-  expected_power <- pwr::pwr.t.test(d = effect_size, n = target_data$sample_size_per_arm, sig.level = alpha, type = "two.sample", alternative = "less")$power
-
-  expect_equal(result, expected_power, tolerance = 1e-6)
+  expect_equal(result$power, expected_power, tolerance = 1e-6)
+  expect_equal(result$conf_int_power, rep(expected_power, 2))
 })
 
 test_that("compute_freq_power works for z-test with left null space", {
-  alpha <- 0.05
-  frequentist_test <- "z-test"
-  theta_0 <- 0
-  null_space <- "left"
-  result <- compute_freq_power(alpha, target_data, frequentist_test, theta_0, null_space)
+  result <- compute_test_power("z-test", "left")
+  expected_power <- pwr::pwr.norm.test(
+    d = 1,
+    n = 30,
+    sig.level = 0.05,
+    alternative = "greater"
+  )$power
 
-  effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
-  expected_power <- pwr::pwr.norm.test(d = effect_size, n = target_data$sample_size_per_arm, sig.level = alpha, alternative = "greater")$power
-
-  expect_equal(result, expected_power, tolerance = 1e-6)
+  expect_equal(result$power, expected_power, tolerance = 1e-6)
+  expect_equal(result$conf_int_power, rep(expected_power, 2))
 })
 
 test_that("compute_freq_power works for z-test with right null space", {
-  alpha <- 0.05
-  frequentist_test <- "z-test"
-  theta_0 <- 0
-  null_space <- "right"
-  result <- compute_freq_power(alpha, target_data, frequentist_test, theta_0, null_space)
+  result <- compute_test_power("z-test", "right")
+  expected_power <- pwr::pwr.norm.test(
+    d = 1,
+    n = 30,
+    sig.level = 0.05,
+    alternative = "less"
+  )$power
 
-  effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
-  expected_power <- pwr::pwr.norm.test(d = effect_size, n = target_data$sample_size_per_arm, sig.level = alpha, alternative = "less")$power
-
-  expect_equal(result, expected_power, tolerance = 1e-6)
+  expect_equal(result$power, expected_power, tolerance = 1e-6)
+  expect_equal(result$conf_int_power, rep(expected_power, 2))
 })
 
-test_that("compute_freq_power throws error for invalid null space", {
-  alpha <- 0.05
-  frequentist_test <- "t-test"
-  theta_0 <- 0
-  null_space <- "middle"
-
+test_that("compute_freq_power rejects an invalid null space", {
   expect_error(
-    compute_freq_power(alpha, target_data, frequentist_test, theta_0, null_space),
+    compute_test_power("t-test", "middle"),
     "Null space must be either 'left' or 'right'"
   )
 })
