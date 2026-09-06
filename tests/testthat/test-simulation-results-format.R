@@ -6,6 +6,9 @@ results_dir <- file.path(project_dir, "results", env)
 outputs_config <- yaml::read_yaml(
   file.path(project_dir, "inst", "conf", "outputs_config.yml")
 )
+analysis_config <- yaml::read_yaml(
+  file.path(project_dir, "inst", "conf", "analysis_config.yml")
+)
 ocs_filename_frequentist <- outputs_config$frequentist_ocs_results_filename
 ocs_filename_bayesian <- outputs_config$bayesian_ocs_deterministic_results_filename
 results_paths <- file.path(
