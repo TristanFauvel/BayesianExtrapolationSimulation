@@ -1,12 +1,21 @@
 library(testthat)
 
 env <- "pipeline_tests"
-config_dir <- paste0("../../inst/conf/", env, "/")
-case_studies_config_dir <- "../../inst/conf/case_studies/"
-results_dir <- paste0("../../results/", env, "/")
-outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+project_dir <- testthat::test_path("..", "..")
+results_dir <- file.path(project_dir, "results", env)
+outputs_config <- yaml::read_yaml(
+  file.path(project_dir, "inst", "conf", "outputs_config.yml")
+)
 ocs_filename_frequentist <- outputs_config$frequentist_ocs_results_filename
 ocs_filename_bayesian <- outputs_config$bayesian_ocs_deterministic_results_filename
+results_paths <- file.path(
+  results_dir,
+  c(ocs_filename_frequentist, ocs_filename_bayesian)
+)
+skip_if_not(
+  all(file.exists(results_paths)),
+  "Run the pipeline_tests simulation before checking result formats"
+)
 
 case_studies <- c(
   "belimumab",
@@ -118,7 +127,7 @@ test_results_format <- function(df, config) {
   }
 }
 
-df_frequentist <- readr::read_csv(paste0(results_dir, "/", ocs_filename_frequentist))
+df_frequentist <- readr::read_csv(results_paths[[1]])
 config_frequentist <- list(
   case_study = list(
     type = "character",
@@ -398,7 +407,7 @@ config_frequentist <- list(
   )
 )
 
-df_bayesian <- readr::read_csv(paste0(results_dir, "/", ocs_filename_bayesian))
+df_bayesian <- readr::read_csv(results_paths[[2]])
 config_bayesian <- list(
   case_study = list(
     type = "character",

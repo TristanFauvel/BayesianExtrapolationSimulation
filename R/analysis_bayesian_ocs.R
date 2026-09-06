@@ -331,32 +331,17 @@ prior_proba_success <- function(conditional_proba_success,
 }
 
 compute_bayesian_ocs <- function(results_freq_df, env) {
-  # Initialize an empty dataframe to store the results
-  results_bayesian_ocs <- data.frame(
-    case_study = character(),
-    method = character(),
-    target_sample_size_per_arm = numeric(),
-    parameters_combination = character(),
-    design_prior_type = character(),
-    prior_proba_success = numeric(),
-    prior_proba_no_benefit = numeric(),
-    prior_proba_benefit = numeric(),
-    prepost_proba_FP_SI = numeric(),
-    average_tie_SI = numeric(),
-    prepost_proba_TP_SI = numeric(),
-    average_power_SI = numeric(),
-    upper_bound_proba_FP_SI = numeric()
-  )
+  results_bayesian_ocs <- data.frame()
 
   config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
   scenarios_config <- yaml::yaml.load_file(paste0(config_dir, "scenarios_config.yml"))
-  simulaton_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
+  simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
 
   if (is.null(simulation_config)) {
     stop("Simulation config is NULL")
   }
 
-  design_prior_types <- cbind("ui_design_prior", "analysis_prior", "source_posterior")
+  design_prior_types <- c("ui_design_prior", "analysis_prior", "source_posterior")
 
   # Get the list of case studies
   case_studies <- unique(results_freq_df$case_study)
@@ -551,7 +536,7 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                   )
                 }
                 results_to_add <- cbind(results_to_add, source_data_df)
-                results_bayesian_ocs <- rbind(results_bayesian_ocs, results_to_add)
+                results_bayesian_ocs <- dplyr::bind_rows(results_bayesian_ocs, results_to_add)
               }
             }
           }
