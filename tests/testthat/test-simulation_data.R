@@ -198,3 +198,70 @@ test_that("recurrent-event size parameters must be positive", {
     "size parameters must be positive"
   )
 })
+
+# Test sample_exponential_arm_statistics function
+test_that("sample_exponential_arm_statistics returns coherent sufficient statistics", {
+  n_subjects <- 40
+  max_follow_up_time <- 2
+  result <- RBExT:::sample_exponential_arm_statistics(
+    n_subjects = n_subjects,
+    rate = 0.534,
+    max_follow_up_time = max_follow_up_time,
+    n_replicates = 500
+  )
+
+  expect_length(result$n_events, 500)
+  expect_length(result$exposure, 500)
+  expect_true(all(result$n_events >= 0 & result$n_events <= n_subjects))
+  expect_true(all(result$exposure > 0))
+  expect_true(all(result$exposure <= n_subjects * max_follow_up_time))
+})
+
+test_that("sample_exponential_arm_statistics censors every patient when no event can occur", {
+  n_subjects <- 5
+  max_follow_up_time <- 2
+  result <- RBExT:::sample_exponential_arm_statistics(
+    n_subjects = n_subjects,
+    rate = 1e-12,
+    max_follow_up_time = max_follow_up_time,
+    n_replicates = 4
+  )
+
+  expect_equal(result$n_events, rep(0L, 4))
+  expect_equal(result$exposure, rep(n_subjects * max_follow_up_time, 4))
+})
+
+test_that("sample_exponential_arm_statistics matches patient-level simulation", {
+  set.seed(4242)
+  n_subjects <- 57
+  rate <- 0.534
+  max_follow_up_time <- 2
+  n_replicates <- 20000
+
+  # Simulate the individual survival times the closed form replaces
+  patient_level <- replicate(n_replicates, {
+    times <- stats::rexp(n_subjects, rate = rate)
+    c(sum(times <= max_follow_up_time), sum(pmin(times, max_follow_up_time)))
+  })
+
+  result <- RBExT:::sample_exponential_arm_statistics(
+    n_subjects = n_subjects,
+    rate = rate,
+    max_follow_up_time = max_follow_up_time,
+    n_replicates = n_replicates
+  )
+
+  # Both are unbiased for the same quantities
+  expected_events <- n_subjects * stats::pexp(max_follow_up_time, rate = rate)
+  expected_exposure <- n_subjects * (1 - exp(-rate * max_follow_up_time)) / rate
+  expect_equal(mean(result$n_events), expected_events, tolerance = 0.01)
+  expect_equal(mean(result$exposure), expected_exposure, tolerance = 0.01)
+
+  # ... and have the same sampling distribution as the patient-level version
+  expect_gt(suppressWarnings(
+    stats::ks.test(patient_level[1, ], result$n_events)$p.value
+  ), 0.001)
+  expect_gt(suppressWarnings(
+    stats::ks.test(patient_level[2, ], result$exposure)$p.value
+  ), 0.001)
+})

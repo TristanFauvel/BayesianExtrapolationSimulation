@@ -1193,6 +1193,43 @@ RecurrentEventTargetData <- R6::R6Class(
   )
 )
 
+# Sample the sufficient statistics of one exponential survival arm, for every
+# replicate at once. The exponential MLE depends on the patient-level data only
+# through the number of events and the total exposure time, so the individual
+# survival times never have to be materialised: the number of events is
+# binomial, and each observed event time is exponential truncated to the
+# follow-up window.
+sample_exponential_arm_statistics <- function(n_subjects,
+                                              rate,
+                                              max_follow_up_time,
+                                              n_replicates) {
+  event_probability <- stats::pexp(max_follow_up_time, rate = rate)
+  n_events <- stats::rbinom(n_replicates, n_subjects, event_probability)
+
+  # Exposure contributed by the patients who relapse before the end of
+  # follow-up. Their relapse times are drawn in a single call and totalled per
+  # replicate; censored patients each contribute max_follow_up_time.
+  exposure_from_events <- numeric(n_replicates)
+  total_events <- sum(n_events)
+
+  if (total_events > 0) {
+    event_times <- stats::qexp(
+      stats::runif(total_events) * event_probability,
+      rate = rate
+    )
+    per_replicate <- rowsum(
+      event_times,
+      rep.int(seq_len(n_replicates), n_events)
+    )
+    exposure_from_events[as.integer(rownames(per_replicate))] <- per_replicate[, 1]
+  }
+
+  exposure <- exposure_from_events +
+    (n_subjects - n_events) * max_follow_up_time
+
+  return(list(n_events = n_events, exposure = exposure))
+}
+
 #' Time To Event Target Data
 #'
 #' @description This class represents target data for time-to-event analysis.
@@ -1302,54 +1339,36 @@ TimeToEventTargetData <- R6::R6Class(
         )
       } else if (self$summary_measure_likelihood == "normal" &&
                  self$sampling_approximation == FALSE) {
-        # Vector to store log rate ratios
-        log_rate_ratios <- numeric(n_replicates)
-        se_log_rate_ratios <- numeric(n_replicates)
+        # The exponential model fitted below has a closed-form maximum
+        # likelihood estimate: the rate of an arm is its number of events
+        # divided by its total exposure time. Sampling those two sufficient
+        # statistics directly avoids fitting one survreg() per replicate.
+        control <- sample_exponential_arm_statistics(
+          n_subjects = n_control_target,
+          rate = self$control_rate,
+          max_follow_up_time = self$max_follow_up_time,
+          n_replicates = n_replicates
+        )
+        treatment <- sample_exponential_arm_statistics(
+          n_subjects = n_treatment_target,
+          rate = self$treatment_rate,
+          max_follow_up_time = self$max_follow_up_time,
+          n_replicates = n_replicates
+        )
 
-        for (i in 1:n_replicates) {
-          # Sample relapse times for control and treatment groups using an exponential distribution
-          control_relapse_times <- rexp(n_control_target, rate = self$control_rate) # self$control_rate is the relapse rate in the control arm
+        estimated_rate_control <- control$n_events / control$exposure
+        estimated_rate_treatment <- treatment$n_events / treatment$exposure
 
-          treatment_relapse_times <- rexp(n_treatment_target, rate = self$treatment_rate)
+        log_rate_ratios <- log(estimated_rate_treatment) -
+          log(estimated_rate_control)
 
-          # Filter out relapse times exceeding max_follow_up_time (right censoring)
-          control_event_status <- control_relapse_times <= self$max_follow_up_time
-          treatment_event_status <- treatment_relapse_times <= self$max_follow_up_time
+        # SE of the log rate ratio, obtained with the delta method
+        se_log_rate_ratios <- sqrt(1 / control$n_events + 1 / treatment$n_events)
 
-          control_relapse_times_filtered <- control_relapse_times[control_event_status]
-          treatment_relapse_times_filtered <- treatment_relapse_times[treatment_event_status]
+        # The rate ratio is not estimable if an arm records no event at all
+        no_event <- control$n_events == 0 | treatment$n_events == 0
+        log_rate_ratios[no_event] <- NA_real_
 
-
-          control_relapse_times[!control_event_status] <- self$max_follow_up_time
-          treatment_relapse_times[!treatment_event_status] <- self$max_follow_up_time
-
-          control_event_status <- as.integer(control_event_status)
-          treatment_event_status <- as.integer(treatment_event_status)
-
-          # Count the number of events
-          n_control_events <- length(control_relapse_times_filtered)
-          n_treatment_events <- length(treatment_relapse_times_filtered)
-
-          # Perform survival analysis, assuming an exponential distribution of events times.
-          trt <- c(rep(0, n_control_target), rep(1, n_treatment_target))
-          df <- data.frame(
-            time = c(control_relapse_times, treatment_relapse_times),
-            trt = trt,
-            status = c(control_event_status, treatment_event_status)
-          )
-          fit <- survival::survreg(survival::Surv(time, status) ~ trt,
-                                   dist = "exponential",
-                                   data = df)
-          summary(fit)
-          estimated_rate_control <- 1 / exp(coef(fit)[1])
-          sample_rate_ratio <- 1 / exp(coef(fit)[2])
-          estimated_rate_treatment <- sample_rate_ratio * estimated_rate_control
-
-          log_rate_ratios[i] <- log(sample_rate_ratio)
-
-          # Calculate the SE of the Log rate ratio
-          se_log_rate_ratios[i] <- sqrt(1 / n_control_events + 1 / n_treatment_events) # this can be shown using the delta method
-        }
         samples <- data.frame(
           treatment_effect_estimate = log_rate_ratios,
           treatment_effect_standard_error = se_log_rate_ratios,
