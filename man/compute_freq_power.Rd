@@ -33,7 +33,7 @@ compute_freq_power(
 \item{n_replicates}{Number of Monte Carlo replicates for non-analytical power calculations.}
 }
 \value{
-The power of the test.
+A list containing the power and its confidence interval.
 }
 \description{
 This function computes the power of a test for a given significance level

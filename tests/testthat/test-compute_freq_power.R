@@ -77,3 +77,18 @@ test_that("compute_freq_power rejects an invalid null space", {
     "Null space must be either 'left' or 'right'"
   )
 })
+
+test_that("compute_freq_power preserves its return structure for missing alpha", {
+  result <- compute_freq_power(
+    alpha = NA_real_,
+    target_data = target_data,
+    frequentist_test = "t-test",
+    theta_0 = 0,
+    null_space = "left",
+    simulation_config = list()
+  )
+
+  expect_named(result, c("power", "conf_int_power"))
+  expect_true(is.na(result$power))
+  expect_equal(result$conf_int_power, rep(NA_real_, 2))
+})

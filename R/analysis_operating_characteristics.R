@@ -15,7 +15,7 @@
 #' @param case_study Optional case-study name.
 #' @param n_replicates Number of Monte Carlo replicates for non-analytical power calculations.
 #'
-#' @return The power of the test.
+#' @return A list containing the power and its confidence interval.
 #'
 #' @export
 compute_freq_power <- function(alpha,
@@ -35,7 +35,10 @@ compute_freq_power <- function(alpha,
   }
 
   if (is.na(alpha)){
-    return(NA)
+    return(list(
+      power = NA_real_,
+      conf_int_power = rep(NA_real_, 2)
+    ))
   }
 
   assertions::assert_number(target_data$treatment_effect)
