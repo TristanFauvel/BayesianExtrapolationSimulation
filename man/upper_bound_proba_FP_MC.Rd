@@ -11,10 +11,14 @@ upper_bound_proba_FP_MC(
   theta_0,
   target_sample_size_per_arm,
   case_study_config,
+  target_to_source_std_ratio,
   n_replicates,
   confidence_level,
   null_space,
-  critical_value
+  critical_value,
+  case_study,
+  method,
+  n_samples_quantiles_estimation
 )
 }
 \arguments{
@@ -30,6 +34,8 @@ upper_bound_proba_FP_MC(
 
 \item{case_study_config}{The case study configuration.}
 
+\item{target_to_source_std_ratio}{Ratio between target and source sampling standard deviations.}
+
 \item{n_replicates}{The number of replicates.}
 
 \item{confidence_level}{The confidence level.}
@@ -37,6 +43,12 @@ upper_bound_proba_FP_MC(
 \item{null_space}{The null space (either "left" or "right").}
 
 \item{critical_value}{The critical value.}
+
+\item{case_study}{Case study name.}
+
+\item{method}{Method name.}
+
+\item{n_samples_quantiles_estimation}{Number of samples used to estimate distribution quantiles.}
 }
 \value{
 The upper bound probability of false positive, defined as \eqn{Pr(Study success|\theta_T = \theta_0) \times Pr(\theta_T \leq \theta_0)}

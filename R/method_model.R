@@ -842,6 +842,9 @@ Model <- R6::R6Class(
     #' @param case_study_config Configuration of the case study
     #' @param target_to_source_std_ratio Ratio between the target and source study standard deviation
     #' @param simulation_config Simulation configuration
+    #' @param case_study Case study name
+    #' @param method Method name
+    #' @param n_samples_quantiles_estimation Number of samples used to estimate distribution quantiles
     #' @return A list of estimated frequentist operating characteristics including coverage, MSE, bias, posterior mean, median, precision, credible intervals, and success probability
     estimate_bayesian_operating_characteristics = function(design_prior,
                                                            theta_0,
@@ -854,18 +857,13 @@ Model <- R6::R6Class(
                                                            target_sample_size_per_arm,
                                                            case_study_config,
                                                            target_to_source_std_ratio,
-                                                           simulation_config) {
-      null_space <- case_study_config$null_space
-
-      n_replicates <- scenarios_config$n_replicates
-
-
+                                                           simulation_config,
+                                                           case_study,
+                                                           method,
+                                                           n_samples_quantiles_estimation) {
       test_decisions <- matrix(rep(0, n_samples_design_prior * n_replicates), nrow = n_samples_design_prior)
 
       control_drift <- 0
-      theta_0 <- case_study_config$theta_0
-
-      critical_value <- simulation_config$critical_value
       design_prior_samples <- design_prior$sample(n_samples_design_prior)
 
       to_return <- c("test_decision")
@@ -914,14 +912,18 @@ Model <- R6::R6Class(
         prior_proba_no_benefit_estimate <- 1 - design_prior$cdf(theta_0)
       }
 
-      prepost_proba_FP_estimate <- preposterior_proba_FP(conditional_proba_success,
-                                                         design_prior_samples,
-                                                         theta_0,
-                                                         null_space)
-      prepost_proba_TP_estimate <- preposterior_proba_TP(conditional_proba_success,
-                                                         design_prior_samples,
-                                                         theta_0,
-                                                         null_space)
+      prepost_proba_FP_estimate <- preposterior_proba_FP_MC(
+        conditional_proba_success,
+        design_prior_samples,
+        theta_0,
+        null_space
+      )
+      prepost_proba_TP_estimate <- preposterior_proba_TP_MC(
+        conditional_proba_success,
+        design_prior_samples,
+        theta_0,
+        null_space
+      )
 
       average_tie_estimate <- average_tie(prepost_proba_FP_estimate,
                                           prior_proba_no_benefit_estimate)
@@ -929,17 +931,21 @@ Model <- R6::R6Class(
       average_power_estimate <- average_power(prepost_proba_TP_estimate,
                                               prior_proba_no_benefit_estimate)
 
-      upper_bound_proba_FP_estimate <- upper_bound_proba_FP(
-        self,
-        prior_proba_no_benefit_estimate,
-        source_data,
-        theta_0,
-        target_sample_size_per_arm,
-        case_study_config,
-        n_replicates,
-        confidence_level,
-        null_space,
-        critical_value
+      upper_bound_proba_FP_estimate <- upper_bound_proba_FP_MC(
+        model = self,
+        prior_proba_no_benefit = prior_proba_no_benefit_estimate,
+        source_data = source_data,
+        theta_0 = theta_0,
+        target_sample_size_per_arm = target_sample_size_per_arm,
+        case_study_config = case_study_config,
+        target_to_source_std_ratio = target_to_source_std_ratio,
+        n_replicates = n_replicates,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        critical_value = critical_value,
+        case_study = case_study,
+        method = method,
+        n_samples_quantiles_estimation = n_samples_quantiles_estimation
       )
 
       result <- list(

@@ -157,10 +157,14 @@ average_power <- function(prepost_proba_TP,
 #' @param theta_0 The value of theta_0.
 #' @param target_sample_size_per_arm The target sample size per arm.
 #' @param case_study_config The case study configuration.
+#' @param target_to_source_std_ratio Ratio between target and source sampling standard deviations.
 #' @param n_replicates The number of replicates.
 #' @param confidence_level The confidence level.
 #' @param null_space The null space (either "left" or "right").
 #' @param critical_value The critical value.
+#' @param case_study Case study name.
+#' @param method Method name.
+#' @param n_samples_quantiles_estimation Number of samples used to estimate distribution quantiles.
 #'
 #' @return The upper bound probability of false positive, defined as \eqn{Pr(Study success|\theta_T = \theta_0) \times Pr(\theta_T \leq \theta_0)}
 #'
@@ -173,10 +177,14 @@ upper_bound_proba_FP_MC <- function(model,
                                     theta_0,
                                     target_sample_size_per_arm,
                                     case_study_config,
+                                    target_to_source_std_ratio,
                                     n_replicates,
                                     confidence_level,
                                     null_space,
-                                    critical_value) {
+                                    critical_value,
+                                    case_study,
+                                    method,
+                                    n_samples_quantiles_estimation) {
   # We need to estimate Pr(Study success|\theta_T = \theta_0)
   treatment_drift <- theta_0 - source_data$treatment_effect_estimate
 
@@ -187,7 +195,8 @@ upper_bound_proba_FP_MC <- function(model,
     target_sample_size_per_arm = target_sample_size_per_arm,
     treatment_drift = treatment_drift,
     control_drift = 0,
-    summary_measure_likelihood = source_data$summary_measure_likelihood
+    summary_measure_likelihood = source_data$summary_measure_likelihood,
+    target_to_source_std_ratio = target_to_source_std_ratio
   )
 
   results <- model$simulation_for_given_treatment_effect(
@@ -197,6 +206,9 @@ upper_bound_proba_FP_MC <- function(model,
     theta_0 = theta_0,
     confidence_level = confidence_level,
     null_space = null_space,
+    case_study = case_study,
+    method = method,
+    n_samples_quantiles_estimation = n_samples_quantiles_estimation,
     to_return = c("test_decision")
   )
 

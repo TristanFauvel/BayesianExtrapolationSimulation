@@ -525,7 +525,10 @@ Method to estimate Bayesian operating characteristics
   target_sample_size_per_arm,
   case_study_config,
   target_to_source_std_ratio,
-  simulation_config
+  simulation_config,
+  case_study,
+  method,
+  n_samples_quantiles_estimation
 )}\if{html}{\out{</div>}}
 }
 
@@ -555,6 +558,12 @@ Method to estimate Bayesian operating characteristics
 \item{\code{target_to_source_std_ratio}}{Ratio between the target and source study standard deviation}
 
 \item{\code{simulation_config}}{Simulation configuration}
+
+\item{\code{case_study}}{Case study name}
+
+\item{\code{method}}{Method name}
+
+\item{\code{n_samples_quantiles_estimation}}{Number of samples used to estimate distribution quantiles}
 }
 \if{html}{\out{</div>}}
 }

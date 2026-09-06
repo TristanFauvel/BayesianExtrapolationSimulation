@@ -190,7 +190,10 @@ estimate_bayesian_ocs <- function(scenario,
     target_sample_size_per_arm = target_sample_size_per_arm,
     case_study_config = case_study_config,
     target_to_source_std_ratio = target_to_source_std_ratio,
-    simulation_config = simulation_config
+    simulation_config = simulation_config,
+    case_study = scenario$case_study[[1]],
+    method = scenario$method[[1]],
+    n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation
   )
   end_time <- Sys.time()
   computation_state$computation_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
