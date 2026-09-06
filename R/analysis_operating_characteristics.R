@@ -453,7 +453,12 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
       if (is.na(results$tie[i])) {
         warning("TIE is NA")
-        return(NULL)
+        return(list(
+          frequentist_power_at_equivalent_tie = NA_real_,
+          frequentist_power_at_equivalent_tie_lower = NA_real_,
+          frequentist_power_at_equivalent_tie_upper = NA_real_,
+          frequentist_test = NA_character_
+        ))
       }
 
       target_data <- load_data(results[i, ], type = "target", reload_data_objects = TRUE)
@@ -487,7 +492,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     parallel::stopCluster(cl)
 
     # Combine results into the dataframe
-    results <- cbind(results, do.call(rbind, results_list))
+    results <- cbind(results, dplyr::bind_rows(results_list))
   } else {
     # Progress bar function in R
     progress_bar <- function(n) {
