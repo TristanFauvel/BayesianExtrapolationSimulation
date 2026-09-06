@@ -256,9 +256,24 @@ sample_aggregate_normal_data <- function(mean,
                                          variance,
                                          n_replicates,
                                          n_samples_per_arm) {
-  samples <- matrix(rnorm(n_samples_per_arm * n_replicates, mean, sqrt(variance)), ncol = n_replicates)
-  sample_mean <- colMeans(samples) # sample mean of each replicate
-  sample_variance <- apply(samples, 2, var) # sample variance of each replicate
+  # The sampling distribution of the sufficient statistics is known in closed
+  # form, so the individual observations never have to be materialised:
+  # the sample mean is normal and the sample variance is a scaled chi-squared,
+  # and the two are independent (Cochran's theorem).
+  sample_mean <- rnorm(
+    n_replicates,
+    mean = mean,
+    sd = sqrt(variance / n_samples_per_arm)
+  )
+
+  if (n_samples_per_arm > 1) {
+    degrees_of_freedom <- n_samples_per_arm - 1
+    sample_variance <- variance * rchisq(n_replicates, df = degrees_of_freedom) / degrees_of_freedom
+  } else {
+    # var() of a single observation is undefined
+    sample_variance <- rep(NA_real_, n_replicates)
+  }
+
   sample_standard_error <- sqrt(sample_variance / n_samples_per_arm) # standard error on the mean, for each replicate
 
   samples <- data.frame(
