@@ -47,3 +47,46 @@ test_that("UnitInformationDesignPrior evaluates its normal CDF", {
 
   expect_equal(design_prior$cdf(0.5), 0.5)
 })
+
+test_that("UnitInformationDesignPrior keeps binomial mixtures on the effect scale", {
+  design_prior <- create_unit_information_prior()
+  design_prior$summary_measure_likelihood <- "binomial"
+  design_prior$RBesT_model <- RBesT::mixbeta(c(1, 2, 5))
+
+  set.seed(123)
+  samples <- design_prior$sample(10000)
+
+  expect_true(all(samples >= -1 & samples <= 1))
+  expect_equal(mean(samples), 2 * (2 / 7) - 1, tolerance = 0.02)
+  expect_equal(design_prior$cdf(c(-1, 0, 1)), c(0, stats::pbeta(0.5, 2, 5), 1))
+  expect_equal(design_prior$pdf(c(-1, 0, 1)), c(0, stats::dbeta(0.5, 2, 5) / 2, 0))
+})
+
+test_that("SourcePosteriorDesignPrior samples its binomial risk difference", {
+  binomial_source_data <- list(
+    summary_measure_likelihood = "binomial",
+    standard_error = 0.2,
+    treatment_effect_estimate = 0.2,
+    control_rate = 0.2,
+    treatment_rate = 0.4,
+    sample_size_control = 10,
+    sample_size_treatment = 10
+  )
+  design_prior <- SourcePosteriorDesignPrior$new(
+    source_data = binomial_source_data,
+    case_study_config = list(),
+    simulation_config = list()
+  )
+
+  expect_equal(design_prior$n_successes_control, 2L)
+  expect_equal(design_prior$n_successes_treatment, 4L)
+
+  set.seed(123)
+  samples <- design_prior$sample(20000)
+  expected_mean <- (1 + 4) / (2 + 10) - (1 + 2) / (2 + 10)
+
+  expect_length(samples, 20000)
+  expect_true(all(samples >= -1 & samples <= 1))
+  expect_equal(mean(samples), expected_mean, tolerance = 0.02)
+  expect_equal(design_prior$cdf(1), 1, tolerance = 1e-6)
+})

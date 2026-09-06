@@ -223,7 +223,7 @@ UnitInformationDesignPrior <- R6::R6Class(
         })
 
         # Construct the new mixture
-        ui_mixture <- do.call(mixbeta, components_new)
+        ui_mixture <- do.call(RBesT::mixbeta, components_new)
 
         self$RBesT_model <- ui_mixture
 
@@ -242,7 +242,8 @@ UnitInformationDesignPrior <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         return(rnorm(n_samples, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        return(rmix(self$RBesT_model, n_samples))
+        transformed_samples <- RBesT::rmix(self$RBesT_model, n = n_samples)
+        return(2 * transformed_samples - 1)
       } else {
         stop("Not implemented for other distributions.")
       }
@@ -254,7 +255,14 @@ UnitInformationDesignPrior <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         return(pnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        return(integrate(self$pdf, lower = -1, upper = x)$value)
+        result <- numeric(length(x))
+        result[x >= 1] <- 1
+        interior <- x > -1 & x < 1
+        result[interior] <- RBesT::pmix(
+          self$RBesT_model,
+          q = (x[interior] + 1) / 2
+        )
+        return(result)
       } else {
         stop("Not implemented for other distributions.")
       }
@@ -266,15 +274,13 @@ UnitInformationDesignPrior <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         return(dnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        result <- sapply(x, function(x) {
-          binomial_product_integral(
-            x,
-            alpha_control = 0.5,
-            beta_control = 0.5,
-            alpha_treatment = 0.5,
-            beta_treatment = 0.5
-          )
-        })
+        result <- numeric(length(x))
+        interior <- x > -1 & x < 1
+        result[interior] <- RBesT::dmix(
+          self$RBesT_model,
+          x = (x[interior] + 1) / 2,
+          log = FALSE
+        ) / 2
         return(result)
       } else {
         stop("Not implemented for other distributions.")
@@ -321,10 +327,14 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       )
 
       if (self$summary_measure_likelihood == "binomial") {
-        self$n_successes_control <- int(source_data$control_rate * source_data$sample_size_control)
-        self$n_successes_treatment <- int(source_data$treatment_rate * source_data$sample_size_treatment)
-        self$n_control <- source_data$sample_size_control
-        self$n_treatment <- source_data$sample_size_treatment
+        self$n_successes_control <- as.integer(round(
+          source_data$control_rate * source_data$sample_size_control
+        ))
+        self$n_successes_treatment <- as.integer(round(
+          source_data$treatment_rate * source_data$sample_size_treatment
+        ))
+        self$n_control <- as.integer(source_data$sample_size_control)
+        self$n_treatment <- as.integer(source_data$sample_size_treatment)
       }
 
       self$design_prior_type <- "source_posterior"
@@ -336,7 +346,17 @@ SourcePosteriorDesignPrior <- R6::R6Class(
       if (self$summary_measure_likelihood == "normal") {
         return(rnorm(n_samples, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        return(rmix(self$RBesT_model, n_samples))
+        control_rate <- stats::rbeta(
+          n_samples,
+          shape1 = 1 + self$n_successes_control,
+          shape2 = 1 + self$n_control - self$n_successes_control
+        )
+        treatment_rate <- stats::rbeta(
+          n_samples,
+          shape1 = 1 + self$n_successes_treatment,
+          shape2 = 1 + self$n_treatment - self$n_successes_treatment
+        )
+        return(treatment_rate - control_rate)
       } else {
         stop("Not implemented for other distributions.")
       }
