@@ -439,7 +439,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     # Export necessary functions and objects to the cluster
     paths <- .libPaths()
     parallel::clusterExport(cl,
-                  varlist = c("paths", "required_libraries", "config_dir", "case_studies_config_dir"),
+                  varlist = c("paths", "required_libraries"),
                   envir = environment())
 
     # Load required libraries in workers
