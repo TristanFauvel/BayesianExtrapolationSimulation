@@ -9,6 +9,10 @@ test_that("generate_binary_data_from_rate generates binary data correctly", {
   data <- generate_binary_data_from_rate(0.3, 100)
   expect_equal(length(data), 100)
   expect_equal(sum(data), 30)
+
+  data_with_fractional_expected_count <- generate_binary_data_from_rate(0.25, 10)
+  expect_equal(length(data_with_fractional_expected_count), 10)
+  expect_equal(sum(data_with_fractional_expected_count), round(0.25 * 10))
 })
 
 # Test rate_from_drift_logOR function

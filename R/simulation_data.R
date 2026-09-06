@@ -50,7 +50,10 @@ standard_error_log_odds_ratio <- function(n_control_nonresponders,
 #'
 #' @export
 generate_binary_data_from_rate <- function(rate, sample_size) {
-  return(c(rep(0, times = sample_size * (1 - rate)), rep(1, times = sample_size * rate)))
+  n_successes <- round(sample_size * rate)
+  n_failures <- sample_size - n_successes
+
+  return(c(rep(0, times = n_failures), rep(1, times = n_successes)))
 }
 
 #' Calculate the success rate in the target study arm from the drift on the log odds ratio scale
