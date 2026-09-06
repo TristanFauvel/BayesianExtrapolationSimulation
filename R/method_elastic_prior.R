@@ -90,7 +90,7 @@ GaussianElasticPriorLogistic <- R6::R6Class(
     #' @param target_data List. The target data for the analysis.
     #'
     #' @return List with components:
-    #' \itemize{
+    #' \describe{
     #'   \item{a}{Numeric. Tuning parameter a in elastic function.}
     #'   \item{b}{Numeric. Tuning parameter b in elastic function.}
     #' }

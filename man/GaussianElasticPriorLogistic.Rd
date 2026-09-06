@@ -157,7 +157,7 @@ Determines tuning parameters a and b for the logistic elastic function.
 }
 \subsection{Returns}{
 List with components:
-\itemize{
+\describe{
 \item{a}{Numeric. Tuning parameter a in elastic function.}
 \item{b}{Numeric. Tuning parameter b in elastic function.}
 }
