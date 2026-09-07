@@ -332,6 +332,56 @@ Gaussian_NPP <- R6::R6Class(
       return(normconst)
     },
 
+    #' @description Run every replicate at once
+    #'
+    #' Discretising the Beta prior on the power parameter turns the method into
+    #' an ordinary normal mixture, so the posterior, its summaries and the
+    #' effective sample sizes all follow in closed form. This replaces the
+    #' nested numerical integration the replicate loop performs, in which each
+    #' evaluation of `posterior_cdf()` integrates over `posterior_pdf()`, which
+    #' itself integrates over the power parameter at every point.
+    #'
+    #' The prior mixture is the same for every replicate, so it is built once.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @param to_return Character vector of requested outputs.
+    #' @param critical_value Critical value for hypothesis testing.
+    #' @param theta_0 Null hypothesis value.
+    #' @param confidence_level Confidence level for the credible interval.
+    #' @param null_space The null space for hypothesis testing.
+    #' @return A list of simulation results.
+    vectorised_replicate_inference = function(target_data, samples, to_return,
+                                              critical_value, theta_0,
+                                              confidence_level, null_space) {
+      prior <- npp_prior_mixture(self)
+
+      posterior <- normal_mixture_posterior(
+        weights = prior$weights,
+        means = prior$means,
+        sds = prior$sds,
+        estimate = samples$treatment_effect_estimate,
+        standard_error = samples$treatment_effect_standard_error
+      )
+
+      vectorised_normal_mixture_simulation(
+        weights = prior$weights,
+        means = prior$means,
+        sds = prior$sds,
+        samples = samples,
+        target_data = target_data,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        decision_rule = "posterior_cdf",
+        posterior_parameters = npp_power_parameter_summary(
+          posterior$weights, prior$power_parameter
+        )
+      )
+    },
+
     #' @description Perform inference on the target data.
     #' @param target_data Target study data.
     #' @return A string indicating the success status of the inference.

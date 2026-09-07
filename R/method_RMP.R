@@ -257,6 +257,69 @@ GaussianRMP_RBesT <- R6::R6Class(
       return(self$RBesT_posterior)
     },
 
+    #' @description
+    #' Prior mixture components for each replicate.
+    #'
+    #' Under empirical Bayes the vague component's variance is re-derived from
+    #' each replicate, matching `empirical_bayes_update()`, so the prior varies
+    #' by row. Otherwise the same two components serve every replicate.
+    #'
+    #' A degenerate weight collapses the mixture to a single component, exactly
+    #' as the scalar path does to work around an RBesT ELIR bug.
+    #'
+    #' @param target_data Target data for the analysis.
+    #' @param samples Data frame of generated replicates.
+    #' @return A list with `weights`, `means` and `sds`.
+    vectorised_prior_components = function(target_data, samples) {
+      n_replicates <- nrow(samples)
+
+      if (self$w == 1) {
+        return(list(weights = 1,
+                    means = self$info_prior_mean,
+                    sds = sqrt(self$info_prior_variance)))
+      }
+
+      vague_variance <- if (self$empirical_bayes) {
+        samples$treatment_effect_standard_error^2 * target_data$sample_size_per_arm
+      } else {
+        self$vague_prior_variance
+      }
+
+      if (self$w == 0) {
+        return(list(weights = 1,
+                    means = self$vague_prior_mean,
+                    sds = sqrt(rep_len(vague_variance, n_replicates))))
+      }
+
+      list(
+        weights = cbind(rep(self$w, n_replicates), rep(1 - self$w, n_replicates)),
+        means = cbind(rep(self$info_prior_mean, n_replicates),
+                      rep(self$vague_prior_mean, n_replicates)),
+        sds = cbind(rep(sqrt(self$info_prior_variance), n_replicates),
+                    sqrt(rep_len(vague_variance, n_replicates)))
+      )
+    },
+
+    #' @description
+    #' Posterior parameters reported by the vectorised path.
+    #'
+    #' The scalar path records the posterior weight on the informative
+    #' component, which is 0 or 1 when the mixture has collapsed.
+    #'
+    #' @param posterior Posterior mixture from [normal_mixture_posterior()].
+    #' @return A data frame with one `prior_weight` column.
+    vectorised_posterior_parameters = function(posterior) {
+      prior_weight <- if (self$w == 0) {
+        rep(0, nrow(posterior$weights))
+      } else if (self$w == 1) {
+        rep(1, nrow(posterior$weights))
+      } else {
+        posterior$weights[, 1]
+      }
+
+      data.frame(prior_weight = prior_weight)
+    },
+
 
     #' @description
     #' Print a summary of the model attributes

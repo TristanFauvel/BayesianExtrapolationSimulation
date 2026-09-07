@@ -208,14 +208,17 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
       if (self$null_space == "right") {
         source_treatment_effect_estimate <- -self$prior$source$treatment_effect_estimate
         target_treatment_effect_estimate <- -target_data$sample$treatment_effect_estimate
-        self$parameters$theta_0 <- -self$parameters$theta_0
+        # Negate locally. Assigning back to self$parameters$theta_0 flipped its
+        # sign on every call, so consecutive replicates were transformed
+        # differently.
+        theta_0 <- -self$parameters$theta_0
       } else if (self$null_space == "left") {
         source_treatment_effect_estimate <- self$prior$source$treatment_effect_estimate
         target_treatment_effect_estimate <- target_data$sample$treatment_effect_estimate
+        theta_0 <- self$parameters$theta_0
       } else {
         stop("The null space must be either on the left side or on the right side of theta_0")
       }
-      theta_0 <- self$parameters$theta_0
       # To handle the cases where theta_0 != 0, we apply the following translations to put ourselves back in a situation equivalent to theta_0 == 0
       source_treatment_effect_estimate <- source_treatment_effect_estimate - theta_0
       target_treatment_effect_estimate <- target_treatment_effect_estimate - theta_0
@@ -269,6 +272,78 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
       stop("Subclass must implement a power_parameter estimation method.")
     },
 
+    #' @description Estimate the power parameter for every replicate at once
+    #'
+    #' Subclasses whose estimator is closed form override this. Returning `NULL`
+    #' means "no fast path", which keeps subclasses with an iterative estimator
+    #' (PDCCPP calibrates by search) on the replicate loop.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of power parameters, or `NULL`.
+    vectorised_power_parameter = function(target_data, samples) {
+      NULL
+    },
+
+    #' @description Transform the hypothesis space for every replicate at once
+    #'
+    #' Vectorised counterpart of `hypothesis_space_transformation()`.
+    #'
+    #' @param samples Data frame of generated replicates.
+    #' @return A list of transformed source and target treatment effect
+    #'   estimates.
+    vectorised_hypothesis_space_transformation = function(samples) {
+      if (self$null_space == "right") {
+        source_estimate <- -self$prior$source$treatment_effect_estimate
+        target_estimate <- -samples$treatment_effect_estimate
+        theta_0 <- -self$parameters$theta_0
+      } else if (self$null_space == "left") {
+        source_estimate <- self$prior$source$treatment_effect_estimate
+        target_estimate <- samples$treatment_effect_estimate
+        theta_0 <- self$parameters$theta_0
+      } else {
+        stop("The null space must be either on the left side or on the right side of theta_0")
+      }
+
+      list(
+        source_treatment_effect_estimate = source_estimate - theta_0,
+        target_treatment_effect_estimate = target_estimate - theta_0
+      )
+    },
+
+    #' @description Prior variance for each replicate
+    #'
+    #' Mirrors `empirical_bayes_update()`: the power prior is equivalent to a
+    #' Gaussian prior with variance `source standard error^2 / power parameter`,
+    #' and a power parameter of zero means a vague prior.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of prior variances, or `NULL`.
+    vectorised_prior_variance = function(target_data, samples) {
+      power_parameter <- self$vectorised_power_parameter(target_data, samples)
+      if (is.null(power_parameter)) {
+        return(NULL)
+      }
+
+      # Cached so that vectorised_posterior_parameters() reports the same values
+      # without estimating them a second time.
+      private$last_power_parameter <- power_parameter
+
+      ifelse(
+        power_parameter != 0,
+        self$prior$source$standard_error^2 / power_parameter,
+        1000
+      )
+    },
+
+    #' @description Posterior parameters reported by the vectorised path
+    #' @param prior_variance Per-replicate prior variance.
+    #' @return A data frame with one `power_parameter` column.
+    vectorised_posterior_parameters = function(prior_variance) {
+      data.frame(power_parameter = private$last_power_parameter)
+    },
+
     #' @description
     #' Calculate the prior probability density function (PDF) for a given target treatment effect.
     #' @param target_treatment_effect The target treatment effect.
@@ -319,6 +394,11 @@ Gaussian_empirical_Bayes_PP <- R6::R6Class(
         labs(title = "Power Parameter as a Function of Drift", x = "Drift", y = "Power Parameter") +
         theme_minimal()
     }
+  ),
+  private = list(
+    # Power parameters from the most recent vectorised_prior_variance() call,
+    # so that vectorised_posterior_parameters() can report them unchanged.
+    last_power_parameter = NULL
   )
 )
 
@@ -393,6 +473,47 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
         ), 1)
       assertions::assert_number(power_parameter)
       return(power_parameter)
+    },
+
+    #' @description Estimate the power parameter for every replicate at once.
+    #'
+    #' Same closed form as `power_parameter_estimation()`, evaluated on vectors.
+    #'
+    #' @param target_data The target data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of power parameters.
+    vectorised_power_parameter = function(target_data, samples) {
+      transformed <- self$vectorised_hypothesis_space_transformation(samples)
+      source_estimate <- transformed$source_treatment_effect_estimate
+      target_estimate <- transformed$target_treatment_effect_estimate
+
+      calibration_parameter <- 2 * (1 - pnorm(1)) # See Nikolakopoulos et al, 2018
+
+      target_sampling_variance <- samples$treatment_effect_standard_error^2 *
+        target_data$sample_size_per_arm
+      source_sampling_variance <- self$prior$source$standard_error^2 *
+        self$prior$source$equivalent_source_sample_size_per_arm
+
+      n0 <- target_data$sample_size_per_arm * target_sampling_variance /
+        source_sampling_variance
+
+      standard_deviation_predictive <- sqrt(
+        target_sampling_variance / n0 +
+          target_sampling_variance / target_data$sample_size_per_arm
+      )
+
+      upper <- source_estimate +
+        standard_deviation_predictive * qnorm(1 - calibration_parameter / 2)
+      lower <- source_estimate +
+        standard_deviation_predictive * qnorm(calibration_parameter / 2)
+
+      ifelse(
+        target_estimate > upper | target_estimate < lower,
+        (target_sampling_variance / n0) /
+          (((target_estimate - source_estimate) / qnorm(1 - calibration_parameter / 2))^2 -
+             target_sampling_variance / target_data$sample_size_per_arm),
+        1
+      )
     }
   )
 )
@@ -641,6 +762,42 @@ p_value_based_PP_Gaussian <- R6::R6Class(
         stop("Variable is NULL or NA. Execution stopped.")
       }
       return(power_parameter)
+    },
+
+    #' @description Estimate the power parameter for every replicate at once.
+    #'
+    #' Reproduces `test()` followed by `power_parameter_estimation()`. The two
+    #' one-sided equivalence tests are the same summary-statistic t-tests that
+    #' `test()` runs through BSDA, evaluated on vectors.
+    #'
+    #' @param target_data The target data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of power parameters.
+    vectorised_power_parameter = function(target_data, samples) {
+      transformed <- self$vectorised_hypothesis_space_transformation(samples)
+
+      source_sd <- self$prior$source$standard_error *
+        sqrt(self$prior$source$equivalent_source_sample_size_per_arm)
+      source_n <- self$prior$source$equivalent_source_sample_size_per_arm
+      margin <- self$parameters$equivalence_margin
+
+      one_sided <- function(mu, alternative) {
+        summary_t_test_p_value(
+          mean_x = transformed$source_treatment_effect_estimate,
+          sd_x = source_sd,
+          n_x = source_n,
+          mean_y = transformed$target_treatment_effect_estimate,
+          sd_y = samples$standard_deviation,
+          n_y = target_data$sample_size_per_arm,
+          mu = mu,
+          alternative = alternative
+        )
+      }
+
+      # H0a: theta_S - theta_T > margin, and H0b: theta_S - theta_T < -margin.
+      p_value <- pmax(one_sided(margin, "less"), one_sided(-margin, "greater"))
+
+      exp((self$parameters$shape_parameter / (1 - p_value)) * log(1 - p_value))
     }
   )
 )
@@ -708,14 +865,17 @@ p_value_based_PP_Binomial <- R6::R6Class(
       if (self$null_space == "right") {
         source_treatment_effect_estimate <- -self$prior$source$treatment_effect_estimate
         target_treatment_effect_estimate <- -target_data$sample$treatment_effect_estimate
-        self$parameters$theta_0 <- -self$parameters$theta_0
+        # Negate locally. Assigning back to self$parameters$theta_0 flipped its
+        # sign on every call, so consecutive replicates were transformed
+        # differently.
+        theta_0 <- -self$parameters$theta_0
       } else if (self$null_space == "left") {
         source_treatment_effect_estimate <- self$prior$source$treatment_effect_estimate
         target_treatment_effect_estimate <- target_data$sample$treatment_effect_estimate
+        theta_0 <- self$parameters$theta_0
       } else {
         stop("The null space must be either on the left side or on the right side of theta_0")
       }
-      theta_0 <- self$parameters$theta_0
       # To handle the cases where theta_0 != 0, we apply the following translations to put ourselves back in a situation equivalent to theta_0 == 0
       source_treatment_effect_estimate <- source_treatment_effect_estimate - theta_0
       target_treatment_effect_estimate <- target_treatment_effect_estimate - theta_0
