@@ -330,3 +330,70 @@ test_that("a non-positive calibration parameter is rejected rather than silently
     "must be positive"
   )
 })
+
+test_that("the search reproduces the reference implementation from the paper", {
+  # Verbatim from the script accompanying Nikolakopoulos, van der Tweel and
+  # Roes (2018), "Dynamic borrowing through empirical power priors that control
+  # type I error", Biometrics 74(3):874-880. Kept as the fidelity check on the
+  # port: it is the estimator the exact computation replaces.
+  reference_find_S <- function(R = 1e6, n0 = 5, n1 = 50, m0 = .4, aD = 0.065,
+                               sig = 0.05, sR = 1, tol = 0.0001, seed = 1010) {
+    set.seed(seed)
+    s0 <- sR / n0
+    mR <- 0
+    sP <- sqrt(sR / n0 + sR / n1)
+    As <- -(((-(sqrt(sR) * sqrt(n0 + n1) * qnorm(sig) + n0 * m0)) / (n1 * sP)) - m0 / sP)
+    X <- rnorm(R, mR, sqrt(sR / n1))
+    uL <- min(As, 1); lL <- 0; S <- min(As, 1)
+    t1 <- pnorm((sqrt(sR) * sqrt(n0 + n1) * qnorm(sig) + n0 * m0) / sqrt(sR * n1))
+    t2 <- 0
+    borrowing <- function(S) {
+      B <- 2 * pnorm(-S)
+      A1 <- ifelse((X > m0 + sP * qnorm(1 - B / 2)) | (X < m0 + sP * qnorm(B / 2)),
+                   s0 / (((X - m0) / qnorm(1 - B / 2))^2 - sR / n1), 1)
+      sum(((A1 * n0 * m0 + X * n1) / (A1 * n0 + n1) +
+             sqrt(sR / (A1 * n0 + n1)) * qnorm(sig)) > 0) / R
+    }
+    if (t1 < aD) {
+      S <- As
+    } else {
+      while ((abs(t1 - t2) > tol) & (abs(uL - lL) > tol)) {
+        if (t2 != 0) t1 <- t2
+        while ((t1 > aD) & (abs(uL - lL) > tol)) {
+          uL <- S; S <- mean(c(lL, uL)); t1 <- borrowing(S)
+        }
+        if (t1 < pnorm((sqrt(n0 + n1) * qnorm(sig) + n0 * m0) / sqrt(sR * n1))) t2 <- t1
+        while ((t2 < aD) & (abs(uL - lL) > tol)) {
+          lL <- S; S <- mean(c(lL, uL)); t2 <- borrowing(S)
+        }
+      }
+    }
+    S
+  }
+
+  # RBExT splits the original's single n0 into two inputs. These settings make
+  # both agree with it: prior_variance = sR / n0 and the posterior weight = n0.
+  ported <- function(n0, n1, m0, aD, sig, sR, tol) {
+    as.numeric(findCalibrationParameter(
+      source_sample_size_per_arm = n0, target_sample_size_per_arm = n1,
+      source_treatment_effect_estimate = m0, desired_tie = aD,
+      significance_level = sig, target_data_sampling_variance = sR,
+      source_data_sampling_variance = n1 * sR / n0,
+      tolerance = tol, theta_0 = 0)[1, 2])
+  }
+
+  # The two configurations the paper's script runs, plus one more.
+  for (design in list(list(n0 = 5, n1 = 50, m0 = 0.4, aD = 0.065),
+                      list(n0 = 25, n1 = 50, m0 = 0.4, aD = 0.065),
+                      list(n0 = 25, n1 = 50, m0 = 0.3, aD = 0.065))) {
+    reference <- reference_find_S(
+      R = 1e6, n0 = design$n0, n1 = design$n1, m0 = design$m0,
+      aD = design$aD, sig = 0.05, sR = 1, tol = 0.0001, seed = 1010
+    )
+    exact <- ported(design$n0, design$n1, design$m0, design$aD, 0.05, 1, 0.0001)
+    # The reference varies by ~0.003 across seeds at this many draws.
+    expect_lt(abs(reference - exact), 0.015,
+              label = sprintf("|reference - exact| for n0=%g m0=%g (%.6f vs %.6f)",
+                              design$n0, design$m0, reference, exact))
+  }
+})
