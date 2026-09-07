@@ -91,10 +91,12 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
   }
 
   ess_elir <- if (requested("ess_elir")) {
+    # Passed through unrecycled: a prior shared by every replicate only needs
+    # the ELIR integral evaluating once.
     normal_mixture_elir_ess(
-      weights = recycle_prior_component(weights, n_replicates),
-      means = recycle_prior_component(means, n_replicates),
-      sds = recycle_prior_component(sds, n_replicates),
+      weights = weights,
+      means = means,
+      sds = sds,
       sigma = reference_scale
     )
   } else {
@@ -329,6 +331,19 @@ normal_mixture_quantile <- function(weights, means, sds, p,
 normal_mixture_elir_ess <- function(weights, means, sds, sigma,
                                     n0 = 20L, max_nodes = 240L,
                                     rel_tol = 1e-4, abs_tol = 1e-6) {
+  if (!is.matrix(weights)) {
+    # The prior is shared by every replicate, so the integral only has to be
+    # evaluated once: ELIR is proportional to the squared reference scale.
+    unit_scale <- normal_mixture_elir_ess(
+      weights = matrix(weights, nrow = 1),
+      means = matrix(means, nrow = 1),
+      sds = matrix(sds, nrow = 1),
+      sigma = 1,
+      n0 = n0, max_nodes = max_nodes, rel_tol = rel_tol, abs_tol = abs_tol
+    )
+    return(sigma^2 * unit_scale)
+  }
+
   n_replicates <- nrow(weights)
   sigma <- rep_len(sigma, n_replicates)
 

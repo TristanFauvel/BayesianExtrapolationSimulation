@@ -141,6 +141,29 @@ test_that("normal_mixture_elir_ess matches RBesT for two-component mixtures", {
   expect_equal(actual, expected, tolerance = 1e-6)
 })
 
+test_that("normal_mixture_elir_ess accepts a prior shared by every replicate", {
+  # A prior that does not vary by replicate only needs the integral evaluating
+  # once, since ELIR is proportional to the squared reference scale. The
+  # normalised power prior relies on this: its mixture has dozens of components
+  # but is the same for every replicate.
+  weights <- c(0.4, 0.6)
+  means <- c(0.7, 0.0)
+  sds <- c(0.2, 1.5)
+  sigma <- c(1, 2.5, 0.4)
+
+  shared <- normal_mixture_elir_ess(weights, means, sds, sigma = sigma)
+
+  per_replicate <- normal_mixture_elir_ess(
+    weights = matrix(weights, nrow = 3, ncol = 2, byrow = TRUE),
+    means = matrix(means, nrow = 3, ncol = 2, byrow = TRUE),
+    sds = matrix(sds, nrow = 3, ncol = 2, byrow = TRUE),
+    sigma = sigma
+  )
+
+  expect_equal(shared, per_replicate)
+  expect_length(shared, 3)
+})
+
 test_that("normal_mixture_elir_ess scales with the square of the reference scale", {
   weights <- matrix(c(0.4, 0.6), nrow = 1)
   means <- matrix(c(0.7, 0.0), nrow = 1)
