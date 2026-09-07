@@ -10,7 +10,7 @@ posterior_draws_fixture <- function(n_iterations = 500, n_chains = 4) {
   ))
 }
 
-stub_fit <- function(draws) {
+stub_fit <- function(draws, num_divergent = c(0, 0, 0, 0)) {
   list(
     draws = function(variables = NULL, ...) {
       if (is.null(variables)) {
@@ -19,19 +19,19 @@ stub_fit <- function(draws) {
         posterior::subset_draws(draws, variable = variables)
       }
     },
-    diagnostic_summary = function(...) list(num_divergent = c(0, 0, 0, 0))
+    diagnostic_summary = function(...) list(num_divergent = num_divergent)
   )
 }
 
 # Records the arguments the model hands to the sampler.
-recording_stan_model <- function(draws, calls) {
+recording_stan_model <- function(draws, calls, num_divergent = c(0, 0, 0, 0)) {
   calls$sample_args_log <- list()
   list(
     sample = function(...) {
       args <- list(...)
       calls$sample_args <- args
       calls$sample_args_log <- c(calls$sample_args_log, list(args))
-      stub_fit(draws)
+      stub_fit(draws, num_divergent)
     }
   )
 }
@@ -53,16 +53,20 @@ stub_mcmc_config <- function(target_accept = 0.8) {
     chain_length = 500L,
     max_chain_length = 10000L,
     target_ess = 10L,
-    rhat_threshold = 1.1
+    rhat_threshold = 1.1,
+    max_divergence_rate = 0.01
   )
 }
 
-fitted_stub_model <- function(calls, target_accept = 0.8) {
+fitted_stub_model <- function(calls, target_accept = 0.8,
+                              num_divergent = c(0, 0, 0, 0)) {
   model <- StubMCMCModel$new(
     prior = list(),
     mcmc_config = stub_mcmc_config(target_accept)
   )
-  model$stan_model <- recording_stan_model(posterior_draws_fixture(), calls)
+  model$stan_model <- recording_stan_model(
+    posterior_draws_fixture(), calls, num_divergent
+  )
   model
 }
 
@@ -213,4 +217,64 @@ test_that("the sequence of sampler seeds is reproducible", {
   }
 
   expect_identical(seeds_for_run(), seeds_for_run())
+})
+
+
+test_that("inference reports a warning when divergences exceed the allowed rate", {
+  calls <- new.env(parent = emptyenv())
+  # 2000 post-warmup draws (4 chains of 500); 100 divergences is a rate of 0.05,
+  # above the configured 0.01.
+  model <- fitted_stub_model(calls, num_divergent = c(40, 30, 20, 10))
+
+  status <- model$inference(target_data = NULL)
+
+  expect_match(status, "diverge")
+  expect_match(status, "0.05", fixed = TRUE)
+})
+
+
+test_that("inference succeeds when divergences are within the allowed rate", {
+  calls <- new.env(parent = emptyenv())
+  # 10 of 2000 draws is a rate of 0.005, below the configured 0.01.
+  model <- fitted_stub_model(calls, num_divergent = c(4, 3, 2, 1))
+
+  expect_identical(model$inference(target_data = NULL), "Success")
+})
+
+
+test_that("inference records the divergence count whether or not it warns", {
+  for (divergent in list(c(4, 3, 2, 1), c(40, 30, 20, 10))) {
+    calls <- new.env(parent = emptyenv())
+    model <- fitted_stub_model(calls, num_divergent = divergent)
+
+    model$inference(target_data = NULL)
+
+    expect_identical(model$n_divergences, sum(divergent))
+  }
+})
+
+
+test_that("the existing ESS and rhat warnings still take precedence", {
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls, num_divergent = c(40, 30, 20, 10))
+  model$mcmc_config$target_ess <- 1e9
+
+  status <- model$inference(target_data = NULL)
+
+  expect_match(status, "ESS")
+})
+
+
+test_that("a divergence rate outside the unit interval is rejected", {
+  bad <- function(rate) {
+    config <- stub_mcmc_config()
+    config$max_divergence_rate <- rate
+    config
+  }
+
+  expect_error(StubMCMCModel$new(prior = list(), mcmc_config = bad(-0.1)),
+               "max_divergence_rate")
+  expect_error(StubMCMCModel$new(prior = list(), mcmc_config = bad(1.5)),
+               "max_divergence_rate")
+  expect_no_error(StubMCMCModel$new(prior = list(), mcmc_config = bad(0)))
 })

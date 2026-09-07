@@ -7,7 +7,8 @@ commensurate_mcmc_config <- function() {
     chain_length = 1L,
     max_chain_length = 2L,
     target_ess = 1L,
-    rhat_threshold = 1.1
+    rhat_threshold = 1.1,
+    max_divergence_rate = 0.01
   )
 }
 

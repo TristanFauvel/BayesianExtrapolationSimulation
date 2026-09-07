@@ -2016,6 +2016,11 @@ MCMCModel <- R6::R6Class(
       assertions::assert_whole_number(mcmc_config$chain_length)
       assertions::assert_whole_number(mcmc_config$target_ess)
       assertions::assert_number(mcmc_config$rhat_threshold)
+      assertions::assert_number(mcmc_config$max_divergence_rate)
+      if (mcmc_config$max_divergence_rate < 0 ||
+          mcmc_config$max_divergence_rate > 1) {
+        stop("max_divergence_rate must lie between 0 and 1.", call. = FALSE)
+      }
     },
 
     #' @description Prepare the data for inference.
@@ -2082,6 +2087,23 @@ MCMCModel <- R6::R6Class(
 
       if (self$rhat > self$mcmc_config$rhat_threshold) {
         return(paste0("Large rhat values: ", self$rhat)) # Store as warning in the results table
+      }
+
+      # A divergent transition means the sampler failed to follow the posterior
+      # geometry, so the draws may be biased however well behaved rhat and the
+      # effective sample size look. Expressed as a rate because chain_length is
+      # adapted between replicates.
+      divergence_rate <- self$n_divergences /
+        (self$mcmc_config$num_chains * self$mcmc_config$chain_length)
+
+      if (divergence_rate > self$mcmc_config$max_divergence_rate) {
+        return(paste0(
+          "Too many divergent transitions: ",
+          self$n_divergences,
+          " (rate ",
+          divergence_rate,
+          ")"
+        )) # Store as warning in the results table
       }
 
       treatment_effect_draws <- self$fit$draws("target_treatment_effect")
