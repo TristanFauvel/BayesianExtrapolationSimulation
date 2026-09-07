@@ -105,6 +105,15 @@ TestThenPool <- R6::R6Class(
     vectorised_replicate_inference = function(target_data, samples, to_return,
                                               critical_value, theta_0,
                                               confidence_level, null_space) {
+      # This class is shared between the normal and binomial variants: the same
+      # subclass holds either a pair of conjugate Gaussian models or a pair of
+      # MCMC ones. Only the former has a prior variance to borrow, so the
+      # binomial variant has to keep the replicate loop.
+      if (!inherits(self$pooling, "ConjugateGaussian") ||
+          !inherits(self$separate, "ConjugateGaussian")) {
+        return(NULL)
+      }
+
       p_value <- self$vectorised_test_pvalue(target_data, samples)
       if (is.null(p_value)) {
         return(NULL)

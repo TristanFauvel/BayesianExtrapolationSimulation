@@ -1416,15 +1416,19 @@ ConjugateGaussian <- R6::R6Class(
 
     #' @description Prior variance for each replicate
     #'
-    #' A fixed prior gives the same variance to every replicate. Empirical Bayes
-    #' subclasses override this to derive one variance per replicate. Returning
-    #' `NULL` disables the vectorised path.
+    #' Declines the vectorised path by default. Opting in is left to subclasses
+    #' because a subclass that re-derives its prior from each replicate, as the
+    #' elastic prior does when it rescales `prior_var` inside
+    #' `empirical_bayes_update()`, would otherwise inherit a fast path that
+    #' silently reads a stale value. Subclasses with a genuinely fixed prior
+    #' return it, and empirical Bayes subclasses return one variance per
+    #' replicate.
     #'
     #' @param target_data Target study data.
     #' @param samples Data frame of generated replicates.
     #' @return A scalar, a vector with one entry per replicate, or `NULL`.
     vectorised_prior_variance = function(target_data, samples) {
-      self$prior_var
+      NULL
     },
 
     #' @description Posterior parameters reported by the vectorised path
@@ -1517,6 +1521,17 @@ StaticBorrowingGaussian <- R6::R6Class(
       } else {
         self$prior_var <- 1000 # Vague prior
       }
+    },
+
+    #' @description Prior variance for each replicate
+    #'
+    #' Static borrowing fixes the prior up front, so every replicate shares it.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return The prior variance.
+    vectorised_prior_variance = function(target_data, samples) {
+      self$prior_var
     }
   )
 )

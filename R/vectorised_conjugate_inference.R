@@ -113,9 +113,14 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
     ess_precisions = ess_precisions,
     ess_elir = ess_elir,
     fit_success = if (requested("fit_success")) rep("Success", n_replicates) else NULL,
-    mcmc_ess = NULL,
-    rhat = NULL,
-    n_divergences = NULL
+    # No method with a closed-form posterior samples, but the replicate loop
+    # still returns zero-filled diagnostics when they are asked for, and
+    # estimate_frequentist_operating_characteristics() averages them into
+    # required result columns. Returning NULL instead would turn those columns
+    # into NA.
+    mcmc_ess = if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL,
+    rhat = if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL,
+    n_divergences = if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
   )
 }
 

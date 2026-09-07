@@ -130,9 +130,14 @@ for (method in vectorised_methods) {
     model <- model_for(method, case_study_config, source_data)
     reference <- scalar_only(method, model)
 
+    # Every output the pipeline asks for, including the MCMC diagnostics: the
+    # scalar path returns zero-filled vectors for those even when the method is
+    # not MCMC, and estimate_frequentist_operating_characteristics() averages
+    # them into required result columns.
     to_return <- c("test_decision", "posterior_mean", "posterior_median",
                    "credible_interval", "posterior_parameters",
-                   "ess_moment", "ess_precision", "ess_elir", "fit_success")
+                   "ess_moment", "ess_precision", "ess_elir", "fit_success",
+                   "mcmc_diagnostics")
 
     # Without this the comparison below would silently run the scalar path
     # twice and pass for the wrong reason.
@@ -151,9 +156,18 @@ for (method in vectorised_methods) {
     vectorised <- run_kernel(model, target_data, seed = 7, to_return = to_return)
     scalar <- run_kernel(reference, target_data, seed = 7, to_return = to_return)
 
+    # The two paths must agree on the shape of the result as well as its
+    # contents: a field that is a zero-filled vector on one path and NULL on
+    # the other silently turns a reported column into NA.
+    expect_equal(names(vectorised), names(scalar))
+    expect_equal(lengths(vectorised), lengths(scalar))
+
     expect_equal(vectorised$test_decisions, scalar$test_decisions)
     expect_equal(vectorised$posterior_means, scalar$posterior_means)
     expect_equal(vectorised$fit_success, scalar$fit_success)
+    expect_equal(vectorised$mcmc_ess, scalar$mcmc_ess)
+    expect_equal(vectorised$rhat, scalar$rhat)
+    expect_equal(vectorised$n_divergences, scalar$n_divergences)
     expect_equal(vectorised$ess_moments, scalar$ess_moments, tolerance = 1e-6)
     expect_equal(vectorised$ess_elir, scalar$ess_elir, tolerance = 1e-6)
 
