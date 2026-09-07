@@ -723,10 +723,18 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
                                         // Priors
                                         if (prior_type == 0) {
                                           tau2 ~ inv_gamma(alpha, beta);
+                                          // tau is the parameter and tau2 is a transform of it, so this
+                                          // statement needs the log Jacobian of tau -> tau^2, which is
+                                          // log(2 * tau). Without it the prior is InvGamma(alpha + 0.5, beta).
+                                          target += log(tau);
                                         } else if (prior_type == 1){
+                                          // tau is the parameter itself, so Stan's own <lower=0> transform
+                                          // already supplies the Jacobian and the truncation normalises it.
                                           tau ~ normal(0, std_dev) T[0, ];
                                         } else if (prior_type == 2){
                                           log_tau ~ cauchy(location, scale);
+                                          // Log Jacobian of tau -> log(tau). Without it the prior is improper.
+                                          target += -log_tau;
                                         }
 
 
