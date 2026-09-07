@@ -1791,6 +1791,9 @@ MCMCModel <- R6::R6Class(
       assertions::assert_whole_number(mcmc_config$parallel_chains)
       assertions::assert_whole_number(mcmc_config$tune)
       assertions::assert_number(mcmc_config$target_accept)
+      if (mcmc_config$target_accept <= 0 || mcmc_config$target_accept >= 1) {
+        stop("target_accept must lie strictly between 0 and 1.", call. = FALSE)
+      }
       assertions::assert_whole_number(mcmc_config$chain_length)
       assertions::assert_whole_number(mcmc_config$target_ess)
       assertions::assert_number(mcmc_config$rhat_threshold)
@@ -1821,6 +1824,7 @@ MCMCModel <- R6::R6Class(
         parallel_chains = self$mcmc_config$parallel_chains,
         iter_sampling = self$mcmc_config$chain_length,
         iter_warmup = self$mcmc_config$tune,
+        adapt_delta = self$mcmc_config$target_accept,
         output_dir = self$draws_dir
       )
 
