@@ -49,6 +49,11 @@ Model <- R6::R6Class(
     RBesT_posterior_normix = NULL,
     RBesT_prior_normix = NULL,
     summary_measure_likelihood = NULL,
+    #' @field analysis_critical_value Posterior probability threshold the
+    #'   analysis decides at, recorded when a simulation starts. Methods whose
+    #'   tuning depends on the decision rule read it, so that they are tuned for
+    #'   the test that is actually performed.
+    analysis_critical_value = NULL,
     n_components_mixture_approx = seq(1, 4),
     aic_penalty_parameter_mixture_approx = 6,
     # Penalty parameter for AIC calculation (default 6)
@@ -535,6 +540,10 @@ Model <- R6::R6Class(
         cleanup_stan_draws()
         next_stan_cleanup <- Sys.time() + 60
       }
+
+      # Recorded so that methods tuned against the decision rule can see the
+      # threshold this run decides at, rather than assuming one.
+      self$analysis_critical_value <- critical_value
 
       # Generate data for n_replicates clinical trials
       target_data_samples <- target_data$generate(n_replicates)

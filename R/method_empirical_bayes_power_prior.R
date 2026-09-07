@@ -548,13 +548,24 @@ PDCCPP <- R6::R6Class(
 
       source_data_sampling_variance <- equivalent_source_sample_size_per_arm * self$prior$source$standard_error ^ 2
 
+      # Equation (5) is written in terms of z_{1-eta}, where eta is the
+      # posterior probability threshold the analysis decides at. Calibrating
+      # against any other threshold tunes a different test than the one that is
+      # run. The configured significance_level is the fallback for callers that
+      # invoke the estimator outside a simulation.
+      significance_level <- if (is.null(self$analysis_critical_value)) {
+        self$parameters$significance_level
+      } else {
+        1 - self$analysis_critical_value
+      }
+
       calibration <- findCalibrationParameter(
         n_iter = self$parameters$n_iter,
         source_sample_size_per_arm = equivalent_source_sample_size_per_arm,
         target_sample_size_per_arm = target_data$sample_size_per_arm,
         source_treatment_effect_estimate = source_treatment_effect_estimate,
         desired_tie = self$parameters$desired_tie,
-        significance_level = self$parameters$significance_level,
+        significance_level = significance_level,
         target_data_sampling_variance = target_data_sampling_variance,
         source_data_sampling_variance = source_data_sampling_variance,
         tolerance = self$parameters$tolerance,
