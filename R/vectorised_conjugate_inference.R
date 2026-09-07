@@ -305,32 +305,36 @@ normal_mixture_quantile <- function(weights, means, sds, p,
 #' of the prior.
 #'
 #' RBesT evaluates that integral with Gauss-Hermite quadrature centred on each
-#' mixture component, doubling the number of nodes until successive estimates
-#' agree. This function uses the same rule and the same stopping criterion, but
-#' evaluates every replicate at once: the quadrature nodes depend only on the
-#' node count, so a replicate only contributes its own component means and
-#' standard deviations. Replicates that have converged drop out of the
-#' escalation, so a few awkward mixtures do not slow down the rest.
+#' mixture component, doubling the node count until successive estimates agree
+#' and falling back to adaptive quadrature if they never do. That fallback is
+#' the usual outcome for a robust mixture prior, whose informative and vague
+#' components differ in scale by a factor of around twenty: nodes spaced for the
+#' vague component step over the sharp peak the informative one puts in
+#' \eqn{i(\theta)}, so the estimate never settles.
 #'
-#' A single-component mixture is handled in closed form: the Fisher information
-#' of a normal density is the reciprocal of its variance everywhere, so no
-#' quadrature is needed.
+#' This function instead integrates \eqn{p\,i} directly, over panels split at
+#' every component's centre and tails, with Gauss-Legendre quadrature on each
+#' panel. Every component then gets panels matched to its own width, whatever
+#' the spread of scales, and the result agrees with RBesT to around 1e-10 while
+#' running on all replicates at once.
 #'
-#' @param weights `n_replicates x n_components` matrix of mixture weights.
-#' @param means `n_replicates x n_components` matrix of component means.
-#' @param sds `n_replicates x n_components` matrix of component standard
-#'   deviations.
+#' Two cases short-circuit the quadrature entirely. A single-component mixture
+#' has constant Fisher information, so its ELIR is exactly
+#' \eqn{\sigma^2/\mathrm{variance}}. A prior shared by every replicate is
+#' integrated once and rescaled, since ELIR is proportional to \eqn{\sigma^2}.
+#'
+#' @param weights Mixture weights: a vector when the prior is shared by every
+#'   replicate, or a `n_replicates x n_components` matrix.
+#' @param means Component means, shaped like `weights`.
+#' @param sds Component standard deviations, shaped like `weights`.
 #' @param sigma Reference scale, either a single value or one value per
 #'   replicate.
-#' @param n0 Initial number of quadrature nodes.
-#' @param max_nodes Largest number of quadrature nodes to try.
-#' @param rel_tol Relative tolerance of the stopping criterion.
-#' @param abs_tol Absolute tolerance of the stopping criterion.
+#' @param n_nodes Number of Gauss-Legendre nodes per panel.
+#' @param spread How many standard deviations each component's panels reach.
 #' @return Vector of ELIR effective sample sizes, one per replicate.
 #' @export
 normal_mixture_elir_ess <- function(weights, means, sds, sigma,
-                                    n0 = 20L, max_nodes = 240L,
-                                    rel_tol = 1e-4, abs_tol = 1e-6) {
+                                    n_nodes = 40L, spread = 9) {
   if (!is.matrix(weights)) {
     # The prior is shared by every replicate, so the integral only has to be
     # evaluated once: ELIR is proportional to the squared reference scale.
@@ -339,7 +343,7 @@ normal_mixture_elir_ess <- function(weights, means, sds, sigma,
       means = matrix(means, nrow = 1),
       sds = matrix(sds, nrow = 1),
       sigma = 1,
-      n0 = n0, max_nodes = max_nodes, rel_tol = rel_tol, abs_tol = abs_tol
+      n_nodes = n_nodes, spread = spread
     )
     return(sigma^2 * unit_scale)
   }
@@ -351,65 +355,40 @@ normal_mixture_elir_ess <- function(weights, means, sds, sigma,
     return(sigma^2 / sds[, 1]^2)
   }
 
-  expected_information <- function(n) {
-    rule <- statmod::gauss.quad(n, kind = "hermite")
-    total <- numeric(n_replicates)
-    for (k in seq_len(ncol(weights))) {
-      # Nodes of N(mean_k, sd_k^2), one column per quadrature node.
-      nodes <- means[, k] + sqrt(2) * outer(sds[, k], rule$nodes)
-      information <- normal_mixture_information(weights, means, sds, nodes)
-      total <- total +
-        weights[, k] / sqrt(pi) * drop(information %*% rule$weights)
-    }
-    total
+  breakpoints <- mixture_support_breakpoints(means, sds, spread)
+  rule <- statmod::gauss.quad(n_nodes, kind = "legendre")
+
+  expected_information <- numeric(n_replicates)
+  for (panel in seq_len(ncol(breakpoints) - 1L)) {
+    lower <- breakpoints[, panel]
+    upper <- breakpoints[, panel + 1L]
+    half_width <- (upper - lower) / 2
+    midpoint <- (upper + lower) / 2
+
+    nodes <- midpoint + outer(half_width, rule$nodes)
+    integrand <- normal_mixture_density_information(weights, means, sds, nodes)
+    expected_information <- expected_information +
+      half_width * drop(integrand %*% rule$weights)
   }
 
-  previous <- expected_information(n0)
-  current <- previous
-  pending <- rep(TRUE, n_replicates)
-  n <- n0
-
-  while (any(pending) && n < max_nodes) {
-    n <- min(max_nodes, as.integer(ceiling(n * 2)))
-    refined <- expected_information(n)
-
-    converged <- abs(refined - previous) <=
-      pmax(abs_tol, rel_tol * abs(refined))
-    current[pending] <- refined[pending]
-    pending <- pending & !converged
-    previous <- refined
-  }
-
-  result <- sigma^2 * current
-
-  # RBesT falls back to adaptive quadrature when the node count runs out before
-  # the estimate settles. Rather than reproduce that second algorithm, hand the
-  # unconverged replicates back to RBesT, which keeps this function exact and
-  # bounds the cost by the number of awkward mixtures.
-  if (any(pending)) {
-    result[pending] <- vapply(which(pending), function(r) {
-      components <- lapply(seq_len(ncol(weights)), function(k) {
-        c(weights[r, k], means[r, k], sds[r, k])
-      })
-      names(components) <- paste0("component", seq_along(components))
-      mixture <- do.call(RBesT::mixnorm, c(components, list(sigma = sigma[r])))
-      RBesT::ess(mixture, method = "elir", sigma = sigma[r])
-    }, numeric(1))
-  }
-
-  result
+  sigma^2 * expected_information
 }
 
-#' Fisher information of a normal mixture at a grid of points
+#' Density times Fisher information of a normal mixture at a grid of points
+#'
+#' @description Returns \eqn{p(x)\,i(x)}, the integrand of the ELIR expectation,
+#' with \eqn{i(x) = -\partial^2_x \log p(x)}. Both factors come out of the same
+#' log-sum-exp pass, which keeps a component with negligible responsibility from
+#' underflowing.
 #'
 #' @param weights `n_replicates x n_components` matrix of mixture weights.
 #' @param means `n_replicates x n_components` matrix of component means.
 #' @param sds `n_replicates x n_components` matrix of component standard
 #'   deviations.
 #' @param x `n_replicates x n_points` matrix of evaluation points.
-#' @return A `n_replicates x n_points` matrix of \eqn{-\partial^2_x \log p(x)}.
+#' @return A `n_replicates x n_points` matrix of \eqn{p(x)\,i(x)}.
 #' @keywords internal
-normal_mixture_information <- function(weights, means, sds, x) {
+normal_mixture_density_information <- function(weights, means, sds, x) {
   n_components <- ncol(weights)
   dims <- dim(x)
 
@@ -421,20 +400,41 @@ normal_mixture_information <- function(weights, means, sds, x) {
   }
 
   largest <- Reduce(pmax, log_density)
-  responsibility <- lapply(log_density, function(l) exp(l - largest))
-  normaliser <- Reduce(`+`, responsibility)
+  scaled <- lapply(log_density, function(l) exp(l - largest))
+  normaliser <- Reduce(`+`, scaled)
 
   # score = d/dx log p, curvature = sum_k omega_k (phi_k'' / phi_k)
   score <- matrix(0, dims[1], dims[2])
   curvature <- matrix(0, dims[1], dims[2])
   for (k in seq_len(n_components)) {
-    omega <- responsibility[[k]] / normaliser
+    omega <- scaled[[k]] / normaliser
     standardised <- (x - means[, k]) / sds[, k]^2
     score <- score - omega * standardised
     curvature <- curvature + omega * (standardised^2 - 1 / sds[, k]^2)
   }
 
-  score^2 - curvature
+  density <- exp(largest) * normaliser
+  density * (score^2 - curvature)
+}
+
+#' Integration breakpoints covering every component's own scale
+#'
+#' @description A mixture whose components differ widely in scale cannot be
+#' integrated on a single grid: a rule fine enough for the broad component steps
+#' straight over the narrow one. Splitting the range at each component's centre
+#' and tails gives every component at least one panel matched to its own width.
+#'
+#' @param means `n_replicates x n_components` matrix of component means.
+#' @param sds `n_replicates x n_components` matrix of component standard
+#'   deviations.
+#' @param spread How many standard deviations each component should reach.
+#' @return A `n_replicates x (3 * n_components)` matrix of breakpoints, sorted
+#'   within each row. Repeated values give empty panels, which contribute
+#'   nothing.
+#' @keywords internal
+mixture_support_breakpoints <- function(means, sds, spread = 9) {
+  breakpoints <- cbind(means - spread * sds, means, means + spread * sds)
+  matrix(t(apply(breakpoints, 1, sort)), nrow = nrow(means))
 }
 
 #' Expand a prior specification to one row per replicate

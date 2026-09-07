@@ -136,8 +136,38 @@ test_that("normal_mixture_elir_ess matches RBesT for two-component mixtures", {
     RBesT::ess(mix, method = "elir", sigma = sigma)
   }, numeric(1))
 
-  # Same Gauss-Hermite rule and same convergence criterion as RBesT, so the two
-  # agree far inside RBesT's own 1e-4 relative stopping tolerance.
+  # RBesT stops when successive Gauss-Hermite estimates agree to 1e-4 relative,
+  # and falls back to adaptive quadrature when they never do. The panelled rule
+  # used here is converged to 13 digits by comparison, so the two agree to
+  # RBesT's accuracy rather than to ours.
+  expect_equal(actual, expected, tolerance = 1e-5)
+})
+
+test_that("normal_mixture_elir_ess matches RBesT for realistic robust mixture priors", {
+  # The configured robust mixture priors pair an informative component whose
+  # scale is the source standard error with a vague component whose scale is
+  # the target sampling standard deviation. The two differ by a factor of
+  # around twenty, which is the case that decides how ELIR has to be computed.
+  specs <- list(
+    c(w = 0.5, info_mean = 0.481, info_sd = 0.1208, vague_sd = 2.88),
+    c(w = 0.1, info_mean = 0.481, info_sd = 0.1208, vague_sd = 2.88),
+    c(w = 0.9, info_mean = 0.481, info_sd = 0.1208, vague_sd = 2.88),
+    c(w = 0.5, info_mean = -0.693, info_sd = 0.1304, vague_sd = 2.49)
+  )
+
+  weights <- t(vapply(specs, function(s) c(s[["w"]], 1 - s[["w"]]), numeric(2)))
+  means <- t(vapply(specs, function(s) c(s[["info_mean"]], 0), numeric(2)))
+  sds <- t(vapply(specs, function(s) c(s[["info_sd"]], s[["vague_sd"]]), numeric(2)))
+  sigma <- sds[, 2]
+
+  actual <- normal_mixture_elir_ess(weights, means, sds, sigma = sigma)
+
+  expected <- vapply(seq_along(specs), function(r) {
+    mix <- RBesT::mixnorm(a = c(weights[r, 1], means[r, 1], sds[r, 1]),
+                          b = c(weights[r, 2], means[r, 2], sds[r, 2]))
+    RBesT::ess(mix, method = "elir", sigma = sigma[r])
+  }, numeric(1))
+
   expect_equal(actual, expected, tolerance = 1e-6)
 })
 
