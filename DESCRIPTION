@@ -14,7 +14,6 @@ Imports:
     parallel,
     yaml,
     zeallot,
-    ggnewscale,
     purrr,
     jsonlite,
     tidyverse, 

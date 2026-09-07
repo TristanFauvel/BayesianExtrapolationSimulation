@@ -10,8 +10,8 @@ get_parallel_worker_count <- function(
   detected_cores = parallel::detectCores()
 ) {
   if (length(detected_cores) != 1L ||
-        is.na(detected_cores) ||
-        detected_cores < 2L) {
+      is.na(detected_cores) ||
+      detected_cores < 2L) {
     return(1L)
   }
 

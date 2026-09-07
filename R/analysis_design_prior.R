@@ -3,7 +3,7 @@
 #' @field design_prior_type Type of design prior.
 #' @field RBesT_model RBesT version of the model.
 #' @export
-design_prior <- R6::R6Class(
+DesignPrior <- R6::R6Class(
   "DesignPrior",
   public = list(
     design_prior_type = NULL,
@@ -26,7 +26,7 @@ design_prior <- R6::R6Class(
                       mcmc_config,
                       case_study) {
       if (design_prior_type == "ui_design_prior") {
-        design_prior <- unit_information_design_prior$new(
+        design_prior <- UnitInformationDesignPrior$new(
           source_data = source_data,
           case_study_config = case_study_config,
           case_study = case_study,
@@ -35,19 +35,17 @@ design_prior <- R6::R6Class(
         )
       } else if (design_prior_type == "analysis_prior") {
         if (model$empirical_bayes) {
-          stop(
-               paste0("Analysis prior cannot be used as a",
-                 " design prior for methods that rely on", " empirical Bayes."))
+          stop("Analysis prior cannot be used as a design prior for methods that rely on empirical Bayes.")
         }
 
-        design_prior <- analysis_prior_design_prior$new(
+        design_prior <- AnalysisPriorDesignPrior$new(
           model = model,
           case_study_config = case_study_config,
           simulation_config = simulation_config,
           mcmc_config = mcmc_config
         )
       } else if (design_prior_type == "source_posterior") {
-        design_prior <- source_posterior_design_prior$new(
+        design_prior <- SourcePosteriorDesignPrior$new(
           source_data = source_data,
           case_study_config = case_study_config,
           simulation_config = simulation_config,
@@ -56,7 +54,7 @@ design_prior <- R6::R6Class(
       } else {
         stop("Not implemented for other types of design prior.")
       }
-      design_prior
+      return(design_prior)
     },
 
     #' @description Samples from the design prior.
@@ -65,8 +63,7 @@ design_prior <- R6::R6Class(
       stop("The subclass must implement a sample() method")
     },
 
-    #' @description Computes the cumulative distribution function (CDF) of the
-    #'   design prior.
+    #' @description Computes the cumulative distribution function (CDF) of the design prior.
     #' @param x The value at which to evaluate the CDF.
     cdf = function(x) {
       stop("The subclass must implement a cdf() method")
@@ -96,50 +93,40 @@ binomial_product_integral <- function(x,
   }
 
   # Perform integration with error handling
-  result <- tryCatch(
-    {
-      integrate(
-        function(y) {
-          # Ensure y is within [0, 1] to avoid non-finite values
-          valid_range <- (y >= 0) &
-            (y <= 1) & ((y + x) >= 0) & ((y + x) <= 1)
-          # Return 0 for out-of-bound values
-          ifelse(
-            valid_range,
-            dbeta(y, alpha_control, beta_control) * dbeta(
-              y + x,
-              alpha_treatment, beta_treatment
-            ),
-            0
-          )
-        },
-        lower = lower_limit,
-        upper = upper_limit,
-        subdivisions = 1000,
-        rel.tol = .Machine$double.eps^0.25
-      )$value
-    },
-    error = function(e) {
-      warning(paste("Integration failed at x =", x, ":", e$message))
-      futile.logger::flog.error(paste(
-        "Integration failed at x =", x, ":",
-        e$message
-      ))
-      NA
-    }
-  )
-  result
+  result <- tryCatch({
+    integrate(
+      function(y) {
+        # Ensure y is within [0, 1] to avoid non-finite values
+        valid_range <- (y >= 0) &
+          (y <= 1) & ((y + x) >= 0) & ((y + x) <= 1)
+        # Return 0 for out-of-bound values
+        ifelse(
+          valid_range,
+          dbeta(y, alpha_control, beta_control) * dbeta(y + x, alpha_treatment, beta_treatment),
+          0
+        )
+      },
+      lower = lower_limit,
+      upper = upper_limit,
+      subdivisions = 1000,
+      rel.tol = .Machine$double.eps ^ 0.25
+    )$value
+  }, error = function(e) {
+    warning(paste("Integration failed at x =", x, ":", e$message))
+    futile.logger::flog.error(paste("Integration failed at x =", x, ":", e$message))
+    return(NA)
+  })
+  return(result)
 }
 
 #' @title UnitInformationDesignPrior class
-#' @description A class representing the unit information design prior for
-#'   Bayesian borrowing.
+#' @description A class representing the unit information design prior for Bayesian borrowing.
 #' @field parameters Parameters for the prior
 #' @field summary_measure_likelihood Treatment effect distribution
 #' @export
-unit_information_design_prior <- R6::R6Class(
+UnitInformationDesignPrior <- R6::R6Class(
   "UnitInformationDesignPrior",
-  inherit = design_prior,
+  inherit = DesignPrior,
   public = list(
     parameters = NULL,
     summary_measure_likelihood = NULL,
@@ -159,12 +146,9 @@ unit_information_design_prior <- R6::R6Class(
       self$summary_measure_likelihood <- summary_measure_likelihood
 
       if (summary_measure_likelihood == "normal") {
-        # Ideally the variance should depend on the target study variance, but
-        # we don't know it, and assyle that it is the same as the source study
-        # variance
+        # Ideally the variance should depend on the target study variance, but we don't know it, and assyle that it is the same as the source study variance
         variance <- (
-          source_data$standard_error^2 *
-            source_data$equivalent_source_sample_size_per_arm
+          source_data$standard_error ^ 2 * source_data$equivalent_source_sample_size_per_arm
         )
         self$parameters <- list(
           mean = source_data$treatment_effect_estimate,
@@ -173,16 +157,13 @@ unit_information_design_prior <- R6::R6Class(
         ) # information provided by a single subject per arm in the source study
       } else if (summary_measure_likelihood == "binomial") {
         # Start by fitting a separate analysis model on the source data
-        method_parameters <- list(
-          initial_prior = "noninformative",
-          empirical_bayes = FALSE
-        )
+        method_parameters <- list(initial_prior = "noninformative", empirical_bayes = FALSE)
 
         if (is.null(mcmc_config)) {
           stop("MCMC config is not provided.")
         }
 
-        separate_model <- model$new()
+        separate_model <- Model$new()
         separate_model <- separate_model$create(
           case_study_config = case_study_config,
           method = "separate",
@@ -193,50 +174,38 @@ unit_information_design_prior <- R6::R6Class(
 
 
         # The rationale is the following:
-        # 1. Define a target data object with the same properties as the source
-        # study
+        # 1. Define a target data object with the same properties as the source study
         # 2. Perform a separate analysis
-        # 3. Approximate the resulting posterior distribution with a mixture
-        # distribution
-        # 4. Scale the parameters of the distribution to get a Unit Information
-        # distribution
-        target_data <- target_data_factory$new()
+        # 3. Approximate the resulting posterior distribution with a mixture distribution
+        # 4. Scale the parameters of the distribution to get a Unit Information distribution
+        target_data <- TargetDataFactory$new()
         target_data <- target_data$create(
           source_data = source_data,
           case_study_config = case_study_config,
-          target_sample_size_per_arm =
-            source_data$equivalent_source_sample_size_per_arm,
-          control_drift = 0,
-          # The actual value does matter here as we set the treatment effect estimate after
-          treatment_drift = 0,
-          # The actual value does matter here as we set the treatment effect estimate after
-          summary_measure_likelihood =
-            case_study_config$summary_measure_likelihood,
+          target_sample_size_per_arm = source_data$equivalent_source_sample_size_per_arm,
+          control_drift = 0, # The actual value does matter here as we set the treatment effect estimate after
+          treatment_drift = 0, # The actual value does matter here as we set the treatment effect estimate after
+          summary_measure_likelihood = case_study_config$summary_measure_likelihood,
           target_to_source_std_ratio = 1
         )
 
-        # The target data object used for the analysis has the same properties
-        # as the source data, but centered in theta0.
+        # The target data object used for the analysis has the same properties as the source data, but centered in theta0.
         target_data$sample_size_treatment <- source_data$sample_size_treatment
         target_data$sample_size_control <- source_data$sample_size_control
         target_data$sample$sample_treatment_rate <- source_data$treatment_rate
         target_data$sample$sample_control_rate <- source_data$control_rate
-        target_data$sample$sample_size_per_arm <-
-          source_data$equivalent_source_sample_size_per_arm
-        target_data$sample$treatment_effect_estimate <-
-          case_study_config$theta_0
-        target_data$sample$treatment_effect_standard_error <-
-          source_data$standard_error
+        target_data$sample$sample_size_per_arm <- source_data$equivalent_source_sample_size_per_arm
+        target_data$sample$treatment_effect_estimate <- case_study_config$theta_0
+        target_data$sample$treatment_effect_standard_error <- source_data$standard_error
 
         # Perform inference using a separate analysis of the source study
         separate_model$inference(target_data)
 
-        # Convert the posterior to a mixture distribution and compute the prior
-        # ESS
+        #  Convert the posterior to a mixture distribution and compute the prior ESS
         separate_model$posterior_to_RBesT(target_data, simulation_config)
 
-        mixture_approximation <- separate_model$RBesT_posterior
-        ess <- RBesT::ess(mixture_approximation, method = "moment")
+        mixture_approximation <-  separate_model$RBesT_posterior
+        ESS <- RBesT::ess(mixture_approximation, method = "moment")
 
         # Extract the weights, a and b parameters
         weights <- mixture_approximation[1, ]
@@ -244,12 +213,12 @@ unit_information_design_prior <- R6::R6Class(
         b_params <- mixture_approximation[3, ]
 
         # Adjust the a and b parameters by dividing by lambda
-        a_params_new <- a_params / ess
-        b_params_new <- b_params / ess
+        a_params_new <- a_params / ESS
+        b_params_new <- b_params / ESS
 
 
         # Create the new mixture of Beta distributions with adjusted parameters
-        components_new <- lapply(seq_along(weights), function(i) {
+        components_new <- lapply(1:length(weights), function(i) {
           c(weights[i], a_params_new[i], b_params_new[i])
         })
 
@@ -259,7 +228,7 @@ unit_information_design_prior <- R6::R6Class(
         self$RBesT_model <- ui_mixture
 
         # Check that the resulting distribution has an ESS of 1
-        # RBesT::ess(ui_mixture, method = "moment")
+        #RBesT::ess(ui_mixture, method = "moment")
       } else {
         stop("Other distributions not supported")
       }
@@ -271,21 +240,20 @@ unit_information_design_prior <- R6::R6Class(
     #' @param n_samples The number of samples to generate.
     sample = function(n_samples) {
       if (self$summary_measure_likelihood == "normal") {
-        rnorm(n_samples, self$parameters$mean, self$parameters$sd)
+        return(rnorm(n_samples, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
         transformed_samples <- RBesT::rmix(self$RBesT_model, n = n_samples)
-        2 * transformed_samples - 1
+        return(2 * transformed_samples - 1)
       } else {
         stop("Not implemented for other distributions.")
       }
     },
 
-    #' @description Computes the cumulative distribution function (CDF) of the
-    #'   unit information design prior.
+    #' @description Computes the cumulative distribution function (CDF) of the unit information design prior.
     #' @param x The value at which to evaluate the CDF.
     cdf = function(x) {
       if (self$summary_measure_likelihood == "normal") {
-        pnorm(x, self$parameters$mean, self$parameters$sd)
+        return(pnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
         result <- numeric(length(x))
         result[x >= 1] <- 1
@@ -294,18 +262,17 @@ unit_information_design_prior <- R6::R6Class(
           self$RBesT_model,
           q = (x[interior] + 1) / 2
         )
-        result
+        return(result)
       } else {
         stop("Not implemented for other distributions.")
       }
     },
 
-    #' @description Computes the cumulative distribution function (CDF) of the
-    #'   unit information design prior.
+    #' @description Computes the cumulative distribution function (CDF) of the unit information design prior.
     #' @param x The value at which to evaluate the CDF.
     pdf = function(x) {
       if (self$summary_measure_likelihood == "normal") {
-        dnorm(x, self$parameters$mean, self$parameters$sd)
+        return(dnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
         result <- numeric(length(x))
         interior <- x > -1 & x < 1
@@ -314,7 +281,7 @@ unit_information_design_prior <- R6::R6Class(
           x = (x[interior] + 1) / 2,
           log = FALSE
         ) / 2
-        result
+        return(result)
       } else {
         stop("Not implemented for other distributions.")
       }
@@ -323,8 +290,7 @@ unit_information_design_prior <- R6::R6Class(
 )
 
 #' @title SourcePosteriorDesignPrior class
-#' @description A class representing the source posterior design prior for
-#'   Bayesian borrowing.
+#' @description A class representing the source posterior design prior for Bayesian borrowing.
 #' @field parameters Parameters
 #' @field summary_measure_likelihood Treatment effect distribution
 #' @field n_successes_control Number of successes in the control arm
@@ -332,9 +298,9 @@ unit_information_design_prior <- R6::R6Class(
 #' @field n_control Number of participants in the control arm
 #' @field n_treatment Number of participants in the treatment arm
 #' @export
-source_posterior_design_prior <- R6::R6Class(
+SourcePosteriorDesignPrior <- R6::R6Class(
   "SourcePosteriorDesignPrior",
-  inherit = design_prior,
+  inherit = DesignPrior,
   public = list(
     parameters = NULL,
     summary_measure_likelihood = NULL,
@@ -356,7 +322,7 @@ source_posterior_design_prior <- R6::R6Class(
       self$summary_measure_likelihood <- summary_measure_likelihood
       self$parameters <- list(
         mean = source_data$treatment_effect_estimate,
-        variance = source_data$standard_error^2,
+        variance = source_data$standard_error ^ 2,
         sd = source_data$standard_error
       )
 
@@ -378,7 +344,7 @@ source_posterior_design_prior <- R6::R6Class(
     #' @param n_samples The number of samples to generate.
     sample = function(n_samples) {
       if (self$summary_measure_likelihood == "normal") {
-        rnorm(n_samples, self$parameters$mean, self$parameters$sd)
+        return(rnorm(n_samples, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
         control_rate <- stats::rbeta(
           n_samples,
@@ -390,31 +356,29 @@ source_posterior_design_prior <- R6::R6Class(
           shape1 = 1 + self$n_successes_treatment,
           shape2 = 1 + self$n_treatment - self$n_successes_treatment
         )
-        treatment_rate - control_rate
+        return(treatment_rate - control_rate)
       } else {
         stop("Not implemented for other distributions.")
       }
     },
 
-    #' @description Computes the cumulative distribution function (CDF) of the
-    #'   source posterior design prior.
+    #' @description Computes the cumulative distribution function (CDF) of the source posterior design prior.
     #' @param x The value at which to evaluate the CDF.
     cdf = function(x) {
       if (self$summary_measure_likelihood == "normal") {
-        pnorm(x, self$parameters$mean, self$parameters$sd)
+        return(pnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
-        integrate(self$pdf, lower = -1, upper = x)$value
+        return(integrate(self$pdf, lower = -1, upper = x)$value)
       } else {
         stop("Not implemented for other distributions.")
       }
     },
 
-    #' @description Computes the cumulative distribution function (PDF) of the
-    #'   source posterior design prior.
+    #' @description Computes the cumulative distribution function (PDF) of the source posterior design prior.
     #' @param x The value at which to evaluate the PDF.
     pdf = function(x) {
       if (self$summary_measure_likelihood == "normal") {
-        dnorm(x, self$parameters$mean, self$parameters$sd)
+        return(dnorm(x, self$parameters$mean, self$parameters$sd))
       } else if (self$summary_measure_likelihood == "binomial") {
         # PDF for each arm
         result <- sapply(x, function(x) {
@@ -434,13 +398,12 @@ source_posterior_design_prior <- R6::R6Class(
 )
 
 #' @title AnalysisPriorDesignPrior class
-#' @description A class representing the analysis prior design prior for
-#'   Bayesian borrowing.
+#' @description A class representing the analysis prior design prior for Bayesian borrowing.
 #' @field model Model used to define the analysis prior
 #' @export
-analysis_prior_design_prior <- R6::R6Class(
+AnalysisPriorDesignPrior <- R6::R6Class(
   "AnalysisPriorDesignPrior",
-  inherit = design_prior,
+  inherit = DesignPrior,
   public = list(
     model = NULL,
 
@@ -455,8 +418,7 @@ analysis_prior_design_prior <- R6::R6Class(
                           mcmc_config) {
       if (model$empirical_bayes == TRUE) {
         stop(
-          paste0("It is not possible to define an analysis",
-            " design prior for a method that uses", " empirical Bayes.")
+          "It is not possible to define an analysis design prior for a method that uses empirical Bayes."
         )
       }
 
@@ -468,20 +430,19 @@ analysis_prior_design_prior <- R6::R6Class(
     #' @description Samples from the analysis prior design prior.
     #' @param n_samples The number of samples to generate.
     sample = function(n_samples) {
-      self$model$sample_prior(n_samples)
+      return(self$model$sample_prior(n_samples))
     },
 
-    #' @description Computes the cumulative distribution function (CDF) of the
-    #'   analysis prior design prior.
+    #' @description Computes the cumulative distribution function (CDF) of the analysis prior design prior.
     #' @param x The value at which to evaluate the CDF.
     cdf = function(x) {
-      self$model$prior_cdf(x)
+      return(self$model$prior_cdf(x))
     },
 
     #' @description Computes the PDF of the analysis prior design prior.
     #' @param x The value at which to evaluate the PDF.
     pdf = function(x) {
-      self$model$prior_pdf(x)
+      return(self$model$prior_pdf(x))
     }
   )
 )

@@ -5,8 +5,7 @@
 #' @param theta_0 The null hypothesis value
 #' @param case_study The case study being analyzed
 #' @param method The method being used
-#' @param category The category of analysis ('parameters' or
-#'   'target_sample_size_per_arm')
+#' @param category The category of analysis ('parameters' or 'target_sample_size_per_arm')
 #' @param control_drift Boolean indicating whether to control for drift
 #' @param target_sample_size_per_arm The target sample size per arm
 #' @param parameters_combinations The combinations of parameters
@@ -33,28 +32,26 @@ table_metric_vs_drift <- function(metric,
                                   target_to_source_std_ratio = 1,
                                   wide_table = TRUE) {
   # Filter results by case study and target sample size per arm
-  results_metrics_df <- results_metrics_df |>
-    dplyr::filter(case_study == !!case_study) |>
+  results_metrics_df <- results_metrics_df %>%
+    dplyr::filter(case_study == !!case_study) %>%
     dplyr::filter(method == !!method)
 
 
   if (control_drift) {
-    results_metrics_df <- results_metrics_df |>
-      dplyr::filter(treatment_drift == 0)
+    results_metrics_df <- results_metrics_df %>% dplyr::filter(treatment_drift == 0)
     xvar <- xvars$control_drift
   } else {
-    results_metrics_df <- results_metrics_df |> dplyr::filter(control_drift ==
-                                                                0)
+    results_metrics_df <- results_metrics_df %>% dplyr::filter(control_drift == 0)
     xvar <- xvars$drift
   }
 
-  results_df <- results_metrics_df |> dplyr::filter(method == !!method)
+  results_df <- results_metrics_df %>% dplyr::filter(method == !!method)
 
   categories <- unique(results_df[[category]])
 
   # Filter on the scenarios of main interest
   if (category == "parameters") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
         target_sample_size_per_arm == !!target_sample_size_per_arm,
         source_denominator_change_factor == !!source_denominator_change_factor |
@@ -70,24 +67,23 @@ table_metric_vs_drift <- function(metric,
     # Reorder the data :
     results_df[results_df$method == method, ] <- results_df[sorted_index, ]
   } else if (category == "source_denominator") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
         target_sample_size_per_arm == !!target_sample_size_per_arm,
         target_to_source_std_ratio == !!target_to_source_std_ratio |
           is.na(target_to_source_std_ratio),
       )
   } else if (category == "target_to_source_std_ratio") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
         target_sample_size_per_arm == !!target_sample_size_per_arm,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
   } else if (category == "target_sample_size_per_arm") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
-        target_to_source_std_ratio == !!target_to_source_std_ratio |
-          is.na(target_to_source_std_ratio),
+        target_to_source_std_ratio == !!target_to_source_std_ratio | is.na(target_to_source_std_ratio),
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
@@ -95,7 +91,7 @@ table_metric_vs_drift <- function(metric,
     stop("Category is not supported")
   }
 
-  if (nrow(results_df) == 0) {
+  if (nrow(results_df) == 0){
     return()
   }
 
@@ -104,17 +100,19 @@ table_metric_vs_drift <- function(metric,
   parameters_labels <- NA
   if (category == "target_sample_size_per_arm") {
     results_df$label <- results_df$target_sample_size_per_arm
+    labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = FALSE
-      )
+    parameters_labels <- unname(sapply(1:nrow(results_df), function(i) {
+      process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     }))
 
+    labels_title <- "Parameters"
   } else if (category == "source_denominator") {
     results_df$label <- results_df$source_denominator
+    labels_title <- "Source denominator change factor"
   } else if (category == "target_to_source_std_ratio") {
     results_df$label <- results_df$target_to_source_std_ratio
+    labels_title <- latex2exp::TeX("$\\sigma_T/\\sigma_S$") # Ratio between target and source standard deviation
   } else {
     stop("Not implemented for this category")
   }
@@ -126,10 +124,7 @@ table_metric_vs_drift <- function(metric,
     results_df <- merge(results_df, parameters_combinations[, ])
     param_values <- unlist(unique(results_df[, category]))
   } else {
-    param_values <- unlist(get_parameters(unique(results_df[, category,
-                                                   drop =
-                                                     FALSE
-                                                 ])))
+    param_values <- unlist(get_parameters(unique(results_df[, category, drop = FALSE])))
   }
 
   # Do not make the plot if all values for the parameters of interest are NA
@@ -159,35 +154,26 @@ table_metric_vs_drift <- function(metric,
     stop("Metric name is NULL")
   }
   selected_metric_name <- rlang::sym(selected_metric$name)
-  selected_metric_uncertainty_lower <-
-    rlang::sym(paste0(selected_metric$metric_uncertainty, "_lower"))
-  selected_metric_uncertainty_upper <-
-    rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
+  selected_metric_uncertainty_lower <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_lower"))
+  selected_metric_uncertainty_upper <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
+  selected_label <- selected_metric$label
 
+  labels <- list()
   for (i in seq_along(categories)) {
     combination <- categories[i]
     if (category == "source_denominator") {
       if (is.na(combination)) {
         next
       } else {
-        results_df[
-          results_df[, "source_denominator"] == combination,
-          "label"
-        ] <- combination
+        results_df[results_df[, "source_denominator"] == combination, "label"] <- combination
       }
     }
   }
 
 
-  if (!(category == "parameters")) {
-    parameters_label <- make_labels_from_parameters(
-      parameters_combinations,
-      method
-    )
-    parameters_str <- convert_params_to_str(
-      methods_dict[[method]],
-      parameters_combinations
-    )
+  if (!(category == "parameters")){
+    parameters_label <- make_labels_from_parameters(parameters_combinations, method)
+    parameters_str <- convert_params_to_str(methods_dict[[method]], parameters_combinations)
 
     if (parameters_label == "") {
       parameters_label_title <- ""
@@ -243,6 +229,7 @@ table_metric_vs_drift <- function(metric,
     )
 
     source_denominator_change_factor <- NA
+
   } else if (category == "parameters") {
     title <- sprintf(
       "%s, %s, %s, $N_T/2 = $ %s",
@@ -291,79 +278,66 @@ table_metric_vs_drift <- function(metric,
     stop("Not implemented for this category")
   }
 
-  title <- format_title(
-    title = title, case_study = case_study,
-    target_to_source_std_ratio = target_to_source_std_ratio,
-    source_denominator_change_factor = source_denominator_change_factor,
-    as_latex = TRUE
-  )
-  filename <- format_filename(
-    filename = filename, case_study = case_study,
-    target_to_source_std_ratio = target_to_source_std_ratio,
-    source_denominator_change_factor = source_denominator_change_factor
-  )
+  title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
+  filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
 
   if (category == "target_sample_size_per_arm") {
     results_df$label <- results_df$target_sample_size_per_arm
+    labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    results_df$label <- format_results_df_parameters(results_df,
-      include_method_name = FALSE
-    )
+    results_df$label <- format_results_df_parameters(results_df, include_method_name = FALSE)
+    labels_title <- "Parameters"
   } else if (category == "source_denominator") {
     results_df$label <- results_df$source_denominator
+    labels_title <- "Source denominator change factor"
   } else if (category == "target_to_source_std_ratio") {
     results_df$label <- results_df$target_to_source_std_ratio
+    labels_title <- expression(Tex("$\\sigma_T/\\sigma_S")) # Ratio between target and source standard deviation
   } else {
     stop("Not implemented for this category")
   }
 
-  data_table <- results_df |>
+  data_table <- results_df %>%
     dplyr::select(
       label,
       !!xvar_name,
       !!selected_metric_name,
       !!selected_metric_uncertainty_lower,
       !!selected_metric_uncertainty_upper
-    ) |>
+    ) %>%
     dplyr::mutate(
       !!xvar_label := format_num(!!xvar_name),
       !!selected_metric$label := format_num(!!selected_metric_name),
       error_low = format_num(!!selected_metric_uncertainty_lower),
       error_upper = format_num(!!selected_metric_uncertainty_upper),
-      !!selected_metric$uncertainty_label := paste0(
-        "[", error_low, ", ",
-        error_upper, "]"
-      )
-    ) |>
+      !!selected_metric$uncertainty_label := paste0("[", error_low, ", ", error_upper, "]")
+    ) %>%
     dplyr::select(
       label,
       !!xvar_label,
       !!selected_metric$label,
       !!selected_metric$uncertainty_label
-    ) |>
+    ) %>%
     dplyr::rename(
       "$\\delta$" = "Drift in treatment effect",
     )
 
 
   # Merge Mean and CI columns
-  data_table <- data_table |>
-    unite(!!selected_metric$label, selected_metric$label,
-      selected_metric$uncertainty_label,
-      sep = " "
-    )
-  if (wide_table && !(all(is.na(data_table$label) | data_table$label == ""))) {
-    # Pivot the table so that Parameters become columns and Sample Size per Arm
-    # is in rows
-    data_table_formatted <- data_table |>
+  data_table <- data_table %>%
+    unite(!!selected_metric$label, selected_metric$label, selected_metric$uncertainty_label, sep = " ")
+  if (wide_table && !(all(is.na(data_table$label) | data_table$label == ""))){
+    # Pivot the table so that Parameters become columns and Sample Size per Arm is in rows
+    data_table_formatted <- data_table %>%
       tidyr::pivot_wider(
-        names_from = label, # The column to pivot (label)
-        values_from =
-          !!rlang::sym(selected_metric$label) # The values for the new columns
+        names_from = label,  # The column to pivot (label)
+        values_from = !!rlang::sym(selected_metric$label)  # The values for the new columns
       )
+    longtable = FALSE
   } else {
     data_table_formatted <- data_table
+    longtable = TRUE
   }
 
 
@@ -375,10 +349,7 @@ table_metric_vs_drift <- function(metric,
   file_path <- file.path(directory, filename)
 
 
-  export_table(
-    data_table = data_table_formatted, ncollapses = 1, title =
-      title, file_path = file_path
-  )
+  export_table(data_table = data_table_formatted, ncollapses = 1, title = title, file_path = file_path)
 }
 
 #' Plot metric vs parameters
@@ -405,12 +376,12 @@ table_metric_vs_parameters <- function(results_metrics_df,
                                        theta_0 = NULL,
                                        source_denominator_change_factor = 1,
                                        target_to_source_std_ratio = 1) {
-  results_df <- results_metrics_df |>
+  results_df <- results_metrics_df %>%
     dplyr::filter(
       case_study == !!case_study,
       target_sample_size_per_arm == !!target_sample_size_per_arm,
       method == !!method,
-      source_denominator_change_factor == !!source_denominator_change_factor |
+      source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
         is.na(target_to_source_std_ratio)
@@ -421,26 +392,20 @@ table_metric_vs_parameters <- function(results_metrics_df,
     next
   }
 
-  case_study_config <- yaml::read_yaml(paste0(
-    case_studies_config_dir,
-    case_study, ".yml"
-  ))
+  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
 
-  source_treatment_effect_estimate <-
-    unique(results_df$source_treatment_effect_estimate)[1]
-  mandatory_drift_values <-
-    important_drift_values(source_treatment_effect_estimate, case_study_config)
+  source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
+  mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
 
   if ("drift" %in% colnames(results_df)) {
-    # Find the closest values in df$target_treatment_effect to
-    # important_target_treatment_effects
+    # Find the closest values in df$target_treatment_effect to important_target_treatment_effects
     closest_values <- sapply(mandatory_drift_values, function(x) {
       results_df$drift[which.min(abs(results_df$drift - x))]
     })
 
     # Filter the dataframe to keep only the rows with the closest values
-    results_df <- results_df |>
-      dplyr::filter(drift %in% closest_values) |>
+    results_df <- results_df %>%
+      dplyr::filter(drift %in% closest_values) %>%
       dplyr::arrange(drift)
 
     if (length(unique(results_df$drift)) != 3) {
@@ -450,8 +415,12 @@ table_metric_vs_parameters <- function(results_metrics_df,
 
   parameters_df <- get_parameters(results_df[, "parameters"])
 
+  methods_parameters <- methods_dict[[method]]
 
   # Effects label
+  treatment_effects_names <- c("No effect",
+                               "Partially consistent effect",
+                               "Consistent effect")
 
   # Extract the metric of interest
   if (metric %in% names(frequentist_metrics)) {
@@ -468,41 +437,36 @@ table_metric_vs_parameters <- function(results_metrics_df,
     stop("Metric name is NULL")
   }
 
+  selected_metric_name <- rlang::sym(selected_metric$name)
+  selected_metric_uncertainty_lower <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_lower"))
+  selected_metric_uncertainty_upper <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
+  selected_label <- selected_metric$label
 
-  for (i in seq_len(ncol(parameters_df))) {
+  for (i in 1:ncol(parameters_df)) {
     # Select the other parameters
-    other_parameters <- unique(parameters_df[, -i])
+    other_parameters <- unique(parameters_df[,-i])
 
-    if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0) {
-      n_params_loop <- 1
+    if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0){
+      n_params_loop = 1
     } else {
-      n_params_loop <- nrow(other_parameters)
+      n_params_loop = nrow(other_parameters)
     }
-    for (j in seq(n_params_loop)) {
-      if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0) {
+    for (j in seq(n_params_loop)){
+      if (is.null(nrow(other_parameters)) || nrow(other_parameters) == 0){
         other_params_label <- ""
         other_params_str <- ""
         parameters_subdf <- parameters_df
         results_subdf <- results_df
       } else {
-        other_params_label <- make_labels_from_parameters(
-          parameter =
-            other_parameters[j, ], method = method
-        )
+        other_params_label <- make_labels_from_parameters(parameter = other_parameters[j,], method = method)
         other_params_label <- paste0(other_params_label, ", ")
-        other_params_str <- convert_params_to_str(
-          methods_dict[[method]],
-          other_parameters[j, ]
-        )
+        other_params_str <- convert_params_to_str(methods_dict[[method]], other_parameters[j,])
 
         # Filter the dataframe on the value of these other parameters
-        matching_filter <- apply(
-          parameters_df[, -i], 1,
-          function(row) all(row == other_parameters[j, ])
-        )
-        parameters_subdf <- parameters_df[matching_filter, ]
+        matching_filter <- apply(parameters_df[,-i], 1, function(row) all(row == other_parameters[j,]))
+        parameters_subdf <- parameters_df[matching_filter,]
 
-        results_subdf <- results_df[matching_filter, ]
+        results_subdf <- results_df[matching_filter,]
       }
 
       if (length(unique(parameters_subdf[, i])) < 2) {
@@ -513,7 +477,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
 
       results_subdf$parameter_values <- parameter_values
 
-      data_table <- results_subdf |>
+      data_table <- results_subdf %>%
         dplyr::mutate(
           means = format_num(!!rlang::sym(selected_metric$name)),
           error_low = format_num(!!rlang::sym(
@@ -523,31 +487,27 @@ table_metric_vs_parameters <- function(results_metrics_df,
             paste0(selected_metric$metric_uncertainty, "_upper")
           )),
           CI = paste0("[", error_low, ", ", error_upper, "]")
-        ) |>
-        dplyr::select(parameter_values, means, CI) |>
+        ) %>%
+        dplyr::select(parameter_values, means, CI) %>%
         dplyr::arrange(parameter_values)
 
-      data_table <- data_table |>
-        # dplyr::group_by(parameter_values) |>
+      data_table <- data_table %>%
+        # dplyr::group_by(parameter_values) %>%
         dplyr::rename(
           "Parameter" = parameter_values,
           !!selected_metric$label := means,
           !!selected_metric$uncertainty_label := CI
         )
 
-      data_table <- data_table |>
-        unite(!!selected_metric$label, selected_metric$label,
-          selected_metric$uncertainty_label,
-          sep = " "
-        )
+      data_table <- data_table %>%
+        unite(!!selected_metric$label, selected_metric$label, selected_metric$uncertainty_label, sep = " ")
 
 
       directory <- file.path(tables_dir, case_study)
       if (!dir.exists(directory)) {
         dir.create(directory,
-          showWarnings = FALSE,
-          recursive = TRUE
-        )
+                   showWarnings = FALSE,
+                   recursive = TRUE)
       }
 
       filename <- paste0(
@@ -558,7 +518,7 @@ table_metric_vs_parameters <- function(results_metrics_df,
         target_sample_size_per_arm
       )
 
-      if (other_params_str != "") {
+      if (other_params_str != ""){
         filename <- paste0(filename, "_", other_params_str)
       }
 
@@ -569,23 +529,13 @@ table_metric_vs_parameters <- function(results_metrics_df,
         other_params_label,
         target_sample_size_per_arm
       )
-      title <- format_title(
-        title = title, case_study = case_study,
-        target_to_source_std_ratio = target_to_source_std_ratio,
-        source_denominator_change_factor = source_denominator_change_factor
-      )
-      filename <- format_filename(
-        filename = filename, case_study =
-          case_study, target_to_source_std_ratio = target_to_source_std_ratio,
-        source_denominator_change_factor = source_denominator_change_factor
-      )
+      title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
+      filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
       file_path <- file.path(directory, filename)
 
-      export_table(
-        data_table = data_table, ncollapses = 1, title = title,
-        file_path = file_path
-      )
+      export_table(data_table = data_table, ncollapses = 1, title = title, file_path = file_path)
+
     }
   }
 }
@@ -614,11 +564,14 @@ table_metric_vs_sample_size <- function(metric,
                                         source_denominator_change_factor = 1,
                                         target_to_source_std_ratio = 1,
                                         wide_table = TRUE) {
-  results_df <- results_metrics_df |>
+
+
+
+  results_df <- results_metrics_df %>%
     dplyr::filter(
       case_study == !!case_study,
       method == !!method,
-      source_denominator_change_factor == !!source_denominator_change_factor |
+      source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
         is.na(target_to_source_std_ratio)
@@ -626,26 +579,20 @@ table_metric_vs_sample_size <- function(metric,
 
   results_df <- cbind(results_df, get_parameters(results_df[, "parameters"]))
 
-  case_study_config <- yaml::read_yaml(paste0(
-    case_studies_config_dir,
-    case_study, ".yml"
-  ))
+  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
 
-  source_treatment_effect_estimate <-
-    unique(results_df$source_treatment_effect_estimate)[1]
-  mandatory_drift_values <-
-    important_drift_values(source_treatment_effect_estimate, case_study_config)
+  source_treatment_effect_estimate <- unique(results_df$source_treatment_effect_estimate)[1]
+  mandatory_drift_values <- important_drift_values(source_treatment_effect_estimate, case_study_config)
 
   if ("drift" %in% colnames(results_df)) {
-    # Find the closest values in df$target_treatment_effect to
-    # important_target_treatment_effects
+    # Find the closest values in df$target_treatment_effect to important_target_treatment_effects
     closest_values <- sapply(mandatory_drift_values, function(x) {
       results_df$drift[which.min(abs(results_df$drift - x))]
     })
 
     # Filter the dataframe to keep only the rows with the closest values
-    results_df <- results_df |>
-      dplyr::filter(drift %in% closest_values) |>
+    results_df <- results_df %>%
+      dplyr::filter(drift %in% closest_values) %>%
       dplyr::arrange(drift)
 
     if (length(unique(results_df$drift)) != 3) {
@@ -654,11 +601,9 @@ table_metric_vs_sample_size <- function(metric,
   }
 
   # Effects label
-  effects <- c(
-    "No effect",
-    "Partially consistent effect",
-    "Consistent effect"
-  )
+  effects <- c("No effect",
+               "Partially consistent effect",
+               "Consistent effect")
 
   # Factorize target treatment effect
   results_df$target_treatment_effect <- factor(
@@ -683,16 +628,14 @@ table_metric_vs_sample_size <- function(metric,
     stop("Metric name is NULL")
   }
 
-  results_df$Parameters <- format_results_df_parameters(results_df,
-    include_method_name = FALSE
-  )
+  results_df$Parameters <- format_results_df_parameters(results_df, include_method_name = FALSE)
 
-  for (treatment_effect in effects) {
+  for (treatment_effect in effects){
     # Filter on the treatment effect
-    results_df_filtered <- results_df |>
+    results_df_filtered <- results_df %>%
       dplyr::filter(target_treatment_effect %in% treatment_effect)
 
-    data_table <- results_df_filtered |>
+    data_table <- results_df_filtered %>%
       dplyr::mutate(
         means = format_num(!!rlang::sym(selected_metric$name)),
         error_low = format_num(!!rlang::sym(
@@ -702,34 +645,28 @@ table_metric_vs_sample_size <- function(metric,
           paste0(selected_metric$metric_uncertainty, "_upper")
         )),
         CI = paste0("[", error_low, ", ", error_upper, "]"),
-        combined_mean_CI = paste0(
-          means, " ",
-          CI
-        ) # Combine mean and CI into one column
-      ) |>
-      dplyr::select(Parameters, target_sample_size_per_arm, combined_mean_CI) |>
+        combined_mean_CI = paste0(means, " ", CI)  # Combine mean and CI into one column
+      ) %>%
+      dplyr::select(Parameters, target_sample_size_per_arm, combined_mean_CI) %>%
       dplyr::arrange(target_sample_size_per_arm)
 
-    data_table <- data_table |>
+    data_table <- data_table %>%
       dplyr::rename(
         "$N_T/2$" = target_sample_size_per_arm,
-        !!selected_metric$label := combined_mean_CI # Rename the combined column
+        !!selected_metric$label := combined_mean_CI  # Rename the combined column
       )
 
-    if (wide_table && !(all(is.na(data_table$Parameters) |
-                              data_table$Parameters == ""))) {
-      # Pivot the table so that Parameters become columns and Sample Size per
-      # Arm is in rows
-      data_table_formatted <- data_table |>
+    if (wide_table && !(all(is.na(data_table$Parameters) | data_table$Parameters == ""))){
+      # Pivot the table so that Parameters become columns and Sample Size per Arm is in rows
+      data_table_formatted <- data_table %>%
         tidyr::pivot_wider(
-          names_from = Parameters, # The column to pivot (Parameters)
-          values_from =
-            !!rlang::sym(selected_metric$label) # The values for the new columns
+          names_from = Parameters,  # The column to pivot (Parameters)
+          values_from = !!rlang::sym(selected_metric$label)  # The values for the new columns
         )
-      longtable <- FALSE
+      longtable = FALSE
     } else {
       data_table_formatted <- data_table
-      longtable <- TRUE
+      longtable = TRUE
     }
 
 
@@ -747,7 +684,7 @@ table_metric_vs_sample_size <- function(metric,
       gsub(" ", "_", treatment_effect)
     )
 
-    title <- TeX(
+    title <-  TeX(
       sprintf(
         "%s, %s, %s, %s",
         frequentist_metrics[[metric]]$label,
@@ -757,63 +694,49 @@ table_metric_vs_sample_size <- function(metric,
       )
     )
 
-    title <- format_title(
-      title = title, case_study = case_study,
-      target_to_source_std_ratio = target_to_source_std_ratio,
-      source_denominator_change_factor = source_denominator_change_factor,
-      as_latex = TRUE
-    )
-    filename <- format_filename(
-      filename = filename, case_study = case_study,
-      target_to_source_std_ratio = target_to_source_std_ratio,
-      source_denominator_change_factor = source_denominator_change_factor
-    )
+    title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
+    filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
 
     file_path <- file.path(directory, filename)
 
-    export_table(
-      data_table = data_table_formatted, ncollapses = 1, title =
-        title, file_path = file_path, longtable = longtable
-    )
+    export_table(data_table = data_table_formatted, ncollapses = 1, title = title, file_path = file_path, longtable = longtable)
   }
 }
 
 
 table_metric_vs_drift_scenario_cat <- function(metric,
-                                               results_metrics_df,
-                                               theta_0,
-                                               case_study,
-                                               method,
-                                               category,
-                                               control_drift,
-                                               target_sample_size_per_arm,
-                                               parameters_combinations,
-                                               xvars,
-                                               wide_table = TRUE) {
+                                  results_metrics_df,
+                                  theta_0,
+                                  case_study,
+                                  method,
+                                  category,
+                                  control_drift,
+                                  target_sample_size_per_arm,
+                                  parameters_combinations,
+                                  xvars,
+                                  wide_table = TRUE) {
   # Filter results by case study and target sample size per arm
-  results_metrics_df <- results_metrics_df |>
-    dplyr::filter(case_study == !!case_study) |>
+  results_metrics_df <- results_metrics_df %>%
+    dplyr::filter(case_study == !!case_study) %>%
     dplyr::filter(method == !!method)
 
 
   if (control_drift) {
-    results_metrics_df <- results_metrics_df |>
-      dplyr::filter(treatment_drift == 0)
+    results_metrics_df <- results_metrics_df %>% dplyr::filter(treatment_drift == 0)
     xvar <- xvars$control_drift
   } else {
-    results_metrics_df <- results_metrics_df |> dplyr::filter(control_drift ==
-                                                                0)
+    results_metrics_df <- results_metrics_df %>% dplyr::filter(control_drift == 0)
     xvar <- xvars$drift
   }
 
-  results_df <- results_metrics_df |> dplyr::filter(method == !!method)
+  results_df <- results_metrics_df %>% dplyr::filter(method == !!method)
 
-  # categories <- unique(results_df[["parameters"]])
+  #categories <- unique(results_df[["parameters"]])
 
   # Filter on the scenarios of main interest
   if (category == "parameters") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
         target_sample_size_per_arm == !!target_sample_size_per_arm,
         source_denominator_change_factor == !!source_denominator_change_factor |
@@ -829,24 +752,23 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     # Reorder the data :
     results_df[results_df$method == method, ] <- results_df[sorted_index, ]
   } else if (category == "source_denominator") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
         target_sample_size_per_arm == !!target_sample_size_per_arm,
         target_to_source_std_ratio == !!target_to_source_std_ratio |
           is.na(target_to_source_std_ratio),
       )
   } else if (category == "target_to_source_std_ratio") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
         target_sample_size_per_arm == !!target_sample_size_per_arm,
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
   } else if (category == "target_sample_size_per_arm") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(
-        target_to_source_std_ratio == !!target_to_source_std_ratio |
-          is.na(target_to_source_std_ratio),
+        target_to_source_std_ratio == !!target_to_source_std_ratio | is.na(target_to_source_std_ratio),
         source_denominator_change_factor == !!source_denominator_change_factor |
           is.na(source_denominator_change_factor)
       )
@@ -854,7 +776,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     stop("Category is not supported")
   }
 
-  if (nrow(results_df) == 0) {
+  if (nrow(results_df) == 0){
     return()
   }
 
@@ -863,17 +785,19 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   parameters_labels <- NA
   if (category == "target_sample_size_per_arm") {
     results_df$label <- results_df$target_sample_size_per_arm
+    labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    parameters_labels <- unname(sapply(seq_len(nrow(results_df)), function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = FALSE
-      )
+    parameters_labels <- unname(sapply(1:nrow(results_df), function(i) {
+      process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
     }))
 
+    labels_title <- "Parameters"
   } else if (category == "source_denominator") {
     results_df$label <- results_df$source_denominator
+    labels_title <- "Source denominator change factor"
   } else if (category == "target_to_source_std_ratio") {
     results_df$label <- results_df$target_to_source_std_ratio
+    labels_title <- latex2exp::TeX("$\\sigma_T/\\sigma_S$") # Ratio between target and source standard deviation
   } else {
     stop("Not implemented for this category")
   }
@@ -885,10 +809,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     results_df <- merge(results_df, parameters_combinations[, ])
     param_values <- unlist(unique(results_df[, category]))
   } else {
-    param_values <- unlist(get_parameters(unique(results_df[, category,
-                                                   drop =
-                                                     FALSE
-                                                 ])))
+    param_values <- unlist(get_parameters(unique(results_df[, category, drop = FALSE])))
   }
 
   # Do not make the plot if all values for the parameters of interest are NA
@@ -918,35 +839,26 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     stop("Metric name is NULL")
   }
   selected_metric_name <- rlang::sym(selected_metric$name)
-  selected_metric_uncertainty_lower <-
-    rlang::sym(paste0(selected_metric$metric_uncertainty, "_lower"))
-  selected_metric_uncertainty_upper <-
-    rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
+  selected_metric_uncertainty_lower <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_lower"))
+  selected_metric_uncertainty_upper <- rlang::sym(paste0(selected_metric$metric_uncertainty, "_upper"))
+  selected_label <- selected_metric$label
 
+  labels <- list()
   for (i in seq_along(categories)) {
     combination <- categories[i]
     if (category == "source_denominator") {
       if (is.na(combination)) {
         next
       } else {
-        results_df[
-          results_df[, "source_denominator"] == combination,
-          "label"
-        ] <- combination
+        results_df[results_df[, "source_denominator"] == combination, "label"] <- combination
       }
     }
   }
 
 
-  if (!(category == "parameters")) {
-    parameters_label <- make_labels_from_parameters(
-      parameters_combinations,
-      method
-    )
-    parameters_str <- convert_params_to_str(
-      methods_dict[[method]],
-      parameters_combinations
-    )
+  if (!(category == "parameters")){
+    parameters_label <- make_labels_from_parameters(parameters_combinations, method)
+    parameters_str <- convert_params_to_str(methods_dict[[method]], parameters_combinations)
 
     if (parameters_label == "") {
       parameters_label_title <- ""
@@ -1002,6 +914,7 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     )
 
     source_denominator_change_factor <- NA
+
   } else if (category == "parameters") {
     title <- sprintf(
       "%s, %s, %s, $N_T/2 = $ %s",
@@ -1050,79 +963,66 @@ table_metric_vs_drift_scenario_cat <- function(metric,
     stop("Not implemented for this category")
   }
 
-  title <- format_title(
-    title = title, case_study = case_study,
-    target_to_source_std_ratio = target_to_source_std_ratio,
-    source_denominator_change_factor = source_denominator_change_factor,
-    as_latex = TRUE
-  )
-  filename <- format_filename(
-    filename = filename, case_study = case_study,
-    target_to_source_std_ratio = target_to_source_std_ratio,
-    source_denominator_change_factor = source_denominator_change_factor
-  )
+  title <- format_title(title = title, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor, as_latex = TRUE)
+  filename <- format_filename(filename = filename, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
 
   if (category == "target_sample_size_per_arm") {
     results_df$label <- results_df$target_sample_size_per_arm
+    labels_title <- "Target sample size per arm"
   } else if (category == "parameters") {
-    results_df$label <- format_results_df_parameters(results_df,
-      include_method_name = FALSE
-    )
+    results_df$label <- format_results_df_parameters(results_df, include_method_name = FALSE)
+    labels_title <- "Parameters"
   } else if (category == "source_denominator") {
     results_df$label <- results_df$source_denominator
+    labels_title <- "Source denominator change factor"
   } else if (category == "target_to_source_std_ratio") {
     results_df$label <- results_df$target_to_source_std_ratio
+    labels_title <- expression(Tex("$\\sigma_T/\\sigma_S")) # Ratio between target and source standard deviation
   } else {
     stop("Not implemented for this category")
   }
 
-  data_table <- results_df |>
+  data_table <- results_df %>%
     dplyr::select(
       label,
       !!xvar_name,
       !!selected_metric_name,
       !!selected_metric_uncertainty_lower,
       !!selected_metric_uncertainty_upper
-    ) |>
+    ) %>%
     dplyr::mutate(
       !!xvar_label := format_num(!!xvar_name),
       !!selected_metric$label := format_num(!!selected_metric_name),
       error_low = format_num(!!selected_metric_uncertainty_lower),
       error_upper = format_num(!!selected_metric_uncertainty_upper),
-      !!selected_metric$uncertainty_label := paste0(
-        "[", error_low, ", ",
-        error_upper, "]"
-      )
-    ) |>
+      !!selected_metric$uncertainty_label := paste0("[", error_low, ", ", error_upper, "]")
+    ) %>%
     dplyr::select(
       label,
       !!xvar_label,
       !!selected_metric$label,
       !!selected_metric$uncertainty_label
-    ) |>
+    ) %>%
     dplyr::rename(
       "$\\delta$" = "Drift in treatment effect",
     )
 
 
   # Merge Mean and CI columns
-  data_table <- data_table |>
-    unite(!!selected_metric$label, selected_metric$label,
-      selected_metric$uncertainty_label,
-      sep = " "
-    )
-  if (wide_table && !(all(is.na(data_table$label) | data_table$label == ""))) {
-    # Pivot the table so that Parameters become columns and Sample Size per Arm
-    # is in rows
-    data_table_formatted <- data_table |>
+  data_table <- data_table %>%
+    unite(!!selected_metric$label, selected_metric$label, selected_metric$uncertainty_label, sep = " ")
+  if (wide_table && !(all(is.na(data_table$label) | data_table$label == ""))){
+    # Pivot the table so that Parameters become columns and Sample Size per Arm is in rows
+    data_table_formatted <- data_table %>%
       tidyr::pivot_wider(
-        names_from = label, # The column to pivot (label)
-        values_from =
-          !!rlang::sym(selected_metric$label) # The values for the new columns
+        names_from = label,  # The column to pivot (label)
+        values_from = !!rlang::sym(selected_metric$label)  # The values for the new columns
       )
+    longtable = FALSE
   } else {
     data_table_formatted <- data_table
+    longtable = TRUE
   }
 
 
@@ -1134,11 +1034,10 @@ table_metric_vs_drift_scenario_cat <- function(metric,
   file_path <- file.path(directory, filename)
 
 
-  export_table(
-    data_table = data_table_formatted, ncollapses = 1, title =
-      title, file_path = file_path
-  )
+  export_table(data_table = data_table_formatted, ncollapses = 1, title = title, file_path = file_path)
+
 }
+
 
 
 #' Generate tables for methods operating characteristics
@@ -1162,7 +1061,7 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
       package = "RBExT"
     ))
 
-    filtered_results_metrics_df <- results_metrics_df |>
+    filtered_results_metrics_df <- results_metrics_df %>%
       dplyr::filter(case_study == !!case_study)
 
     if (nrow(filtered_results_metrics_df) == 0) {
@@ -1172,20 +1071,18 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
 
     theta_0 <- case_study_config$theta_0
 
-    target_sample_sizes <-
-      unique(filtered_results_metrics_df$target_sample_size_per_arm)
+    target_sample_sizes <- unique(filtered_results_metrics_df$target_sample_size_per_arm)
 
     for (method in methods) {
       if (sum(filtered_results_metrics_df$method == method) == 0) {
         next
       }
-      parameters_combinations <-
-        unique(get_parameters(filtered_results_metrics_df[
-                                                          filtered_results_metrics_df$method == method, "parameters"]))
+      parameters_combinations <- unique(get_parameters(filtered_results_metrics_df[filtered_results_metrics_df$method == method, "parameters"]))
 
 
       for (metric in names(metrics)) {
         for (sample_size in target_sample_sizes) {
+
           # table_metric_vs_drift(
           #   metric = metric,
           #   results_metrics_df = filtered_results_metrics_df,
@@ -1225,12 +1122,10 @@ tables_metric_vs_scenario <- function(results_metrics_df, metrics) {
           # )
         }
 
-        for (source_denominator_change_factor in unique(
-                                                        filtered_results_metrics_df$source_denominator_change_factor)) {
-          for (target_to_source_std_ratio in unique(
-                                                    filtered_results_metrics_df$target_to_source_std_ratio)) {
+        for (source_denominator_change_factor in unique(filtered_results_metrics_df$source_denominator_change_factor)) {
+          for (target_to_source_std_ratio in unique(filtered_results_metrics_df$target_to_source_std_ratio)) {
             for (sample_size in target_sample_sizes) {
-              for (i in seq_len(nrow(parameters_combinations))) {
+              for (i in 1:nrow(parameters_combinations)) {
                 table_metric_vs_drift(
                   metric = metric,
                   results_metrics_df = filtered_results_metrics_df,

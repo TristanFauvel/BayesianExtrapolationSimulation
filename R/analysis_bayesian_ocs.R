@@ -8,33 +8,22 @@ check_probability_value <- function(p) {
   }
 
   if (p < 0) {
-    warning(
-            paste0("Invalid value for the probability,",
-              " should be between 0 and 1. Rounding the", " value to 0."))
-    futile.logger::flog.warn(
-                             paste0("Invalid value for the probability,",
-                               " should be between 0 and 1. Rounding the",
-                                 " value to 0."))
+    warning("Invalid value for the probability, should be between 0 and 1. Rounding the value to 0.")
+    futile.logger::flog.warn("Invalid value for the probability, should be between 0 and 1. Rounding the value to 0.")
     p <- 0
   }
 
   if (p > 1) {
-    warning(
-            paste0("Invalid value for the probability,",
-              " should be between 0 and 1. Rounding the", " value to 1."))
-    futile.logger::flog.warn(
-                             paste0("Invalid value for the probability,",
-                               " should be between 0 and 1. Rounding the",
-                                 " value to 1."))
+    warning("Invalid value for the probability, should be between 0 and 1. Rounding the value to 1.")
+    futile.logger::flog.warn("Invalid value for the probability, should be between 0 and 1. Rounding the value to 1.")
     p <- 1
   }
-  p
+  return(p)
 }
 
 #' Calculate the probability of false positive
 #'
-#' @description This function calculates the probability of false positive
-#'   based on the conditional probability of success,
+#' @description This function calculates the probability of false positive based on the conditional probability of success,
 #' design prior samples, theta_0, and null space.
 #'
 #' @param conditional_proba_success The conditional probability of success.
@@ -47,14 +36,12 @@ check_probability_value <- function(p) {
 #' @export
 #'
 #' @examples NA
-preposterior_proba_fp_mc <- function(conditional_proba_success,
+preposterior_proba_FP_MC <- function(conditional_proba_success,
                                      design_prior_samples,
                                      theta_0,
                                      null_space) {
   if (length(conditional_proba_success) != length(design_prior_samples)) {
-    stop(
-         paste0("`conditional_proba_success` and",
-           " `design_prior_samples` must have the", " same length."))
+    stop("`conditional_proba_success` and `design_prior_samples` must have the same length.")
   }
 
   if (null_space == "left") {
@@ -70,13 +57,12 @@ preposterior_proba_fp_mc <- function(conditional_proba_success,
   p <- sapply(p, check_probability_value)
 
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 #' Calculate the probability of true positive
 #'
-#' @description This function calculates the probability of true positive based
-#'   on the conditional probability of success,
+#' @description This function calculates the probability of true positive based on the conditional probability of success,
 #' design prior samples, theta_0, and null space.
 #'
 #' @param conditional_proba_success The conditional probability of success.
@@ -89,14 +75,12 @@ preposterior_proba_fp_mc <- function(conditional_proba_success,
 #' @export
 #'
 #' @examples NA
-preposterior_proba_tp_mc <- function(conditional_proba_success,
+preposterior_proba_TP_MC <- function(conditional_proba_success,
                                      design_prior_samples,
                                      theta_0,
                                      null_space) {
   if (length(conditional_proba_success) != length(design_prior_samples)) {
-    stop(
-         paste0("`conditional_proba_success` and",
-           " `design_prior_samples` must have the", " same length."))
+    stop("`conditional_proba_success` and `design_prior_samples` must have the same length.")
   }
 
   if (null_space == "left") {
@@ -112,13 +96,12 @@ preposterior_proba_tp_mc <- function(conditional_proba_success,
   p <- sapply(p, check_probability_value)
 
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 #' Calculate the average type 1 error
 #'
-#' @description This function calculates the average type 1 error based on the
-#'   preposterior probability of false positive
+#' @description This function calculates the average type 1 error based on the preposterior probability of false positive
 #' and the prior probability of no benefit.
 #'
 #' @param prepost_proba_FP The preposterior probability of false positive.
@@ -129,22 +112,25 @@ preposterior_proba_tp_mc <- function(conditional_proba_success,
 #' @export
 #'
 #' @examples NA
-average_tie <- function(prepost_proba_fp, prior_proba_no_benefit) {
-  if (is.na(prepost_proba_fp) || is.na(prior_proba_no_benefit)) {
+average_tie <- function(prepost_proba_FP,
+                        prior_proba_no_benefit) {
+  if (is.na(prepost_proba_FP) | is.na(prior_proba_no_benefit)) {
     return(NA)
   }
-  assertions::assert_number(prepost_proba_fp)
+
+  assertions::assert_number(prepost_proba_FP)
   assertions::assert_number(prior_proba_no_benefit)
-  p <- prepost_proba_fp / prior_proba_no_benefit
+
+  p <- prepost_proba_FP / prior_proba_no_benefit
   p <- sapply(p, check_probability_value)
+
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 #' Calculate the average power
 #'
-#' @description This function calculates the average power based on the
-#'   preposterior probability of true positive
+#' @description This function calculates the average power based on the preposterior probability of true positive
 #' and the prior probability of no benefit.
 #'
 #' @param prepost_proba_TP The preposterior probability of true positive.
@@ -155,25 +141,26 @@ average_tie <- function(prepost_proba_fp, prior_proba_no_benefit) {
 #' @export
 #'
 #' @examples NA
-average_power <- function(prepost_proba_tp, prior_proba_no_benefit) {
-  if (is.na(prepost_proba_tp) || is.na(prior_proba_no_benefit)) {
+average_power <- function(prepost_proba_TP,
+                          prior_proba_no_benefit) {
+  if (is.na(prepost_proba_TP) | is.na(prior_proba_no_benefit)) {
     return(NA)
   }
-  assertions::assert_number(prepost_proba_tp)
+
+  assertions::assert_number(prepost_proba_TP)
   assertions::assert_number(prior_proba_no_benefit)
-  p <- prepost_proba_tp / (1 - prior_proba_no_benefit)
+
+  p <- prepost_proba_TP / (1 - prior_proba_no_benefit)
   p <- sapply(p, check_probability_value)
+
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 #' Calculate the upper bound probability of false positive
 #'
-#' @description This function calculates the upper bound probability of false
-#'   positive based on the model, prior probability of no
-#'   benefit,
-#' source data, theta_0, target sample size per arm, case study configuration,
-#' number of replicates, confidence level,
+#' @description This function calculates the upper bound probability of false positive based on the model, prior probability of no benefit,
+#' source data, theta_0, target sample size per arm, case study configuration, number of replicates, confidence level,
 #' null space, and critical value.
 #'
 #' @param model The model.
@@ -182,25 +169,21 @@ average_power <- function(prepost_proba_tp, prior_proba_no_benefit) {
 #' @param theta_0 The value of theta_0.
 #' @param target_sample_size_per_arm The target sample size per arm.
 #' @param case_study_config The case study configuration.
-#' @param target_to_source_std_ratio Ratio between target and source sampling
-#'   standard deviations.
+#' @param target_to_source_std_ratio Ratio between target and source sampling standard deviations.
 #' @param n_replicates The number of replicates.
 #' @param confidence_level The confidence level.
 #' @param null_space The null space (either "left" or "right").
 #' @param critical_value The critical value.
 #' @param case_study Case study name.
 #' @param method Method name.
-#' @param n_samples_quantiles_estimation Number of samples used to estimate
-#'   distribution quantiles.
+#' @param n_samples_quantiles_estimation Number of samples used to estimate distribution quantiles.
 #'
-#' @return The upper bound probability of false positive, defined as
-#'   \eqn{Pr(Study success|\theta_T = \theta_0) \times Pr(\theta_T
-#'   \leq \theta_0)}
+#' @return The upper bound probability of false positive, defined as \eqn{Pr(Study success|\theta_T = \theta_0) \times Pr(\theta_T \leq \theta_0)}
 #'
 #' @examples NA
 #'
 #' @export
-upper_bound_proba_fp_mc <- function(model,
+upper_bound_proba_FP_MC <- function(model,
                                     prior_proba_no_benefit,
                                     source_data,
                                     theta_0,
@@ -217,7 +200,7 @@ upper_bound_proba_fp_mc <- function(model,
   # We need to estimate Pr(Study success|\theta_T = \theta_0)
   treatment_drift <- theta_0 - source_data$treatment_effect_estimate
 
-  target_data <- target_data_factory$new()
+  target_data <- TargetDataFactory$new()
   target_data <- target_data$create(
     source_data = source_data,
     case_study_config = case_study_config,
@@ -245,18 +228,14 @@ upper_bound_proba_fp_mc <- function(model,
 
   p <- sapply(p, check_probability_value)
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 
-# The goal here is to perform numerical integration based on a predefined range
-# of values for the treatment effect. This range of values should be the same
-# for all design priors (but not all methods) methods. Since we integrate the
-# conditional power over different design priors and different bounds, the
-# range should
+# The goal here is to perform numerical integration based on a predefined range of values for the treatment effect. This range of values should be the same for all design priors (but not all methods) methods. Since we integrate the conditional power over different design priors and different bounds, the range should
 
 
-upper_bound_proba_fp <- function(prior_proba_no_benefit,
+upper_bound_proba_FP <- function(prior_proba_no_benefit,
                                  treatment_effect_values,
                                  conditional_proba_success, theta_0) {
   if (is.na(prior_proba_no_benefit)) {
@@ -265,8 +244,7 @@ upper_bound_proba_fp <- function(prior_proba_no_benefit,
 
   assertions::assert_number(prior_proba_no_benefit)
 
-  p <- prior_proba_no_benefit *
-    conditional_proba_success[treatment_effect_values == theta_0]
+  p <- prior_proba_no_benefit * conditional_proba_success[treatment_effect_values == theta_0]
 
   p <- sapply(p, check_probability_value)
 
@@ -274,21 +252,21 @@ upper_bound_proba_fp <- function(prior_proba_no_benefit,
     return(NA)
   }
 
-  if (length(p) > 1) {
+  if (length(p)>1){
     stop("Length of p is >1.")
   }
 
-  if (is.na(p)) {
+  if (is.na(p)){
     return(p)
-    # stop("p is NA.")
+    #stop("p is NA.")
   }
 
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 # Preposterior probability of a False Positive
-preposterior_proba_fp <- function(conditional_proba_success,
+preposterior_proba_FP <- function(conditional_proba_success,
                                   treatment_effect_values,
                                   theta_0,
                                   null_space,
@@ -299,9 +277,7 @@ preposterior_proba_fp <- function(conditional_proba_success,
     length(design_prior_pdf)
   )
   if (length(unique(input_lengths)) != 1L) {
-    stop(
-         paste0("Probability, treatment-effect, and",
-           " prior-density vectors must have the", " same length."))
+    stop("Probability, treatment-effect, and prior-density vectors must have the same length.")
   }
 
   if (null_space == "left") {
@@ -317,9 +293,7 @@ preposterior_proba_fp <- function(conditional_proba_success,
   if (sum(values_in_null_space) < 2) {
     p <- NA
     warning(
-      paste0("The number of values in the null space",
-        " is less than 2, the preposterior",
-          " probability of FP cannot be computed.")
+      "The number of values in the null space is less than 2, the preposterior probability of FP cannot be computed."
     )
   } else {
     p <- Bolstad2::sintegral(
@@ -331,10 +305,10 @@ preposterior_proba_fp <- function(conditional_proba_success,
     p <- sapply(p, check_probability_value)
     assertions::assert_number(p)
   }
-  p
+  return(p)
 }
 
-preposterior_proba_tp <- function(conditional_proba_success,
+preposterior_proba_TP <- function(conditional_proba_success,
                                   treatment_effect_values,
                                   theta_0,
                                   null_space,
@@ -345,9 +319,7 @@ preposterior_proba_tp <- function(conditional_proba_success,
     length(design_prior_pdf)
   )
   if (length(unique(input_lengths)) != 1L) {
-    stop(
-         paste0("Probability, treatment-effect, and",
-           " prior-density vectors must have the", " same length."))
+    stop("Probability, treatment-effect, and prior-density vectors must have the same length.")
   }
 
   if (null_space == "left") {
@@ -363,15 +335,14 @@ preposterior_proba_tp <- function(conditional_proba_success,
   } else {
     p <- Bolstad2::sintegral(
       x = treatment_effect_values[values_in_alt_space],
-      fx = design_prior_pdf[values_in_alt_space] *
-        conditional_proba_success[values_in_alt_space],
+      fx = design_prior_pdf[values_in_alt_space] * conditional_proba_success[values_in_alt_space],
       n.pts = sum(values_in_alt_space)
     )$int
 
     p <- sapply(p, check_probability_value)
     assertions::assert_number(p)
   }
-  p
+  return(p)
 }
 
 
@@ -390,28 +361,21 @@ prior_proba_success <- function(conditional_proba_success,
 
   p <- sapply(p, check_probability_value)
   assertions::assert_number(p)
-  p
+  return(p)
 }
 
 compute_bayesian_ocs <- function(results_freq_df, env) {
   results_bayesian_ocs <- data.frame()
 
-  config_dir <- paste0(
-    system.file(paste0("conf/", env), package = "RBExT"),
-    "/"
-  )
-  simulation_config <-
-    yaml::yaml.load_file(system.file("conf/simulation_config.yml", package =
-                                       "RBExT"))
+  config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+  scenarios_config <- yaml::yaml.load_file(paste0(config_dir, "scenarios_config.yml"))
+  simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
 
   if (is.null(simulation_config)) {
     stop("Simulation config is NULL")
   }
 
-  design_prior_types <- c(
-    "ui_design_prior", "analysis_prior",
-    "source_posterior"
-  )
+  design_prior_types <- c("ui_design_prior", "analysis_prior", "source_posterior")
 
   # Get the list of case studies
   case_studies <- unique(results_freq_df$case_study)
@@ -423,28 +387,24 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
       paste0("conf/case_studies/", case_study, ".yml"),
       package = "RBExT"
     ))
-    results_df_0 <- results_freq_df |>
+    results_df_0 <- results_freq_df %>%
       dplyr::filter(case_study == !!case_study)
     null_space <- case_study_config$null_space
     theta_0 <- case_study_config$theta_0
 
 
-    source_denominator_change_factors <-
-      unique(results_df_0$source_denominator_change_factor)
+    source_denominator_change_factors <- unique(results_df_0$source_denominator_change_factor)
 
-    for (
-         source_denominator_change_factor in source_denominator_change_factors) {
-      results_df_1 <- results_df_0 |>
+    for (source_denominator_change_factor in source_denominator_change_factors) {
+      results_df_1 <- results_df_0 %>%
         dplyr::filter(
-          source_denominator_change_factor ==
-            !!source_denominator_change_factor |
+          source_denominator_change_factor == !!source_denominator_change_factor  |
             is.na(source_denominator_change_factor)
         )
 
       source_data <- load_data(results_df_1[1, ],
-        type = "source",
-        reload_data_objects = TRUE
-      )
+                               type = "source",
+                               reload_data_objects = TRUE)
 
       source_data_df <- data.frame(source_data$to_dict())
       to_remove <- c("source_control_rate", "source_treatment_rate")
@@ -452,12 +412,10 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
       source_data_df <- remove_columns_from_df(source_data_df, to_remove)
 
 
-      target_to_source_std_ratio_range <-
-        unique(results_df_1$target_to_source_std_ratio)
+      target_to_source_std_ratio_range <- unique(results_df_1$target_to_source_std_ratio)
       for (target_to_source_std_ratio in target_to_source_std_ratio_range) {
-        results_df_2 <- results_df_1 |>
-          dplyr::filter(target_to_source_std_ratio ==
-                          !!target_to_source_std_ratio |
+        results_df_2 <- results_df_1 %>%
+          dplyr::filter(target_to_source_std_ratio == !!target_to_source_std_ratio |
                           is.na(target_to_source_std_ratio))
 
 
@@ -472,49 +430,34 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
         methods <- unique(results_df_2$method)
 
         for (method in methods) {
-          results_df_3 <- results_df_2 |>
+          results_df_3 <- results_df_2 %>%
             dplyr::filter(method == !!method)
 
           target_sample_sizes <- unique(results_df_3$target_sample_size_per_arm)
 
           for (target_sample_size_per_arm in target_sample_sizes) {
-            results_df_4 <- results_df_3 |>
-              dplyr::filter(target_sample_size_per_arm ==
-                              !!target_sample_size_per_arm)
+            results_df_4 <- results_df_3 %>%
+              dplyr::filter(target_sample_size_per_arm == !!target_sample_size_per_arm)
 
             # Get the different parameters combinations studies for this method
-            parameters_combinations <- data.frame(
-              parameters =
-                unique(results_df_4[, "parameters"])
-            )
+            parameters_combinations <- data.frame(parameters = unique(results_df_4[, "parameters"]))
 
-            for (i in seq_len(nrow(parameters_combinations))) {
-              # We unpack the parameter inside this loop (and not inside the
-              # previous one), because for some methods such as the
-              # commensurate power prior, there is a nested parameters
-              # structure which implies that they cannot all be stored in a
-              # single dataframe.
-              method_parameters <-
-                as.list(get_parameters(parameters_combinations[i, , drop =
-                                                                 FALSE]))
+            for (i in 1:nrow(parameters_combinations)) {
+              # We unpack the parameter inside this loop (and not inside the previous one), because for some methods such as the commensurate power prior, there is a nested parameters structure which implies that they cannot all be stored in a single dataframe.
+              method_parameters <- as.list(get_parameters(parameters_combinations[i, , drop = FALSE]))
               # convert strings to numeric or boolean if possible
-              method_parameters <- data.frame(lapply(
-                method_parameters,
-                convert_if_possible
-              ))
+              method_parameters <- data.frame(lapply(method_parameters, convert_if_possible))
 
-              # The following applies to a single row dataframe, to recover the
-              # nested list structure
+              # The following applies to a single row dataframe, to recover the nested list structure
               method_params <- extract_nested_parameter(method_parameters)
 
-              results_df <- results_df_4 |>
-                dplyr::filter(parameters ==
-                                !!unlist(parameters_combinations[i, ]))
+              results_df <- results_df_4 %>%
+                dplyr::filter(parameters == !!unlist(parameters_combinations[i, ]))
 
               conditional_proba_success <- results_df$success_proba
               treatment_effect_values <- results_df$target_treatment_effect
 
-              model <- model$new()
+              model <- Model$new()
               model <- model$create(
                 case_study_config = case_study_config,
                 method = method,
@@ -525,29 +468,27 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
 
               for (design_prior_type in design_prior_types) {
                 if (design_prior_type == "analysis_prior" &&
-                      model$empirical_bayes) {
-                  # We cannot compute the Bayesian OCs with an analysis design
-                  # prior for empirical Bayes methods.
+                    model$empirical_bayes) {
+                  # We cannot compute the Bayesian OCs with an analysis design prior for empirical Bayes methods.
                   results_to_add <- data.frame(
                     case_study = case_study,
                     method = method,
                     target_sample_size_per_arm = target_sample_size_per_arm,
                     parameters = parameters_combinations[i, ],
-                    source_denominator_change_factor =
-                      source_denominator_change_factor,
+                    source_denominator_change_factor = source_denominator_change_factor,
                     target_to_source_std_ratio = target_to_source_std_ratio,
                     design_prior_type = design_prior_type,
                     prior_proba_success = NA,
                     prior_proba_no_benefit = NA,
                     prior_proba_benefit = NA,
-                    prepost_proba_fp = NA,
-                    prepost_proba_tp = NA,
+                    prepost_proba_FP = NA,
+                    prepost_proba_TP = NA,
                     average_tie = NA,
                     average_power = NA,
-                    upper_bound_proba_fp = NA
+                    upper_bound_proba_FP = NA
                   )
                 } else {
-                  design_prior <- design_prior$new()
+                  design_prior <- DesignPrior$new()
                   design_prior <- design_prior$create(
                     design_prior_type = design_prior_type,
                     model = model,
@@ -570,21 +511,13 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
 
                   prior_proba_benefit <- 1 - prior_proba_no_benefit
 
-                  prior_proba_success_si <- prior_proba_success(
+                  prior_proba_success_SI <- prior_proba_success(
                     conditional_proba_success = conditional_proba_success,
                     treatment_effect_values = treatment_effect_values,
                     design_prior_pdf = design_prior_pdf
                   )
 
-                  prepost_proba_fp_si <- preposterior_proba_fp(
-                    conditional_proba_success = conditional_proba_success,
-                    treatment_effect_values = treatment_effect_values,
-                    theta_0 = theta_0,
-                    null_space = null_space,
-                    design_prior_pdf = design_prior_pdf
-                  )
-
-                  prepost_proba_tp_si <- preposterior_proba_tp(
+                  prepost_proba_FP_SI <- preposterior_proba_FP(
                     conditional_proba_success = conditional_proba_success,
                     treatment_effect_values = treatment_effect_values,
                     theta_0 = theta_0,
@@ -592,21 +525,28 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                     design_prior_pdf = design_prior_pdf
                   )
 
-                  average_tie_si <- average_tie(
-                    prepost_proba_fp = prepost_proba_fp_si,
+                  prepost_proba_TP_SI <- preposterior_proba_TP(
+                    conditional_proba_success = conditional_proba_success,
+                    treatment_effect_values = treatment_effect_values,
+                    theta_0 = theta_0,
+                    null_space = null_space,
+                    design_prior_pdf = design_prior_pdf
+                  )
+
+                  average_tie_SI <- average_tie(
+                    prepost_proba_FP = prepost_proba_FP_SI,
                     prior_proba_no_benefit = prior_proba_no_benefit
                   )
 
-                  average_power_si <- average_power(
-                    prepost_proba_tp = prepost_proba_tp_si,
+                  average_power_SI <- average_power(
+                    prepost_proba_TP = prepost_proba_TP_SI,
                     prior_proba_no_benefit = prior_proba_no_benefit
                   )
 
-                  if (length(conditional_proba_success[
-                                                       treatment_effect_values == theta_0]) > 1) {
+                  if(length(conditional_proba_success[treatment_effect_values == theta_0]) > 1){
                     stop("Too many values corresponding to TIE.")
                   }
-                  upper_bound_proba_fp_si <- upper_bound_proba_fp(
+                  upper_bound_proba_FP_SI <- upper_bound_proba_FP(
                     prior_proba_no_benefit = prior_proba_no_benefit,
                     treatment_effect_values = treatment_effect_values,
                     conditional_proba_success = conditional_proba_success,
@@ -618,25 +558,21 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                     method = method,
                     target_sample_size_per_arm = target_sample_size_per_arm,
                     parameters = parameters_combinations[i, ],
-                    source_denominator_change_factor =
-                      source_denominator_change_factor,
+                    source_denominator_change_factor = source_denominator_change_factor,
                     target_to_source_std_ratio = target_to_source_std_ratio,
                     design_prior_type = design_prior_type,
-                    prior_proba_success = prior_proba_success_si,
+                    prior_proba_success = prior_proba_success_SI,
                     prior_proba_no_benefit = prior_proba_no_benefit,
                     prior_proba_benefit = prior_proba_benefit,
-                    prepost_proba_fp = prepost_proba_fp_si,
-                    prepost_proba_tp = prepost_proba_tp_si,
-                    average_tie = average_tie_si,
-                    average_power = average_power_si,
-                    upper_bound_proba_fp = upper_bound_proba_fp_si
+                    prepost_proba_FP = prepost_proba_FP_SI,
+                    prepost_proba_TP = prepost_proba_TP_SI,
+                    average_tie = average_tie_SI,
+                    average_power = average_power_SI,
+                    upper_bound_proba_FP = upper_bound_proba_FP_SI
                   )
                 }
                 results_to_add <- cbind(results_to_add, source_data_df)
-                results_bayesian_ocs <- dplyr::bind_rows(
-                  results_bayesian_ocs,
-                  results_to_add
-                )
+                results_bayesian_ocs <- dplyr::bind_rows(results_bayesian_ocs, results_to_add)
               }
             }
           }
@@ -644,5 +580,5 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
       }
     }
   }
-  results_bayesian_ocs
+  return(results_bayesian_ocs)
 }

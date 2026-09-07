@@ -1,8 +1,6 @@
 #' @title TestThenPool class
-#' @description This class implements the Test-Then-Pool framework for Bayesian
-#'   borrowing in clinical trials.
-#' @details The TestThenPool class provides methods for testing and inference
-#'   with the Test-then-Pool method.
+#' @description This class implements the Test-Then-Pool framework for Bayesian borrowing in clinical trials.
+#' @details The TestThenPool class provides methods for testing and inference with the Test-then-Pool method.
 #' @field pooling Pooling model
 #' @field separate Separate model
 #' @field pool Pooling indicator
@@ -13,9 +11,9 @@
 #' @field method Method name
 #' @field empirical_bayes Indicator that the method uses empirical Bayes
 #' @export
-test_then_pool <- R6::R6Class(
+TestThenPool <- R6::R6Class(
   "TestThenPool",
-  inherit = model,
+  inherit = Model,
   list(
     pooling = NULL,
     separate = NULL,
@@ -39,25 +37,18 @@ test_then_pool <- R6::R6Class(
         if (is.null(mcmc_config)) {
           stop("mcmc_config is null.")
         }
-        self$separate <- binomial_separate$new(
-          prior = prior, mcmc_config =
-            mcmc_config
-        )
-        self$pooling <- binomial_pooling$new(
-          prior = prior, mcmc_config =
-            mcmc_config
-        )
+        self$separate <- BinomialSeparate$new(prior = prior, mcmc_config = mcmc_config)
+        self$pooling <- BinomialPooling$new(prior = prior, mcmc_config = mcmc_config)
       } else if (self$summary_measure_likelihood == "normal") {
-        self$separate <- separate_gaussian$new(prior = prior)
-        self$pooling <- pool_gaussian$new(prior = prior)
+        self$separate <- SeparateGaussian$new(prior = prior)
+        self$pooling <- PoolGaussian$new(prior = prior)
       } else {
         stop("Distribution not supported")
       }
       self$pooling$prior <- prior
       self$separate$prior <- prior
 
-      self$source_treatment_effect_estimate <-
-        prior$source$treatment_effect_estimate
+      self$source_treatment_effect_estimate <- prior$source$treatment_effect_estimate
       self$source_standard_error <- prior$source$standard_error
     },
 
@@ -76,8 +67,7 @@ test_then_pool <- R6::R6Class(
     #' @description Performs inference with the Test-then-Pool method.
     #' @param target_data The data from the target study.
     inference = function(target_data) {
-      self$test(
-                target_data) # This will set the value of self$pool, and determine whether we should use pooling or separate
+      self$test(target_data) # This will set the value of self$pool, and determine whether we should use pooling or separate
       assertions::assert_logical(self$pool)
       if (length(self$pool) == 0) {
         stop("Test result is invalid.")
@@ -102,14 +92,13 @@ test_then_pool <- R6::R6Class(
       }
 
       if (is.numeric((self$post_mean)) &&
-            is.numeric((self$post_var))) {
-        "Success"
+          is.numeric((self$post_var))) {
+        return("Success")
       } else {
         stop("Non-numeric moments")
       }
     },
-    #' @description Performs the empirical Bayes update with the Test-then-Pool
-    #'   method.
+    #' @description Performs the empirical Bayes update with the Test-then-Pool method.
     #' @param target_data The data from the target study.
     empirical_bayes_update = function(target_data) {
       if (self$pool) {
@@ -119,89 +108,81 @@ test_then_pool <- R6::R6Class(
       }
     },
 
-    #' @description Calculates the credible interval with the Test-then-Pool
-    #'   method.
-    #' @param level The confidence level for the credible interval (default is
-    #'   0.95).
+    #' @description Calculates the credible interval with the Test-then-Pool method.
+    #' @param level The confidence level for the credible interval (default is 0.95).
     credible_interval = function(level = 0.95) {
       if (self$pool) {
-        self$pooling$credible_interval(level)
+        return(self$pooling$credible_interval(level))
       } else {
-        self$separate$credible_interval(level)
+        return(self$separate$credible_interval(level))
       }
     },
     #' @description Return the median of the posterior distribution.
     #' @param ... Optional argument
     posterior_median = function(...) {
       if (self$pool) {
-        self$pooling$posterior_median(...)
+        return(self$pooling$posterior_median(...))
       } else {
-        self$separate$posterior_median(...)
+        return(self$separate$posterior_median(...))
       }
     },
 
-    #' @description Calculates the posterior probability density function with
-    #'   the Test-then-Pool method.
+    #' @description Calculates the posterior probability density function with the Test-then-Pool method.
     #' @param target_treatment_effect The treatment effect of interest.
     posterior_pdf = function(target_treatment_effect) {
       if (self$pool) {
-        self$pooling$posterior_pdf(target_treatment_effect)
+        return(self$pooling$posterior_pdf(target_treatment_effect))
       } else {
-        self$separate$posterior_pdf(target_treatment_effect)
+        return(self$separate$posterior_pdf(target_treatment_effect))
       }
     },
 
-    #' @description Calculates the prior probability density function with the
-    #'   Test-then-Pool method.
+    #' @description Calculates the prior probability density function with the Test-then-Pool method.
     #' @param target_treatment_effect The treatment effect of interest.
     prior_pdf = function(target_treatment_effect) {
       if (self$pool) {
-        self$pooling$prior_pdf(target_treatment_effect)
+        return(self$pooling$prior_pdf(target_treatment_effect))
       } else {
-        self$separate$prior_pdf(target_treatment_effect)
+        return(self$separate$prior_pdf(target_treatment_effect))
       }
     },
 
-    #' @description Calculates the posterior cumulative distribution function
-    #'   with the Test-then-Pool method.
+    #' @description Calculates the posterior cumulative distribution function with the Test-then-Pool method.
     #' @param target_treatment_effect The treatment effect of interest.
     posterior_cdf = function(target_treatment_effect) {
       if (self$pool) {
-        self$pooling$posterior_cdf(target_treatment_effect)
+        return(self$pooling$posterior_cdf(target_treatment_effect))
       } else {
-        self$separate$posterior_cdf(target_treatment_effect)
+        return(self$separate$posterior_cdf(target_treatment_effect))
       }
     },
     #' @description CDF of the prior distribution
-    #' @param target_treatment_effect Treatment effect value in the target
-    #'   study.
+    #' @param target_treatment_effect Treatment effect value in the target study.
     prior_cdf = function(target_treatment_effect) {
       if (self$pool) {
-        self$pooling$prior_cdf(target_treatment_effect)
+        return(self$pooling$prior_cdf(target_treatment_effect))
       } else {
-        self$separate$prior_cdf(target_treatment_effect)
+        return(self$separate$prior_cdf(target_treatment_effect))
       }
     },
 
-    #' @description Samples from the prior distribution with the Test-then-Pool
-    #'   method.
+    #' @description Samples from the prior distribution with the Test-then-Pool method.
     #' @param n_samples The number of samples to generate.
     sample_prior = function(n_samples) {
       if (self$pool) {
-        self$pooling$sample_prior(n_samples)
+        return(self$pooling$sample_prior(n_samples))
       } else {
-        self$separate$sample_prior(n_samples)
+        return(self$separate$sample_prior(n_samples))
       }
     },
 
-    #' @description Samples from the posterior distribution with the
-    #'   Test-then-Pool method.
+    #' @description Samples from the posterior distribution with the Test-then-Pool method.
     #' @param n_samples The number of samples to generate.
     sample_posterior = function(n_samples) {
       if (self$pool) {
-        self$pooling$sample_posterior(n_samples)
+        return(self$pooling$sample_posterior(n_samples))
       } else {
-        self$separate$sample_posterior(n_samples)
+        return(self$separate$sample_posterior(n_samples))
       }
     },
 
@@ -209,8 +190,7 @@ test_then_pool <- R6::R6Class(
     #' @param ... Optional argument
     #' @return None
     prior_to_RBesT = function(...) {
-      # test-then-pool can be seen as a form of empirical Bayes, therefore the
-      # prior is only fully defined once the data is observed.
+      # test-then-pool can be seen as a form of empirical Bayes, therefore the prior is only fully defined once the data is observed.
       if (self$pool) {
         self$RBesT_prior <- self$pooling$prior_to_RBesT(...)
       } else {
@@ -234,10 +214,7 @@ test_then_pool <- R6::R6Class(
       }
     },
 
-    #' @description Return the test decision based on the posterior
-    #'   distribution. The decision rule is: \eqn{P(\theta_T
-    #'   > \theta_0 \mid \mathbf{D}_S, \mathbf{D}_T) > )
-    #'   \eta} (if null_space is right).
+    #' @description Return the test decision based on the posterior distribution. The decision rule is: \eqn{P(\theta_T > \theta_0 \mid \mathbf{D}_S, \mathbf{D}_T) > ) \eta} (if null_space is right).
     #' @param critical_value Critical value
     #' @param theta_0 Boundary of the null hypothesis space
     #' @param null_space Side of the null hypothesis space
@@ -247,26 +224,29 @@ test_then_pool <- R6::R6Class(
                              null_space,
                              confidence_level) {
       if (self$pool) {
-        self$pooling$test_decision(
-          critical_value = critical_value,
-          theta_0 = theta_0,
-          null_space = null_space,
-          confidence_level = confidence_level
+        return(
+          self$pooling$test_decision(
+            critical_value = critical_value,
+            theta_0 = theta_0,
+            null_space = null_space,
+            confidence_level = confidence_level
+          )
         )
       } else {
-        self$separate$test_decision(
-          critical_value = critical_value,
-          theta_0 = theta_0,
-          null_space = null_space,
-          confidence_level = confidence_level
+        return(
+          self$separate$test_decision(
+            critical_value = critical_value,
+            theta_0 = theta_0,
+            null_space = null_space,
+            confidence_level = confidence_level
+          )
         )
       }
     },
 
     #' @description
     #' Plot the pooling test decision as a function of drift in treatment effect
-    #' @param source_treatment_effect_estimate Treatment effect estimate in the
-    #'   source study
+    #' @param source_treatment_effect_estimate Treatment effect estimate in the source study
     #' @param target_data Target study data
     #' @param min_drift Minimum drift value
     #' @param max_drift Maximum drift value
@@ -281,8 +261,7 @@ test_then_pool <- R6::R6Class(
 
       test_results <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
-        target_data_drift$sample$treatment_effect_estimate <-
-          source_treatment_effect_estimate + drift
+        target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
         self$test(target_data_drift)
       })
 
@@ -290,18 +269,14 @@ test_then_pool <- R6::R6Class(
 
       plt <- ggplot(plot_data, aes(x = Drift, y = Test)) +
         geom_line(color = "blue") +
-        labs(
-          title = "Pooling Test a Function of Drift", x = "Drift", y =
-            "Pooling or not"
-        ) +
+        labs(title = "Pooling Test a Function of Drift", x = "Drift", y = "Pooling or not") +
         theme_minimal()
 
-      plt
+      return(plt)
     },
     #' @description
     #' Plot the pooling test p-value as a function of drift in treatment effect
-    #' @param source_treatment_effect_estimate Treatment effect estimate in the
-    #'   source study
+    #' @param source_treatment_effect_estimate Treatment effect estimate in the source study
     #' @param target_data Target study data
     #' @param min_drift Minimum drift value
     #' @param max_drift Maximum drift value
@@ -316,8 +291,7 @@ test_then_pool <- R6::R6Class(
 
       p_values <- sapply(drifts, function(drift) {
         target_data_drift <- duplicate(target_data)
-        target_data_drift$sample$treatment_effect_estimate <-
-          source_treatment_effect_estimate + drift
+        target_data_drift$sample$treatment_effect_estimate <- source_treatment_effect_estimate + drift
         self$test_pvalue(target_data_drift)
       })
 
@@ -325,30 +299,24 @@ test_then_pool <- R6::R6Class(
 
       plt <- ggplot(plot_data, aes(x = Drift, y = Pvalue)) +
         geom_line(color = "blue") +
-        labs(
-          title = "P-value a Function of Drift", x = "Drift", y =
-            "p-value"
-        ) +
+        labs(title = "P-value a Function of Drift", x = "Drift", y = "p-value") +
         theme_minimal()
 
-      plt
+      return(plt)
     }
   )
 )
 
 #' @title TestThenPoolEquivalence class
-#' @description This class extends the TestThenPool class to implement the
-#'   Test-Then-Pool framework for equivalence trials.
-#' @details The TestThenPoolEquivalence class provides methods for testing and
-#'   inference in equivalence trials using the Test-Then-Pool
-#'   framework.
+#' @description This class extends the TestThenPool class to implement the Test-Then-Pool framework for equivalence trials.
+#' @details The TestThenPoolEquivalence class provides methods for testing and inference in equivalence trials using the Test-Then-Pool framework.
 #' @field significance_level Significance level for the test
 #' @field equivalence_margin Equivalence margin for the test
 #' @field method Method name
 #' @export
-test_then_pool_equivalence <- R6::R6Class(
+TestThenPoolEquivalence <- R6::R6Class(
   classname = "TestThenPoolEquivalence",
-  inherit = test_then_pool,
+  inherit = TestThenPool,
   public = list(
     significance_level = NULL,
     equivalence_margin = NULL,
@@ -358,10 +326,8 @@ test_then_pool_equivalence <- R6::R6Class(
     #' @param mcmc_config Configuration for the MCMC sampling.
     initialize = function(prior, mcmc_config = NULL) {
       super$initialize(prior = prior, mcmc_config = mcmc_config)
-      self$significance_level <-
-        unlist(prior$method_parameters$significance_level)
-      self$equivalence_margin <-
-        unlist(prior$method_parameters$equivalence_margin)
+      self$significance_level <- unlist(prior$method_parameters$significance_level)
+      self$equivalence_margin <- unlist(prior$method_parameters$equivalence_margin)
 
       if (is.null(self$significance_level)) {
         stop("Significance level is not defined.")
@@ -372,19 +338,17 @@ test_then_pool_equivalence <- R6::R6Class(
       }
     },
 
-    #' @description Performs the test in the Test-Then-Pool framework for
-    #'   equivalence.
+    #' @description Performs the test in the Test-Then-Pool framework for equivalence.
     #' @param target_data The data from the target study.
     #' @param test_type Test type
     test_pvalue = function(target_data, test_type = "t-test") {
       assertions::assert_number(target_data$sample$treatment_effect_estimate)
-      assertions::assert_number(
-                                target_data$sample$treatment_effect_standard_error)
+      assertions::assert_number(target_data$sample$treatment_effect_standard_error)
       assertions::assert_number(target_data$sample_size_per_arm)
 
       if (!(
         self$summary_measure_likelihood == "normal" ||
-          self$summary_measure_likelihood == "binomial"
+        self$summary_measure_likelihood == "binomial"
       )) {
         stop("Distribution not supported for this method.")
       }
@@ -406,15 +370,12 @@ test_then_pool_equivalence <- R6::R6Class(
 
         # Equivalent to :
         # z_left <- (
-        # self$source_treatment_effect_estimate -
-        # target_data$sample$treatment_effect_estimate -
-        # self$equivalence_margin
+        #   self$source_treatment_effect_estimate - target_data$sample$treatment_effect_estimate - self$equivalence_margin
         # ) / std
         # p_left <- pnorm(z_left, lower.tail = TRUE)
         #
         # std <- sqrt(
-        # target_data$sample$treatment_effect_standard_error ^ 2 +
-        # self$source_standard_error ^
+        #   target_data$sample$treatment_effect_standard_error ^ 2 + self$source_standard_error ^
         #     2
         # )
 
@@ -434,9 +395,7 @@ test_then_pool_equivalence <- R6::R6Class(
 
         # Equivalent to :
         # z_right <- (
-        # self$source_treatment_effect_estimate -
-        # target_data$sample$treatment_effect_estimate +
-        # self$equivalence_margin
+        #   self$source_treatment_effect_estimate - target_data$sample$treatment_effect_estimate + self$equivalence_margin
         # ) / std
         # p_right <- pnorm(z_right, lower.tail = FALSE)
       } else if (test_type == "t-test") {
@@ -468,14 +427,13 @@ test_then_pool_equivalence <- R6::R6Class(
           n.y = target_data$sample_size_per_arm
         )
       } else {
-        stop(
-             "Not implemented for this test. Must be either 't-test' or 'z-test'.")
+        stop("Not implemented for this test. Must be either 't-test' or 'z-test'.")
       }
 
       # Take the maximum p_value of the two tests
       p_value <- pmax(left$p.value, right$p.value)
 
-      p_value
+      return(p_value)
     },
     #' @param target_data Target study data
     #' @param test_type Frequentist test
@@ -493,23 +451,20 @@ test_then_pool_equivalence <- R6::R6Class(
       if (length(self$pool) == 0) {
         stop("Test result is invalid.")
       }
-      self$pool
+      return(self$pool)
     }
   )
 )
 
 #' @title TestThenPoolDifference class
-#' @description This class extends the TestThenPool class to implement the
-#'   Test-Then-Pool framework for difference trials.
-#' @details The TestThenPoolDifference class provides methods for testing and
-#'   inference in difference trials using the Test-Then-Pool
-#'   framework.
+#' @description This class extends the TestThenPool class to implement the Test-Then-Pool framework for difference trials.
+#' @details The TestThenPoolDifference class provides methods for testing and inference in difference trials using the Test-Then-Pool framework.
 #' @field significance_level Significance level for the test
 #' @field method Method name
 #' @export
-test_then_pool_difference <- R6::R6Class(
+TestThenPoolDifference <- R6::R6Class(
   "TestThenPoolDifference",
-  inherit = test_then_pool,
+  inherit = TestThenPool,
   public = list(
     significance_level = NULL,
     method = "test_then_pool_difference",
@@ -529,19 +484,17 @@ test_then_pool_difference <- R6::R6Class(
     #' @param test_type Frequentist test
     test_pvalue = function(target_data, test_type = "t-test") {
       assertions::assert_number(target_data$sample$treatment_effect_estimate)
-      assertions::assert_number(
-                                target_data$sample$treatment_effect_standard_error)
+      assertions::assert_number(target_data$sample$treatment_effect_standard_error)
       assertions::assert_number(target_data$sample_size_per_arm)
 
       if (!(
         self$summary_measure_likelihood == "normal" ||
-          self$summary_measure_likelihood == "binomial"
+        self$summary_measure_likelihood == "binomial"
       )) {
         stop("Distribution not supported for this method.")
       }
 
-      # Null Hypothesis (H0): There is no difference between the means of the
-      # two studies
+      # Null Hypothesis (H0): There is no difference between the means of the two studies
       # H0 : θS - θT = 0
       if (test_type == "z-test") {
         test_result <- BSDA::zsum.test(
@@ -570,11 +523,10 @@ test_then_pool_difference <- R6::R6Class(
           n.y = target_data$sample_size_per_arm
         )
       } else {
-        stop(
-             "Not implemented for this test. Must be either 't-test' or 'z-test'.")
+        stop("Not implemented for this test. Must be either 't-test' or 'z-test'.")
       }
 
-      test_result$p.value
+      return(test_result$p.value)
     },
     #' @param target_data Target study data
     #' @param test_type Frequentist test
@@ -592,7 +544,7 @@ test_then_pool_difference <- R6::R6Class(
       if (length(self$pool) == 0) {
         stop("Test result is invalid.")
       }
-      self$pool
+      return(self$pool)
     }
   )
 )

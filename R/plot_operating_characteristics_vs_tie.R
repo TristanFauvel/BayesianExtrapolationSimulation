@@ -3,91 +3,70 @@
 #' @param results_metrics_df The dataframe containing the results and metrics
 #' @param case_study The case study name
 #' @param target_sample_size_per_arm The target sample size per arm
-#' @param treatment_effect The treatment effect type ("consistent",
-#'   "no_effect", "partially_consistent")
-#' @param operating_characteristic The operating characteristic to plot (e.g.,
-#'   "power", "type_1_error")
-#' @param power_difference Logical indicating whether to calculate difference
-#'   for the operating characteristic
+#' @param treatment_effect The treatment effect type ("consistent", "no_effect", "partially_consistent")
+#' @param operating_characteristic The operating characteristic to plot (e.g., "power", "type_1_error")
+#' @param power_difference Logical indicating whether to calculate difference for the operating characteristic
 #'
 #' @return None
 #'
 #' @export
 operating_characteristic_vs_tie <- function(
-  results_metrics_df,
-  case_study,
-  target_sample_size_per_arm,
-  treatment_effect,
-  operating_characteristic,
-  source_denominator_change_factor,
-  target_to_source_std_ratio
+    results_metrics_df,
+    case_study,
+    target_sample_size_per_arm,
+    treatment_effect,
+    operating_characteristic,
+    source_denominator_change_factor,
+    target_to_source_std_ratio
 ) {
+
   directory <- paste0(figures_dir, case_study)
   if (!dir.exists(directory)) {
     dir.create(directory, showWarnings = FALSE, recursive = TRUE)
   }
 
-  results_df <- results_metrics_df |>
+  results_df <- results_metrics_df %>%
     dplyr::filter(
       target_sample_size_per_arm == !!target_sample_size_per_arm,
       case_study == !!case_study,
-      source_denominator_change_factor == !!source_denominator_change_factor |
+      source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
         is.na(target_to_source_std_ratio)
     )
 
   theta_0 <- unique(results_df$theta_0)
+  results_df_tie <- results_df %>% dplyr::filter(target_treatment_effect == theta_0)
 
   if (treatment_effect == "consistent") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(target_treatment_effect == source_treatment_effect_estimate)
   } else if (treatment_effect == "no_effect") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(target_treatment_effect == theta_0)
   } else if (treatment_effect == "partially_consistent") {
-    results_df <- results_df |>
+    results_df <- results_df %>%
       dplyr::filter(abs(
         target_treatment_effect - source_treatment_effect_estimate / 2
       ) < 1e-4)
   } else {
-    stop(
-         paste0('treatment_effect must be "consistent",',
-           ' "no_effect" or "partially_consistent"'))
+    stop('treatment_effect must be "consistent", "no_effect" or "partially_consistent"')
   }
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  results_df$parameters_labels <- lapply(
-    seq_len(nrow(results_df)),
-    function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = FALSE
-      )
-    }
-  )
+  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+  })
 
-  results_df$parameters_labels_not_latex <- lapply(
-    seq_len(nrow(results_df)),
-    function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = FALSE, as_latex = FALSE
-      )
-    }
-  )
+  results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+  })
 
-  results_df$methods_parameters_labels <- lapply(
-    seq_len(nrow(results_df)),
-    function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = TRUE, as_latex = FALSE
-      )
-    }
-  )
+  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
+  })
 
-  parameters_labels <- setNames(
-    object = results_df$parameters_labels, nm =
-      results_df$parameters_labels
-  )
+  parameters_labels <- setNames(object = results_df$parameters_labels, nm = results_df$parameters_labels)
   methods <- format_results_df_methods(results_df)
   results_df$method <- methods
   methods <- unique(methods)
@@ -110,10 +89,7 @@ operating_characteristic_vs_tie <- function(
   )
   file_path <- file.path(directory, filename)
 
-  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(
-    file_path,
-    ".png"
-  )) && remake_figures == FALSE) {
+  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE) {
     return()
   }
 
@@ -159,18 +135,16 @@ operating_characteristic_vs_tie <- function(
   results_df_split <- split(results_df, results_df$method)
 
   # Unique parameters and methods
+  unique_parameters <- unique(results_df$parameters_labels)
   unique_methods <- sort(unique(results_df$method))
 
   # Shapes for methods
   shape_codes <- c(16, 2, 15, 18, 1, 8, 4, 3, 7, 9)
 
-  shapes <- setNames(shape_codes[seq_along(unique_methods)], unique_methods)
+  shapes <- setNames(shape_codes[1:length(unique_methods)], unique_methods)
 
   # Initialize the plot
-  plt <- ggplot(mapping = aes(
-    x = tie, y =
-      !!sym(operating_characteristic$name)
-  ))
+  plt <- ggplot(mapping = aes(x = tie, y = !!sym(operating_characteristic$name)))
 
   # Iterate over each method and add layers
   plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
@@ -179,12 +153,12 @@ operating_characteristic_vs_tie <- function(
     # Get unique parameters for this method
     method_parameters <- unique(df_subset$parameters_labels)
 
-    if (length(method_parameters) == 0) {
+    if (length(method_parameters) == 0){
       return()
     }
 
     # Generate a large color palette
-    full_palette <- scales::hue_pal()(50) # Generate a larger palette
+    full_palette <- scales::hue_pal()(50)  # Generate a larger palette
     # Randomly sample 'length(method_parameters)' colors from the full palette
     method_colors <- setNames(
       sample(full_palette, length(method_parameters), replace = FALSE),
@@ -212,14 +186,8 @@ operating_characteristic_vs_tie <- function(
         data = df_subset,
         aes(
           x = tie,
-          ymin = !!sym(paste0(
-            "conf_int_", operating_characteristic$name,
-            "_lower"
-          )),
-          ymax = !!sym(paste0(
-            "conf_int_", operating_characteristic$name,
-            "_upper"
-          )),
+          ymin = !!sym(paste0("conf_int_", operating_characteristic$name, "_lower")),
+          ymax = !!sym(paste0("conf_int_", operating_characteristic$name, "_upper")),
           color = factor(parameters_labels, levels = method_parameters)
         ),
         width = y_cap_size
@@ -241,15 +209,12 @@ operating_characteristic_vs_tie <- function(
         labels = method_parameters,
         name = method_name,
         drop = TRUE,
-        guide = guide_legend(
-          override.aes = list(shape = method_shape), ncol =
-            1
-        )
+        guide = guide_legend(override.aes = list(shape = method_shape), ncol = 1)
       )
     )
 
     # Reset the color scale for the next method
-    layers <- c(layers, list(ggnewscale::new_scale_color()))
+    layers <- c(layers, list(new_scale_color()))
 
     layers
   })
@@ -303,14 +268,8 @@ operating_characteristic_vs_tie <- function(
   fig_height_in <- plot.size[2] * 1.5
 
   # Export the plots
-  export_plots(plt, file_path, fig_width_in, fig_height_in,
-    type = "pdf",
-    adjust_theme = FALSE
-  )
-  export_plots(plt, file_path, fig_width_in, fig_height_in,
-    type = "png",
-    adjust_theme = FALSE
-  )
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE)
 }
 
 
@@ -324,61 +283,50 @@ operating_characteristic_vs_tie <- function(
 #' @return None
 #'
 #' @examples NA
-operating_characteristics_vs_tie_plots <- function(
-  results_metrics_df,
-  metrics
-) {
+operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) {
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 
-  treatment_effects <- c("partially_consistent", "consistent") # , "no_effect"
+  treatment_effects <- c("partially_consistent", "consistent" ) #, "no_effect"
 
 
   for (case_study in case_studies) {
-    results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study ==
-                                                case_study, ]
+    results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
 
     # Get the list of target sample sizes
-    target_sample_sizes <-
-      unique(results_metrics_df1$target_sample_size_per_arm)
+    target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
 
     for (target_sample_size in target_sample_sizes) {
-      results_metrics_df2 <-
-        results_metrics_df1[results_metrics_df1$target_sample_size_per_arm ==
-                            target_sample_size, ]
+      results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size,]
 
       for (treatment_effect in treatment_effects) {
-        target_to_source_std_ratios <-
-          unique(results_metrics_df2$target_to_source_std_ratio)
+
+        target_to_source_std_ratios <- unique(results_metrics_df2$target_to_source_std_ratio)
 
         for (target_to_source_std_ratio in target_to_source_std_ratios) {
-          results_metrics_df3 <- results_metrics_df2 |>
+          results_metrics_df3 <- results_metrics_df2 %>%
             dplyr::filter(
               target_to_source_std_ratio == !!target_to_source_std_ratio |
                 is.na(target_to_source_std_ratio)
             )
 
-          source_denominator_change_factors <-
-            unique(results_metrics_df3$source_denominator_change_factor)
+          source_denominator_change_factors <- unique(results_metrics_df3$source_denominator_change_factor)
 
-          for (
-               source_denominator_change_factor in source_denominator_change_factors) {
-            results_metrics_df4 <- results_metrics_df3 |>
+          for (source_denominator_change_factor in source_denominator_change_factors) {
+            results_metrics_df4 <- results_metrics_df3 %>%
               dplyr::filter(
-                source_denominator_change_factor ==
-                  !!source_denominator_change_factor |
+                source_denominator_change_factor == !!source_denominator_change_factor |
                   is.na(source_denominator_change_factor)
               )
 
-            for (operating_characteristic in metrics) {
+            for (operating_characteristic in metrics){
               operating_characteristic_vs_tie(
                 results_metrics_df4,
                 case_study,
                 target_sample_size,
                 treatment_effect = treatment_effect,
                 operating_characteristic = operating_characteristic,
-                source_denominator_change_factor =
-                  source_denominator_change_factor,
+                source_denominator_change_factor = source_denominator_change_factor,
                 target_to_source_std_ratio = target_to_source_std_ratio
               )
             }
@@ -398,29 +346,30 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
                                                      tie_type,
                                                      design_prior_type,
                                                      design_prior_type_tie) {
+
   directory <- paste0(figures_dir, case_study)
   if (!dir.exists(directory)) {
     dir.create(directory, showWarnings = FALSE, recursive = TRUE)
   }
 
-  results_df <- results_metrics_df |>
+  results_df <- results_metrics_df %>%
     dplyr::filter(
       target_sample_size_per_arm == !!target_sample_size_per_arm,
       case_study == !!case_study,
-      source_denominator_change_factor == !!source_denominator_change_factor |
+      source_denominator_change_factor == !!source_denominator_change_factor  |
         is.na(source_denominator_change_factor),
       target_to_source_std_ratio == !!target_to_source_std_ratio |
         is.na(target_to_source_std_ratio)
     )
 
   if (tie_type == "average_tie") {
-    results_df_tie <- results_metrics_df |>
+    results_df_tie <- results_metrics_df %>%
       dplyr::filter(
         design_prior_type == !!design_prior_type_tie
       )
 
-    results_df <- results_df |> select(-average_tie)
-    results_df <- results_df |>
+    results_df <- results_df %>% select(-average_tie)
+    results_df <- results_df %>%
       dplyr::filter(
         design_prior_type == !!design_prior_type
       )
@@ -439,37 +388,19 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   }
 
   # Process the rows to create parameter labels
-  results_df$parameters_labels <- lapply(
-    seq_len(nrow(results_df)),
-    function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = FALSE
-      )
-    }
-  )
+  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE)
+  })
 
-  results_df$parameters_labels_not_latex <- lapply(
-    seq_len(nrow(results_df)),
-    function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = FALSE, as_latex = FALSE
-      )
-    }
-  )
+  results_df$parameters_labels_not_latex <- lapply(1:nrow(results_df), function(i) {
+    process_method_parameters_label(results_df[i, ], methods_labels, method_name = FALSE, as_latex = FALSE)
+  })
 
-  results_df$methods_parameters_labels <- lapply(
-    seq_len(nrow(results_df)),
-    function(i) {
-      process_method_parameters_label(results_df[i, ], methods_labels,
-        method_name = TRUE, as_latex = FALSE
-      )
-    }
-  )
+  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
+    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
+  })
 
-  parameters_labels <- setNames(
-    object = results_df$parameters_labels, nm =
-      results_df$parameters_labels
-  )
+  parameters_labels <- setNames(object = results_df$parameters_labels, nm = results_df$parameters_labels)
   methods <- format_results_df_methods(results_df)
   results_df$method <- methods
   methods <- unique(methods)
@@ -500,10 +431,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   )
   file_path <- file.path(directory, filename)
 
-  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(
-    file_path,
-    ".png"
-  )) && remake_figures == FALSE) {
+  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE) {
     return()
   }
 
@@ -560,12 +488,13 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
   results_df_split <- split(results_df, results_df$method)
 
   # Unique parameters and methods
+  unique_parameters <- unique(results_df$parameters_labels)
   unique_methods <- sort(unique(results_df$method))
 
   # Shapes for methods
   shape_codes <- c(16, 2, 15, 18, 1, 8, 4, 3, 7, 9)
 
-  shapes <- setNames(shape_codes[seq_along(unique_methods)], unique_methods)
+  shapes <- setNames(shape_codes[1:length(unique_methods)], unique_methods)
 
   # Determine x-axis variable and label
   if (tie_type == "tie") {
@@ -576,16 +505,12 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     x_label <- paste0("Average TIE with ", design_prior_tie_label)
   }
 
-  if (all(is.na(results_df[[x_var]])) ||
-        all(is.na(results_df[[operating_characteristic$name]]))) {
+  if (all(is.na(results_df[[x_var]])) || all(is.na(results_df[[operating_characteristic$name]]))){
     return()
   }
 
   # Initialize the plot
-  plt <- ggplot(mapping = aes_string(
-    x = x_var, y =
-      operating_characteristic$name
-  ))
+  plt <- ggplot(mapping = aes_string(x = x_var, y = operating_characteristic$name))
 
   # Iterate over each method and add layers
   plt <- plt + purrr::imap(results_df_split, function(df_subset, method_name) {
@@ -594,7 +519,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     # Get unique parameters for this method
     method_parameters <- unique(df_subset$parameters_labels)
 
-    if (length(method_parameters) == 0) {
+    if (length(method_parameters) == 0){
       return()
     }
 
@@ -607,9 +532,9 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     # )
     #
     method_colors <- setNames(
-      scales::hue_pal()(length(method_parameters)),
-      method_parameters
-    )
+        scales::hue_pal()(length(method_parameters)),
+        method_parameters
+      )
 
     # Get the shape for this method
     method_shape <- shapes[method_name]
@@ -629,10 +554,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
         labels = method_parameters,
         name = method_name,
         drop = TRUE,
-        guide = guide_legend(
-          override.aes = list(shape = method_shape), ncol =
-            1
-        )
+        guide = guide_legend(override.aes = list(shape = method_shape), ncol = 1)
       )
     )
 
@@ -654,7 +576,7 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     }
 
     # Reset the color scale for the next method
-    layers <- c(layers, list(ggnewscale::new_scale_color()))
+    layers <- c(layers, list(new_scale_color()))
 
     layers
   })
@@ -681,31 +603,26 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
     plot.title = element_text(family = font, size = text_size / 2),
     legend.text = element_text(family = font, size = small_text_size / 2),
     legend.title = element_text(family = font, size = text_size / 2),
-    legend.key.size = unit(0.1, "cm"), # Key size
+    legend.key.size = unit(0.1, "cm"),  # Key size
     legend.spacing.x = unit(0.03, "cm"),
-    legend.spacing.y = unit(0.01, "cm"), # Narrow vertical spacing
+    legend.spacing.y = unit(0.01, "cm"),  # Narrow vertical spacing
     legend.position = "bottom",
     legend.direction = "vertical",
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    legend.box = "horizontal", # Stack legends vertically
-    legend.box.just = "center" # Align legends to the left
+    legend.box = "horizontal",             # Stack legends vertically
+    legend.box.just = "center"             # Align legends to the left
   )
 
   plot.size <- set_size(textwidth)
-  fig_width_in <- plot.size[1] * 1.35
-  fig_height_in <- plot.size[2] * 1.5
+  fig_width_in <- plot.size[1]*1.35
+  fig_height_in <- plot.size[2]*1.5
 
 
   # Export the plots
-  export_plots(plt, file_path, fig_width_in, fig_height_in,
-    type = "pdf",
-    adjust_theme = FALSE
-  )
-  export_plots(plt, file_path, fig_width_in, fig_height_in,
-    type = "png",
-    adjust_theme = FALSE
-  )
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", adjust_theme = FALSE)
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", adjust_theme = FALSE)
+
 }
 
 
@@ -719,95 +636,78 @@ bayesian_operating_characteristic_vs_tie <- function(results_metrics_df,
 #' @return None
 #'
 #' @examples NA
-bayesian_operating_characteristics_vs_tie_plots <- function(
-  results_bayes_df,
-  results_freq_df, bayesian_metrics
-) {
-  common_columns <- intersect(names(results_bayes_df), names(results_freq_df))
+bayesian_operating_characteristics_vs_tie_plots <- function(results_bayes_df, results_freq_df, bayesian_metrics) {
+ common_columns <- intersect(names(results_bayes_df), names(results_freq_df))
 
   # Select the results that correspond to TIE computation.
-  results_freq_df_tie <-
-    results_freq_df[results_freq_df$target_treatment_effect ==
-                    results_freq_df$theta_0, c(
-                      common_columns,
-                      c(
-                        "tie",
-                        "conf_int_tie_lower",
-                        "conf_int_tie_upper"
-                      )
-                    )]
+  results_freq_df_tie <- results_freq_df[results_freq_df$target_treatment_effect == results_freq_df$theta_0, c(
+    common_columns,
+    c(
+      "tie",
+      "conf_int_tie_lower",
+      "conf_int_tie_upper"
+    )
+  )]
 
-  common_columns <- intersect(names(results_freq_df_tie), common_columns)
+  common_columns <- intersect(names(results_freq_df_tie),common_columns)
 
-  # Now merge results_bayes_df with the filtered results_freq_selected on the
-  # common columns specified in 'by'
-  results_bayes_df_merged <- results_bayes_df |>
-    left_join(results_freq_df_tie, by = common_columns)
+  # Now merge results_bayes_df with the filtered results_freq_selected on the common columns specified in 'by'
+  results_bayes_df_merged <- results_bayes_df %>%
+  left_join(results_freq_df_tie, by =  common_columns)
 
   # Get the list of case studies
   case_studies <- unique(results_bayes_df_merged$case_study)
 
   for (case_study in case_studies) {
-    results_metrics_df1 <-
-      results_bayes_df_merged[results_bayes_df_merged$case_study ==
-                              case_study, ]
+    results_metrics_df1 <- results_bayes_df_merged[results_bayes_df_merged$case_study == case_study,]
 
     # Get the list of target sample sizes
-    target_sample_sizes <-
-      unique(results_metrics_df1$target_sample_size_per_arm)
+    target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
 
     for (target_sample_size in target_sample_sizes) {
-      results_metrics_df2 <-
-        results_metrics_df1[results_metrics_df1$target_sample_size_per_arm ==
-                            target_sample_size, ]
+      results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size,]
 
-      target_to_source_std_ratios <-
-        unique(results_metrics_df2$target_to_source_std_ratio)
+      target_to_source_std_ratios <- unique(results_metrics_df2$target_to_source_std_ratio)
 
       for (target_to_source_std_ratio in target_to_source_std_ratios) {
-        results_metrics_df3 <- results_metrics_df2 |>
+        results_metrics_df3 <- results_metrics_df2 %>%
           dplyr::filter(
             target_to_source_std_ratio == !!target_to_source_std_ratio |
               is.na(target_to_source_std_ratio)
           )
 
-        source_denominator_change_factors <-
-          unique(results_metrics_df3$source_denominator_change_factor)
+        source_denominator_change_factors <- unique(results_metrics_df3$source_denominator_change_factor)
 
-        for (
-             source_denominator_change_factor in source_denominator_change_factors) {
-          results_metrics_df4 <- results_metrics_df3 |>
+        for (source_denominator_change_factor in source_denominator_change_factors) {
+          results_metrics_df4 <- results_metrics_df3 %>%
             dplyr::filter(
-              source_denominator_change_factor ==
-                !!source_denominator_change_factor |
+              source_denominator_change_factor == !!source_denominator_change_factor |
                 is.na(source_denominator_change_factor)
             )
 
           design_prior_types <- unique(results_metrics_df4$design_prior_type)
 
-          # design_prior_types <- "analysis_prior" # FIXME
-          for (operating_characteristic in bayesian_metrics) {
-            for (design_prior_type in design_prior_types) {
+          #design_prior_types <- "analysis_prior" # FIXME
+          for (operating_characteristic in bayesian_metrics){
+            for (design_prior_type in design_prior_types){
               bayesian_operating_characteristic_vs_tie(
                 results_metrics_df4,
                 case_study,
                 target_sample_size,
                 operating_characteristic = operating_characteristic,
-                source_denominator_change_factor =
-                  source_denominator_change_factor,
+                source_denominator_change_factor = source_denominator_change_factor,
                 target_to_source_std_ratio = target_to_source_std_ratio,
                 tie_type = "tie",
                 design_prior_type = design_prior_type
               )
 
-              for (design_prior_type_tie in design_prior_types) {
+              for (design_prior_type_tie in design_prior_types){
                 bayesian_operating_characteristic_vs_tie(
                   results_metrics_df4,
                   case_study,
                   target_sample_size,
                   operating_characteristic = operating_characteristic,
-                  source_denominator_change_factor =
-                    source_denominator_change_factor,
+                  source_denominator_change_factor = source_denominator_change_factor,
                   target_to_source_std_ratio = target_to_source_std_ratio,
                   tie_type = "average_tie",
                   design_prior_type = design_prior_type,
