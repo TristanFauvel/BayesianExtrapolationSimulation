@@ -64,6 +64,73 @@ TestThenPool <- R6::R6Class(
       stop("Subclasses must implement the 'test' method.")
     },
 
+    #' @description p-value of the test, for every replicate at once
+    #'
+    #' Subclasses override this with the vectorised form of `test_pvalue()`.
+    #' Returning `NULL` means "no fast path" and keeps the replicate loop.
+    #'
+    #' @param target_data The data from the target study.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of p-values, or `NULL`.
+    vectorised_test_pvalue = function(target_data, samples) {
+      NULL
+    },
+
+    #' @description Whether to pool, for every replicate at once
+    #'
+    #' Subclasses override this to turn `vectorised_test_pvalue()` into a
+    #' pooling decision, since the two variants read the test in opposite
+    #' directions.
+    #'
+    #' @param p_value Vector of p-values.
+    #' @return A logical vector.
+    vectorised_pool = function(p_value) {
+      stop("Subclasses must implement the 'vectorised_pool' method.")
+    },
+
+    #' @description Run every replicate at once
+    #'
+    #' The test picks a prior per replicate, and both branches are conjugate
+    #' Gaussian models with the same prior mean, so the whole simulation is a
+    #' single normal-prior update with a per-replicate variance.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @param to_return Character vector of requested outputs.
+    #' @param critical_value Critical value for hypothesis testing.
+    #' @param theta_0 Null hypothesis value.
+    #' @param confidence_level Confidence level for the credible interval.
+    #' @param null_space The null space for hypothesis testing.
+    #' @return A list of simulation results, or `NULL` to use the replicate loop.
+    vectorised_replicate_inference = function(target_data, samples, to_return,
+                                              critical_value, theta_0,
+                                              confidence_level, null_space) {
+      p_value <- self$vectorised_test_pvalue(target_data, samples)
+      if (is.null(p_value)) {
+        return(NULL)
+      }
+
+      pool <- self$vectorised_pool(p_value)
+      n_replicates <- nrow(samples)
+
+      prior_variance <- ifelse(pool, self$pooling$prior_var, self$separate$prior_var)
+
+      vectorised_normal_mixture_simulation(
+        weights = matrix(1, nrow = n_replicates, ncol = 1),
+        means = matrix(self$pooling$prior_mean, nrow = n_replicates, ncol = 1),
+        sds = matrix(sqrt(prior_variance), nrow = n_replicates, ncol = 1),
+        samples = samples,
+        target_data = target_data,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        decision_rule = "posterior_cdf",
+        posterior_parameters = data.frame(pool = pool)
+      )
+    },
+
     #' @description Performs inference with the Test-then-Pool method.
     #' @param target_data The data from the target study.
     inference = function(target_data) {
@@ -452,6 +519,46 @@ TestThenPoolEquivalence <- R6::R6Class(
         stop("Test result is invalid.")
       }
       return(self$pool)
+    },
+
+    #' @description Equivalence test p-value for every replicate at once.
+    #'
+    #' `inference()` calls `test()` without a test type, so the t-test default
+    #' is the one that runs in the simulation.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of p-values.
+    vectorised_test_pvalue = function(target_data, samples) {
+      source_sd <- self$prior$source$standard_error *
+        sqrt(self$prior$source$equivalent_source_sample_size_per_arm)
+
+      one_sided <- function(mu, alternative) {
+        summary_t_test_p_value(
+          mean_x = self$prior$source$treatment_effect_estimate,
+          sd_x = source_sd,
+          n_x = self$prior$source$equivalent_source_sample_size_per_arm,
+          mean_y = samples$treatment_effect_estimate,
+          sd_y = samples$standard_deviation,
+          n_y = target_data$sample_size_per_arm,
+          mu = mu,
+          alternative = alternative
+        )
+      }
+
+      # H0a: theta_S - theta_T > margin, and H0b: theta_S - theta_T < -margin.
+      pmax(
+        one_sided(self$equivalence_margin, "less"),
+        one_sided(-self$equivalence_margin, "greater")
+      )
+    },
+
+    #' @description Rejecting equivalence's null means the studies are close
+    #'   enough to pool.
+    #' @param p_value Vector of p-values.
+    #' @return A logical vector.
+    vectorised_pool = function(p_value) {
+      p_value < self$significance_level
     }
   )
 )
@@ -545,6 +652,35 @@ TestThenPoolDifference <- R6::R6Class(
         stop("Test result is invalid.")
       }
       return(self$pool)
+    },
+
+    #' @description Difference test p-value for every replicate at once.
+    #'
+    #' `inference()` calls `test()` without a test type, so the t-test default
+    #' is the one that runs in the simulation.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A vector of p-values.
+    vectorised_test_pvalue = function(target_data, samples) {
+      summary_t_test_p_value(
+        mean_x = self$prior$source$treatment_effect_estimate,
+        sd_x = self$prior$source$standard_error *
+          sqrt(self$prior$source$equivalent_source_sample_size_per_arm),
+        n_x = self$prior$source$equivalent_source_sample_size_per_arm,
+        mean_y = samples$treatment_effect_estimate,
+        sd_y = samples$standard_deviation,
+        n_y = target_data$sample_size_per_arm,
+        mu = 0,
+        alternative = "two.sided"
+      )
+    },
+
+    #' @description Failing to detect a difference means the data can be pooled.
+    #' @param p_value Vector of p-values.
+    #' @return A logical vector.
+    vectorised_pool = function(p_value) {
+      !(p_value < self$significance_level)
     }
   )
 )
