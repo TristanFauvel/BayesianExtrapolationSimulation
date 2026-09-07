@@ -28,11 +28,12 @@ BinomialCPP <- R6::R6Class(
           real<lower = 0, upper = 1> control_rate_target;
           real<lower = -fmin(control_rate_target, control_rate_source), upper = 1 - fmax(control_rate_target, control_rate_source)> target_treatment_effect; // The power prior approach assumes that the treatment effect is the same in the source and target studies
         }
-        transformed parameters {
-          real treatment_rate_source = control_rate_source + target_treatment_effect;
-          real treatment_rate_target = control_rate_target + target_treatment_effect;
-        }
         model {
+          // Local to the model block: an intermediate quantity, and declaring it
+          // as a transformed parameter would write an extra column per draw to
+          // the output CSV for no downstream use.
+          real treatment_rate_source = control_rate_source + target_treatment_effect;
+
           control_rate_target ~ uniform(0, 1);
           control_rate_source ~ uniform(0, 1);
 
@@ -79,11 +80,13 @@ BinomialCPP <- R6::R6Class(
           real<lower = 0, upper = 1> control_rate_target;
           real<lower = -fmin(control_rate_target, control_rate_source), upper = 1 - fmax(control_rate_target, control_rate_source)> target_treatment_effect; // The power prior approach assumes that the treatment effect is the same in the source and target studies
         }
-        transformed parameters {
+        model {
+          // Local to the model block: these are intermediate quantities, and
+          // declaring them as transformed parameters would write two extra
+          // columns per draw to the output CSV for no downstream use.
           real treatment_rate_source = control_rate_source + target_treatment_effect;
           real treatment_rate_target = control_rate_target + target_treatment_effect;
-        }
-        model {
+
           control_rate_target ~ uniform(0, 1);
           control_rate_source ~ uniform(0, 1);
 
@@ -156,7 +159,6 @@ BinomialCPP <- R6::R6Class(
         parallel_chains = self$mcmc_config$parallel_chains,
         iter_sampling = self$mcmc_config$chain_length,
         iter_warmup = self$mcmc_config$tune,
-        threads_per_chain = self$mcmc_config$threads_per_chain,
         output_dir = self$draws_dir
       )
     }
@@ -657,6 +659,10 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
   public = list(
     method = "commensurate_power_prior",
     heterogeneity_prior_family = NULL,
+    # compute_posterior_parameters reads the borrowing parameters out of the
+    # posterior summary, so they have to be summarised alongside the treatment
+    # effect.
+    summary_variables = c("target_treatment_effect", "tau", "power_parameter"),
 
     #' @description Initialize the GaussianCommensuratePowerPrior object
     #'
@@ -697,14 +703,19 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
                                         real target_treatment_effect;          // Target treatment effect
                                       }
 
-                                      transformed parameters {
-                                        real<lower=0>  u = power_parameter * NS + tau * prior_variance;
-                                        real<lower=0> tau2 = tau^2;
+                                      model {
+                                        // Local to the model block: these are
+                                        // intermediate quantities, and declaring
+                                        // them as transformed parameters would
+                                        // write three extra columns per draw to
+                                        // the output CSV for no downstream use.
+                                        // Stan does not allow constraints on
+                                        // local declarations; both quantities are
+                                        // non-negative by construction here.
+                                        real u = power_parameter * NS + tau * prior_variance;
+                                        real tau2 = tau^2;
                                         real log_tau = log(tau);
 
-                                      }
-
-                                      model {
                                         // Priors
                                         if (prior_type == 0) {
                                           tau2 ~ inv_gamma(alpha, beta);

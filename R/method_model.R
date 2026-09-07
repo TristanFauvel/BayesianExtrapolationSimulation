@@ -205,6 +205,18 @@ Model <- R6::R6Class(
       return("Success")
     },
 
+    #' @description Check the validity of the data
+    #' @param data_list The list of data elements
+    #'
+    check_data = function(data_list) {
+      # Check if any element is numeric(0) or NULL
+      if (any(sapply(data_list, function(x) {
+        is.null(x) || length(x) == 0
+      }))) {
+        stop("Error: invalid data, some elements are NULL or numeric(0)")
+      }
+    },
+
     #' @description Abstract method to calculate the posterior moments
     #' @param target_data Data for which posterior moments need to be calculated
     #' @return none
@@ -1719,6 +1731,7 @@ PoolGaussian_RBesT <- R6::R6Class(
 #'
 #' @field stan_model_code Code of the Stan model
 #' @field stan_model The compiled Stan model
+#' @field summary_variables Variables to summarise from the posterior draws
 #' @field fit The MCMC fit object
 #' @field fit_summary Summary of the Stan fit
 #' @field treatment_effect_summary Summary statistics of the treatment effect posterior distribution
@@ -1742,6 +1755,7 @@ MCMCModel <- R6::R6Class(
   public = list(
     stan_model = NULL,
     stan_model_code = NULL,
+    summary_variables = "target_treatment_effect",
     fit_summary = NULL,
     fit = NULL,
     treatment_effect_summary = NULL,
@@ -1807,21 +1821,18 @@ MCMCModel <- R6::R6Class(
         parallel_chains = self$mcmc_config$parallel_chains,
         iter_sampling = self$mcmc_config$chain_length,
         iter_warmup = self$mcmc_config$tune,
-        threads_per_chain = self$mcmc_config$threads_per_chain,
         output_dir = self$draws_dir
       )
 
-      # Get a summary of the posterior distributions
-      treatment_effect_fit_summary <- self$fit$summary(
-        variables = "target_treatment_effect",
-        posterior::default_summary_measures(),
-        extra_quantiles = ~ posterior::quantile2(., probs = c(.025, .975))
+      # Summarise the draws once. The moments, the credible interval bounds and
+      # the convergence diagnostics all come out of this single pass, over only
+      # the variables the simulation reads.
+      self$fit_summary <- summarise_posterior_draws(
+        self$fit$draws(variables = self$summary_variables)
       )
 
-      self$fit_summary <- self$fit$summary()
-
       # Extract the summary statistics for the treatment effect parameter
-      self$treatment_effect_summary <- treatment_effect_fit_summary[treatment_effect_fit_summary$variable == "target_treatment_effect", ]
+      self$treatment_effect_summary <- self$fit_summary[self$fit_summary$variable == "target_treatment_effect", ]
 
       self$post_mean <- self$treatment_effect_summary$mean
       self$post_var <- self$treatment_effect_summary$sd ^ 2
@@ -1831,25 +1842,20 @@ MCMCModel <- R6::R6Class(
 
       mcmc_diagnostics <- self$fit$diagnostic_summary()
 
-      n_draws <- self$mcmc_config$chain_length * self$mcmc_config$num_chains
-
       # MCMC Effective Sample Size
-      mcmc_ess <- bayesplot::neff_ratio(self$fit) * n_draws
+      self$mcmc_ess <- self$treatment_effect_summary$n_eff
 
-      self$mcmc_ess <- mcmc_ess[["target_treatment_effect"]]
-
-      rhat_values <- bayesplot::rhat(self$fit)
-      self$rhat <- rhat_values["target_treatment_effect"]
+      self$rhat <- self$treatment_effect_summary$rhat
 
       # number of divergences reported is the sum of the per chain values
       self$n_divergences <- sum(mcmc_diagnostics$num_divergent)
 
-      if (mcmc_ess[["target_treatment_effect"]] < self$mcmc_config$target_ess) {
-        return(paste0("Target MCMC ESS not reached, ESS is : ", mcmc_ess[["target_treatment_effect"]])) # Store as warning in the results table
+      if (self$mcmc_ess < self$mcmc_config$target_ess) {
+        return(paste0("Target MCMC ESS not reached, ESS is : ", self$mcmc_ess)) # Store as warning in the results table
       }
 
-      if (rhat_values["target_treatment_effect"] > self$mcmc_config$rhat_threshold) {
-        return(paste0("Large rhat values: ", rhat_values["target_treatment_effect"])) # Store as warning in the results table
+      if (self$rhat > self$mcmc_config$rhat_threshold) {
+        return(paste0("Large rhat values: ", self$rhat)) # Store as warning in the results table
       }
 
       treatment_effect_draws <- self$fit$draws("target_treatment_effect")
@@ -1901,18 +1907,6 @@ MCMCModel <- R6::R6Class(
         size = n_samples,
         replace = TRUE
       ))
-    },
-
-    #' @description Check the validity of the data
-    #' @param data_list The list of data elements
-    #'
-    check_data = function(data_list) {
-      # Check if any element is numeric(0) or NULL
-      if (any(sapply(data_list, function(x) {
-        is.null(x) || length(x) == 0
-      }))) {
-        stop("Error: invalid data, some elements are NULL or numeric(0)")
-      }
     },
 
     #' @description Compute the posterior parameters. If there are posterior borrowing parameters,
@@ -1992,68 +1986,21 @@ MCMCModel <- R6::R6Class(
 
 #' BinomialSeparate class
 #'
-#' @description This class represents a Truncated Gaussian model using the CPP (Conditional Power Prior) approach with power parameter set to 0.
-#' It inherits from the BinomialCPP class.
+#' @description This class analyses the target study on its own, with a uniform
+#' prior on each arm response rate. The posterior is available in closed form,
+#' so it inherits from the `BinomialConjugate` class rather than sampling.
 #' @field method Method name
 #' @export
 BinomialSeparate <- R6::R6Class(
   "BinomialSeparate",
-  inherit = MCMCModel,
+  inherit = BinomialConjugate,
   public = list(
     method = "separate",
-    #' @param prior Prior
-    #' @param mcmc_config MCMC configuration
-    #' @return A Model object.
-    initialize = function(prior, mcmc_config) {
-      if (!(prior$method_parameters$initial_prior[[1]] == "noninformative")) {
-        stop("Only implemented for a noninformative initial prior")
-      }
-      super$initialize(prior = prior, mcmc_config = mcmc_config)
 
-      self$summary_measure_likelihood <- "binomial"
-
-      self$stan_model_code <- "
-        data {
-          int<lower = 0> n_treatment;
-          int<lower = 0> n_control;
-
-          int<lower = 0, upper = n_treatment> n_successes_treatment;
-          int<lower = 0, upper = n_control> n_successes_control;
-        }
-        transformed data {
-          int<lower = 0, upper = 1> debug = 0;
-        }
-        parameters {
-          real<lower = 0, upper = 1> control_rate;
-          real<lower = - control_rate, upper = 1 - control_rate> target_treatment_effect;
-        }
-        transformed parameters {
-          real treatment_rate = control_rate + target_treatment_effect;
-        }
-        model {
-          control_rate ~ uniform(0, 1);
-
-          target_treatment_effect ~ uniform(- control_rate, 1 - control_rate);
-
-          n_successes_control ~ binomial(n_control, control_rate);
-          n_successes_treatment ~ binomial(n_treatment, treatment_rate);
-        }
-        "
-
-      model_name <- "binomial_separate"
-
-      self$stan_model <- compile_stan_model(model_name, self$stan_model_code)
-
-      self$mcmc <- TRUE
-
-      self$mcmc_config <- mcmc_config
-    },
-
-    #' @description Prepare the data for the Stan model
+    #' @description Assemble the event counts of the target study
     #' @param target_data The target data for the analysis.
-    #' @return List containing the input to the Stan model
+    #' @return List of event counts the posterior conditions on
     prepare_data = function(target_data) {
-      # Specify the parameters
       data_list <- list(
         n_treatment = as.integer(target_data$sample_size_treatment),
         n_control = as.integer(target_data$sample_size_control),
@@ -2065,105 +2012,28 @@ BinomialSeparate <- R6::R6Class(
         )
       )
       return(data_list)
-    },
-    #' @description Sample from the prior
-    #' @param n_samples Number of samples from the prior
-    sample_prior = function(n_samples) {
-      control_rate <- runif(n = n_samples, min = 0, max = 1)
-
-      target_treatment_effect <- runif(
-        n = n_samples,
-        min = -control_rate,
-        max = 1 - control_rate
-      )
-
-      return(target_treatment_effect)
-    },
-    #' @description Prior PDF
-    #' @param target_treatment_effect Point at which to evaluate the prior PDF
-    prior_pdf = function(target_treatment_effect) {
-      t <- target_treatment_effect
-
-      result <- ifelse(t < -1 | t > 1, 0, ifelse(t >= -1 &
-                                                   t <= 0, t + 1, ifelse(t > 0 & t <= 1, 1 - t, 0)))
-
-      return(result)
-    },
-    #' @description Prior CDF
-    #' @param target_treatment_effect Point at which to evaluate the prior CDF
-    prior_cdf = function(target_treatment_effect) {
-      t <- target_treatment_effect
-      result <- ifelse(t < -1, 0, ifelse(t >= -1 &
-                                           t <= 0, (t ^ 2) / 2 + t + 1 / 2, ifelse(t > 0 &
-                                                                                     t <= 1, t - (t ^ 2) / 2 + 1 / 2, 1)))
-      return(result)
     }
   )
 )
 
 #' BinomialPooling class
 #'
-#' @description This class represents a Truncated Gaussian model using the CPP (Conditional Power Prior) approach with power parameter set to 1.
-#' It inherits from the BinomialCPP class.
+#' @description This class pools the source and target studies before analysing
+#' them with a uniform prior on each arm response rate. The posterior is
+#' available in closed form, so it inherits from the `BinomialConjugate` class
+#' rather than sampling.
 #' @field method Method name
 #' @export
 BinomialPooling <- R6::R6Class(
   "BinomialPooling",
-  inherit = MCMCModel,
+  inherit = BinomialConjugate,
   public = list(
     method = "pooling",
 
-    #' @param prior Prior
-    #' @param mcmc_config MCMC configuration
-    #' @return A Model object.
-    initialize = function(prior, mcmc_config) {
-      if (!(prior$method_parameters$initial_prior[[1]] == "noninformative")) {
-        stop("Only implemented for a noninformative initial prior")
-      }
-      super$initialize(prior = prior, mcmc_config = mcmc_config)
-      self$summary_measure_likelihood <- "binomial"
-
-      self$stan_model_code <- "
-        data {
-          int<lower = 0> n_treatment;
-          int<lower = 0> n_control;
-
-          int<lower = 0, upper = n_treatment> n_successes_treatment;
-          int<lower = 0, upper = n_control> n_successes_control;
-        }
-        transformed data {
-          int<lower = 0, upper = 1> debug = 0;
-        }
-        parameters {
-          real<lower = 0, upper = 1> control_rate;
-          real<lower = - control_rate, upper = 1 - control_rate> target_treatment_effect;
-        }
-        transformed parameters {
-          real treatment_rate = control_rate + target_treatment_effect;
-        }
-        model {
-          control_rate ~ uniform(0, 1);
-
-          target_treatment_effect ~ uniform(- control_rate, 1 - control_rate);
-
-          n_successes_control ~ binomial(n_control, control_rate);
-          n_successes_treatment ~ binomial(n_treatment, treatment_rate);
-        }
-        "
-
-      model_name <- "binomial_pooling"
-      self$stan_model <- compile_stan_model(model_name, self$stan_model_code)
-
-      self$mcmc <- TRUE
-
-      self$mcmc_config <- mcmc_config
-    },
-
-    #' @description Prepare the data for the Stan model
+    #' @description Assemble the pooled event counts of the source and target studies
     #' @param target_data The target data for the analysis.
-    #' @return List containing the input to the Stan model
+    #' @return List of event counts the posterior conditions on
     prepare_data = function(target_data) {
-      # Specify the parameters
       data_list <- list(
         n_treatment = as.integer(
           target_data$sample_size_treatment + self$prior$source$sample_size_treatment
@@ -2180,33 +2050,6 @@ BinomialPooling <- R6::R6Class(
         )
       )
       return(data_list)
-    },
-
-    #' @description Draw samples from the prior distribution using Stan
-    #' @return Samples from the prior distribution
-    draw_mcmc_prior = function() {
-      data_list <- list(
-        n_treatment = as.integer(self$prior$source$sample_size_treatment),
-        n_control = as.integer(self$prior$source$sample_size_control),
-        n_successes_treatment = as.integer(
-          self$prior$source$sample_size_treatment *
-            self$prior$source$treatment_rate
-        ),
-        n_successes_control = as.integer(
-          self$prior$source$sample_size_control * self$prior$source$control_rate
-        )
-      )
-
-      # Sample from the prior
-      self$prior_draws <- self$stan_model$sample(
-        data = data_list,
-        chains = self$mcmc_config$num_chains,
-        parallel_chains = self$mcmc_config$parallel_chains,
-        iter_sampling = self$mcmc_config$chain_length,
-        iter_warmup = self$mcmc_config$tune,
-        threads_per_chain = self$mcmc_config$threads_per_chain,
-        output_dir = self$draws_dir
-      )
     }
   )
 )

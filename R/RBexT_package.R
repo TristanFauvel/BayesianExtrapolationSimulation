@@ -16,7 +16,6 @@
 #' @importFrom Bolstad2 sintegral
 #' @importFrom progress progress_bar
 #' @importFrom yaml yaml.load_file read_yaml
-#' @importFrom bayesplot rhat neff_ratio
 #' @importFrom parallel makeCluster clusterEvalQ stopCluster clusterExport detectCores
 #' @importFrom doParallel registerDoParallel
 #' @importFrom truncnorm rtruncnorm

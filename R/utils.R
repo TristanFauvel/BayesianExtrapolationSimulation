@@ -692,15 +692,14 @@ compile_stan_model <- function(model_name, stan_model_code) {
   writeLines(stan_model_code, con = stan_model_file_path)
   stan_exe_file_path <- paste0(stan_directory, model_name, ".exe")
 
-  cpp_options <- list(stan_threads = TRUE)
-
-
+  # None of the models use reduce_sum or map_rect, so within-chain threading
+  # cannot engage. Building with STAN_THREADS would only make the autodiff stack
+  # thread-local, which costs speed for no parallelism in return.
   if (!file.exists(stan_exe_file_path)) {
     stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
-                                          exe_file = stan_exe_file_path,
-                                          cpp_options = cpp_options)
+                                          exe_file = stan_exe_file_path)
   } else {
-    stan_model <- cmdstanr::cmdstan_model(exe_file = stan_exe_file_path, cpp_options = cpp_options)
+    stan_model <- cmdstanr::cmdstan_model(exe_file = stan_exe_file_path)
   }
   return(stan_model)
 }
@@ -1002,4 +1001,26 @@ compare_ignore_na <- function(row, ref_row) {
   # Only compare non-NA elements in the reference row
   non_na_indices <- !is.na(ref_row)
   all(row[non_na_indices] == ref_row[non_na_indices])
+}
+
+#' Summarise the posterior draws consumed by the simulation
+#'
+#' Computes the moments, the credible interval bounds and the convergence
+#' diagnostics in a single pass over the draws. The estimators are the ones the
+#' simulation reported when these quantities were collected separately:
+#' `bayesplot::rhat()` is `posterior::rhat()`, and `bayesplot::neff_ratio()`
+#' multiplied back up by the number of draws is `posterior::ess_basic()`.
+#'
+#' @param draws Posterior draws, restricted to the variables of interest.
+#'
+#' @return A summary data frame with one row per variable.
+#' @noRd
+summarise_posterior_draws <- function(draws) {
+  posterior::summarise_draws(
+    draws,
+    posterior::default_summary_measures(),
+    extra_quantiles = ~ posterior::quantile2(., probs = c(0.025, 0.975)),
+    rhat = posterior::rhat,
+    n_eff = posterior::ess_basic
+  )
 }
