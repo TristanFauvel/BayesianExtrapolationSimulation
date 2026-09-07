@@ -81,7 +81,8 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     null_space = null_space,
     n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation,
     case_study = case_study,
-    method = method
+    method = method,
+    simulation_config = simulation_config
   )
 
   end_time <- Sys.time()

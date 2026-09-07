@@ -434,6 +434,11 @@ Model <- R6::R6Class(
     #' @param to_return List of OCs to return
     #' @param verbose Verbosity level (0 or 1)
     #' @param n_samples_quantiles_estimation Number of samples used to estimate distributions quantiles.
+    #' @param simulation_config Simulation configuration. Only required when
+    #'   `to_return` includes `"ess_moment"`, `"ess_precision"` or `"ess_elir"`
+    #'   and the method has no vectorised fast path, since those outputs are
+    #'   computed via `posterior_to_RBesT()`/`prior_to_RBesT()`, which need
+    #'   `simulation_config$n_samples_mixture_approx`.
     #' @return A list of simulation results including test decisions, posterior means, medians, credible intervals, and posterior parameters
     simulation_for_given_treatment_effect = function(target_data,
                                                      n_replicates,
@@ -456,7 +461,8 @@ Model <- R6::R6Class(
                                                        "mcmc_diagnostics"
                                                      ),
                                                      verbose = 0,
-                                                     n_samples_quantiles_estimation) {
+                                                     n_samples_quantiles_estimation,
+                                                     simulation_config = NULL) {
       assert_whole_number(n_replicates)
 
       requested <- function(output) output %in% to_return
@@ -472,7 +478,11 @@ Model <- R6::R6Class(
       ess_moments <- if (requested("ess_moment")) numeric(n_replicates) else NULL
       ess_precisions <- if (requested("ess_precision")) numeric(n_replicates) else NULL
       ess_elir <- if (requested("ess_elir")) numeric(n_replicates) else NULL
-      posterior_parameters <- NULL
+      posterior_parameters_list <- if (requested("posterior_parameters")) {
+        vector("list", n_replicates)
+      } else {
+        NULL
+      }
       fit_success <- if (requested("fit_success")) character(n_replicates) else NULL
       mcmc_ess <- if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
       rhat <- if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
@@ -589,19 +599,13 @@ Model <- R6::R6Class(
             )
           }
 
-          if (requested("posterior_parameters")) {
-            if (is.null(posterior_parameters) &&
-                !is.null(self$posterior_parameters)) {
-              posterior_parameters <- data.frame(self$posterior_parameters)
-            } else if (!is.null(self$posterior_parameters)) {
-              posterior_parameters <- rbind(posterior_parameters,
-                                            data.frame(self$posterior_parameters))
-            }
+          if (requested("posterior_parameters") && !is.null(self$posterior_parameters)) {
+            posterior_parameters_list[[r]] <- data.frame(self$posterior_parameters)
           }
 
           if (requested("ess_moment") || requested("ess_precision")) {
 
-            self$posterior_to_RBesT(target_data = target_data, simulation_config)
+            self$posterior_to_RBesT(target_data = target_data, simulation_config = simulation_config)
             if (requested("ess_moment")) {
               ess_moments[r] <- prior_moment_ess(rbest_model = self$RBesT_posterior_normix,
                                                  target_data = target_data)
@@ -671,6 +675,12 @@ Model <- R6::R6Class(
         }
       }
 
+      posterior_parameters <- if (!is.null(posterior_parameters_list)) {
+        do.call(rbind, Filter(Negate(is.null), posterior_parameters_list))
+      } else {
+        NULL
+      }
+
       return(
         list(
           test_decisions = test_decisions,
@@ -712,6 +722,9 @@ Model <- R6::R6Class(
     #' @param case_study Case study name
     #' @param method Method name
     #' @param verbose Verbosity level (0 or 1)
+    #' @param simulation_config Simulation configuration, needed by
+    #'   `simulation_for_given_treatment_effect()` for `ess_moment`,
+    #'   `ess_precision` and `ess_elir` on methods without a vectorised fast path.
     #' @return A list of estimated frequentist operating characteristics including coverage, MSE, bias, posterior mean, median, precision, credible intervals, and success probability
     estimate_frequentist_operating_characteristics = function(theta_0,
                                                               target_data,
@@ -722,7 +735,8 @@ Model <- R6::R6Class(
                                                               n_samples_quantiles_estimation,
                                                               case_study,
                                                               method,
-                                                              verbose = 0) {
+                                                              verbose = 0,
+                                                              simulation_config = NULL) {
       target_treatment_effect <- target_data$treatment_effect
 
 
@@ -750,7 +764,8 @@ Model <- R6::R6Class(
         method = method,
         to_return = to_return,
         verbose = verbose,
-        n_samples_quantiles_estimation = n_samples_quantiles_estimation
+        n_samples_quantiles_estimation = n_samples_quantiles_estimation,
+        simulation_config = simulation_config
       )
 
       test_decisions <- results$test_decisions
@@ -972,7 +987,8 @@ Model <- R6::R6Class(
           case_study = case_study,
           method = method,
           to_return = to_return,
-          n_samples_quantiles_estimation = n_samples_quantiles_estimation
+          n_samples_quantiles_estimation = n_samples_quantiles_estimation,
+          simulation_config = simulation_config
         )
 
         test_decisions[i, ] <- results$test_decisions
@@ -1039,6 +1055,14 @@ Model <- R6::R6Class(
     #' @param n_samples_mixture_approx Number of samples used to approximate the prior with a mixture.
     prior_to_RBesT = function(n_samples_mixture_approx) {
       # Note that this function is overriden in models for which there is no need to sample the prior and posterior to get the mixture approximation.
+      if (is.null(n_samples_mixture_approx)) {
+        stop(
+          "prior_to_RBesT() needs simulation_config$n_samples_mixture_approx ",
+          "to sample the prior for the mixture approximation, but it was not ",
+          "provided. Pass simulation_config through from ",
+          "simulation_for_given_treatment_effect()."
+        )
+      }
 
       prior_samples <- self$sample_prior(n_samples = n_samples_mixture_approx) # Samples to be fitted by a mixture distribution
 
@@ -1086,6 +1110,14 @@ Model <- R6::R6Class(
     #' @param simulation_config Configuration of simulation study
     posterior_to_RBesT = function(target_data, simulation_config) {
       # Note that this function is overriden in models for which there is no need to sample the prior and posterior to get the mixture approximation.
+      if (is.null(simulation_config)) {
+        stop(
+          "posterior_to_RBesT() needs simulation_config$n_samples_mixture_approx ",
+          "to sample the posterior for the mixture approximation, but ",
+          "simulation_config was not provided. Pass it through from ",
+          "simulation_for_given_treatment_effect()."
+        )
+      }
 
       posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx) # Samples to be fitted by a mixture
 
