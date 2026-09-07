@@ -1,6 +1,7 @@
 #' Simulate a Scenario
 #'
-#' @description This function simulates a scenario based on the provided inputs and returns the results of the simulation.
+#' @description This function simulates a scenario based on the provided inputs
+#'   and returns the results of the simulation.
 #'
 #' @param scenario The scenario to simulate.
 #' @param simulation_config Simulation configuration
@@ -26,12 +27,15 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   source_denominator <- scenario$source_denominator[[1]]
   target_to_source_std_ratio <- scenario$target_to_source_std_ratio[[1]]
 
-  case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
+  case_study_config <- yaml::read_yaml(paste0(
+    case_studies_config_dir,
+    case_study, ".yml"
+  ))
   mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
 
-  source_data <- SourceData$new(case_study_config, source_denominator)
+  source_data <- source_data$new(case_study_config, source_denominator)
 
-  model <- Model$new()
+  model <- model$new()
 
   model <- model$create(
     case_study_config = case_study_config,
@@ -46,12 +50,11 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   n_replicates <- scenarios_config$n_replicates
 
   summary_measure_likelihood <- case_study_config$summary_measure_likelihood
-  endpoint <- case_study_config$endpoint
 
   sampling_approximation <- case_study_config$sampling_approximation
 
   # Instantiate a target data object
-  target_data <- TargetDataFactory$new()
+  target_data <- target_data_factory$new()
 
   target_data <- target_data$create(
     source_data = source_data,
@@ -78,16 +81,21 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     critical_value = critical_value,
     confidence_level = simulation_config$confidence_level,
     null_space = null_space,
-    n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation,
+    n_samples_quantiles_estimation =
+      simulation_config$n_samples_quantiles_estimation,
     case_study = case_study,
     method = method
   )
 
   end_time <- Sys.time()
 
-  computation_state$computation_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
+  computation_state$computation_time <- as.numeric(difftime(end_time,
+    start_time,
+    units = "secs"
+  ))
 
-  sim_outputs$posterior_parameters <- format_parameters_to_json(sim_outputs$posterior_parameters)
+  sim_outputs$posterior_parameters <-
+    format_parameters_to_json(sim_outputs$posterior_parameters)
   scenario$parallelization <- scenarios_config$parallelization
 
   check_colnames(scenario, expected_colnames_scenario)
@@ -117,7 +125,10 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 
   check_colnames(target_data_df, expected_colnames_target)
 
-  additional_columns <- c("sampling_approximation", "rng_state", "computation_time")
+  additional_columns <- c(
+    "sampling_approximation", "rng_state",
+    "computation_time"
+  )
 
   results_frequentist_ocs <- cbind(
     scenario,
@@ -130,10 +141,14 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     rng_state = jsonlite::toJSON(computation_state$rng_state, pretty = TRUE),
     computation_time = computation_state$computation_time
   )
-  results_frequentist_ocs$source_denominator <- unlist(results_frequentist_ocs$source_denominator)
-  results_frequentist_ocs <- results_frequentist_ocs[!duplicated(names(results_frequentist_ocs), fromLast = TRUE)]
+  results_frequentist_ocs$source_denominator <-
+    unlist(results_frequentist_ocs$source_denominator)
+  results_frequentist_ocs <-
+    results_frequentist_ocs[!duplicated(names(results_frequentist_ocs),
+                                        fromLast = TRUE)]
 
-  results_frequentist_ocs$parameters <- format_parameters_to_json(results_frequentist_ocs$parameters, escape = TRUE)
+  results_frequentist_ocs$parameters <-
+    format_parameters_to_json(results_frequentist_ocs$parameters, escape = TRUE)
 
 
   for (col in names(results_frequentist_ocs)) {
@@ -141,9 +156,11 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     if (is.list(results_frequentist_ocs[[col]])) {
       # Attempt to simplify to either numeric or character, depending on content
       if (is.numeric(unlist(results_frequentist_ocs[[col]][1]))) {
-        results_frequentist_ocs[[col]] <- as.numeric(unlist(results_frequentist_ocs[[col]]))
+        results_frequentist_ocs[[col]] <-
+          as.numeric(unlist(results_frequentist_ocs[[col]]))
       } else if (is.character(unlist(results_frequentist_ocs[[col]][1]))) {
-        results_frequentist_ocs[[col]] <- as.character(unlist(results_frequentist_ocs[[col]]))
+        results_frequentist_ocs[[col]] <-
+          as.character(unlist(results_frequentist_ocs[[col]]))
       } else {
         results_frequentist_ocs[[col]] <- unlist(results_frequentist_ocs[[col]])
       }
@@ -161,12 +178,20 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   )
   expected_colnames_order <- unique(expected_colnames_order)
 
-  results_frequentist_ocs <- results_frequentist_ocs[, expected_colnames_order, drop = FALSE]
+  results_frequentist_ocs <- results_frequentist_ocs[,
+    expected_colnames_order,
+    drop = FALSE
+  ]
 
-  check_confidence_intervals(results_frequentist_ocs, c(names(inference_metrics), names(frequentist_metrics)))
+  check_confidence_intervals(
+    results_frequentist_ocs,
+    c(names(inference_metrics), names(frequentist_metrics))
+  )
 
 
-  # If scenarios_config$parallelization == FALSE, the csv files containing the results are built in an iterative manner, so that in case of bugs results are not lost (not possible if parallelization is used).
+  # If scenarios_config$parallelization == FALSE, the csv files containing the
+  # results are built in an iterative manner, so that in case of bugs results
+  # are not lost (not possible if parallelization is used).
   if (scenarios_config$parallelization == FALSE) {
     if (!file.exists(freq_filename)) {
       # Get the column names
@@ -198,7 +223,7 @@ frequentist_ocs_scenario_simulation <- function(scenario,
     )
   }
 
-  return(results_frequentist_ocs)
+  results_frequentist_ocs
 }
 
 #' Run simulations based on the given environment
@@ -217,7 +242,7 @@ simulation_frequentist_ocs <- function(env,
                                        analysis_config,
                                        config_dir,
                                        case_studies_config_dir,
-                                       logging_file_path){
+                                       logging_file_path) {
   case_studies <- scenarios_config$case_studies
   methods <- scenarios_config$methods
 
@@ -226,7 +251,10 @@ simulation_frequentist_ocs <- function(env,
   }
 
   # Create scenarios and create a summary table
-  cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
+  cases <- simulation_scenarios(
+    config_dir = config_dir, scenarios_config =
+      scenarios_config
+  )
 
   scenarios_table_ranges(cases, paste0("./results/", env))
 
@@ -242,13 +270,18 @@ simulation_frequentist_ocs <- function(env,
       scenarios_config$case_studies <- case_study
       scenarios_config$methods <- method
 
-      cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
+      cases <- simulation_scenarios(
+        config_dir = config_dir,
+        scenarios_config = scenarios_config
+      )
 
       if (nrow(cases) == 0) {
         stop("No simulation results")
       }
 
-      outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+      outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml",
+        package = "RBExT"
+      ))
       freq_filename <- paste0(
         results_dir,
         "/",
@@ -264,9 +297,11 @@ simulation_frequentist_ocs <- function(env,
       }
 
       # Progress bar function in R
-      pb <- progress::progress_bar$new(format = "Progress : [:bar] :elapsed | eta: :eta",
-                                       total = nrow(cases),
-                                       width = 60)
+      pb <- progress::progress_bar$new(
+        format = "Progress : [:bar] :elapsed | eta: :eta",
+        total = nrow(cases),
+        width = 60
+      )
       progress <- function(n) {
         pb$tick()
       }
@@ -279,9 +314,10 @@ simulation_frequentist_ocs <- function(env,
         recursive = TRUE
       )
 
-      # Delete existing results file. If they exist and are open, close them and delete them.
+      # Delete existing results file. If they exist and are open, close them
+      # and delete them.
       if (file.exists(freq_filename)) {
-        if (simulation_config$delete_old_results){
+        if (simulation_config$delete_old_results) {
           freq_file <- file(freq_filename, "w")
           if (isOpen(freq_file)) {
             close(freq_file)
@@ -292,32 +328,43 @@ simulation_frequentist_ocs <- function(env,
         }
       }
 
-      # Temporarily disable the global error handler within the tryCatch block. Otherwise there will be interference between the tryCatch block and the global error handler.
+      # Temporarily disable the global error handler within the tryCatch block.
+      # Otherwise there will be interference between the tryCatch block and the
+      # global error handler.
       options(error = NULL)
       if (scenarios_config$parallelization == FALSE) {
         # Loop through cases
 
-        for (i in 1:nrow(cases)) {
+        for (i in seq_len(nrow(cases))) {
           scenario <- cases[i, ]
 
-          tryCatch({
-            results <- frequentist_ocs_scenario_simulation(
-              scenario = scenario,
-              simulation_config = simulation_config,
-              scenarios_config = scenarios_config,
-              freq_filename = freq_filename,
-              config_dir = config_dir,
-              case_studies_config_dir = case_studies_config_dir
-            )
-            progress(i)
-          }, error = function(e) {
-            futile.logger::flog.error(paste("Error at iteration", i, ":", e$message))
-            futile.logger::flog.error("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
+          tryCatch(
+            {
+              results <- frequentist_ocs_scenario_simulation(
+                scenario = scenario,
+                simulation_config = simulation_config,
+                scenarios_config = scenarios_config,
+                freq_filename = freq_filename,
+                config_dir = config_dir,
+                case_studies_config_dir = case_studies_config_dir
+              )
+              progress(i)
+            },
+            error = function(e) {
+              futile.logger::flog.error(paste(
+                "Error at iteration", i, ":",
+                e$message
+              ))
+              futile.logger::flog.error(
+                "Call stack:\n%s",
+                paste(deparse(sys.calls()), collapse = "\n")
+              )
 
-            # Save state
-            save_state(iteration = i, scenario = scenario, env = env)
-            stop(e)
-          })
+              # Save state
+              save_state(iteration = i, scenario = scenario, env = env)
+              stop(e)
+            }
+          )
         }
         # At the end of the loop, close file if open
         freq_file <- file(freq_filename, "a")
@@ -362,34 +409,49 @@ simulation_frequentist_ocs <- function(env,
 
         # Parallel computation over cases
         results <- foreach::foreach(
-          i = 1:nrow(cases),
+          i = seq_len(nrow(cases)),
           .combine = "rbind",
           .options.snow = opts
         ) %dopar% {
-          worker_id <- Sys.getpid()  # Get the process ID of the worker
+          worker_id <- Sys.getpid() # Get the process ID of the worker
 
           scenario <- cases[i, ]
 
-          tryCatch({
-            result <- frequentist_ocs_scenario_simulation(
-              scenario = scenario,
-              simulation_config = simulation_config,
-              scenarios_config = scenarios_config,
-              freq_filename = freq_filename,
-              config_dir = config_dir,
-              case_studies_config_dir = case_studies_config_dir
-            )
-            ParallelLogger::logInfo(paste("Iteration", i, " completed by worker", worker_id))
-            result  # Return the result (assuming it’s a data frame)
-          }, error = function(e) {
-            ParallelLogger::logError(paste("Error at iteration", i, "by worker", worker_id, ":", e$message))
-            ParallelLogger::logError("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
+          tryCatch(
+            {
+              result <- frequentist_ocs_scenario_simulation(
+                scenario = scenario,
+                simulation_config = simulation_config,
+                scenarios_config = scenarios_config,
+                freq_filename = freq_filename,
+                config_dir = config_dir,
+                case_studies_config_dir = case_studies_config_dir
+              )
+              ParallelLogger::logInfo(paste(
+                "Iteration", i,
+                " completed by worker", worker_id
+              ))
+              result # Return the result (assuming it’s a data frame)
+            },
+            error = function(e) {
+              ParallelLogger::logError(paste(
+                "Error at iteration", i,
+                "by worker", worker_id, ":", e$message
+              ))
+              ParallelLogger::logError(
+                "Call stack:\n%s",
+                paste(deparse(sys.calls()), collapse = "\n")
+              )
 
-            # Save state even if there's an error
-            save_state(iteration = i, scenario = scenario, worker_id = worker_id, env = env)
+              # Save state even if there's an error
+              save_state(
+                iteration = i, scenario = scenario, worker_id =
+                  worker_id, env = env
+              )
 
-            stop(e)
-          })
+              stop(e)
+            }
+          )
         }
         write_csv(results, freq_filename)
         parallel::stopCluster(cl)
@@ -399,10 +461,13 @@ simulation_frequentist_ocs <- function(env,
       options(error = global_error_handler)
 
       if (tolower(case_study) == "aprepitant" ||
-          method == "commensurate_power_prior") {
+            method == "commensurate_power_prior") {
         # remove remaining MCMC csv files related to the run
         package_path <- system.file("", package = "RBExT")
-        stan_draws_path <- paste0(package_path, "/stan/draws/", tolower(case_study), "_", method, "/")
+        stan_draws_path <- paste0(
+          package_path, "/stan/draws/",
+          tolower(case_study), "_", method, "/"
+        )
         file.remove(list.files(stan_draws_path, full.names = TRUE))
       }
     }

@@ -10,14 +10,15 @@ format_num <- function(x, digits = 2, scientific = FALSE) {
 #' @return The marker at the specified index.
 #' @keywords internal
 markers <- function(i, markers_list) {
-  return(markers_list[i %% length(markers_list)])
+  markers_list[i %% length(markers_list)]
 }
 
 #' Function to set figure dimensions
 #'
 #' @param width The desired width of the figure (in pts).
 #' @param fraction The fraction of the width to use (default is 1).
-#' @param aspect_ratio The desired aspect ratio of the figure (default is golden ratio).
+#' @param aspect_ratio The desired aspect ratio of the figure (default is
+#'   golden ratio).
 #' @return A vector containing the width and height of the figure.
 #' @keywords internal
 set_size <- function(width,
@@ -31,7 +32,7 @@ set_size <- function(width,
 
   # Golden ratio to set aesthetic figure height
   # https://disq.us/p/2940ij3
-  golden_ratio <- (5 ^ 0.5 - 1) / 2
+  golden_ratio <- (5^0.5 - 1) / 2
 
   if (is.null(aspect_ratio)) {
     aspect_ratio <- golden_ratio
@@ -44,7 +45,7 @@ set_size <- function(width,
 
   fig_dim <- c(fig_width_in, fig_height_in)
 
-  return(fig_dim)
+  fig_dim
 }
 
 
@@ -76,7 +77,7 @@ format_uncertainty <- function(yerr_input, y, metric) {
   }
 
   # Return formatted uncertainty
-  return(yerr)
+  yerr
 }
 
 
@@ -88,21 +89,25 @@ format_uncertainty <- function(yerr_input, y, metric) {
 #' @keywords internal
 convert_params_to_str <- function(method, parameters) {
   # Round floating point parameters to 2 decimal places
-  parameters <- map_if(parameters, is.numeric, round, 2)
+  parameters <- purrr::map_if(parameters, is.numeric, round, 2)
 
   if (is.null(names(parameters))) {
     stop("parameters must be a dataframe")
   }
   # Convert parameters to string representation
-  labels <- paste(Filter(Negate(is.null), sapply(names(parameters), function(key) {
-    if (length(method[[key]]$range) > 1) {
-      paste0(method[[key]]$parameter_label, "=", parameters[[key]])
+  labels <- paste(Filter(Negate(is.null), sapply(
+    names(parameters),
+    function(key) {
+      if (length(method[[key]]$range) > 1) {
+        paste0(method[[key]]$parameter_label, "=", parameters[[key]])
+      }
     }
-  })), collapse = "_")
-  return(labels)
+  )), collapse = "_")
+  labels
 }
 
-#' Function to make labels from parameters. Return a label formatted in Tex, for example "$\\xi_\\gamma$ = 0.5, $\\sigma_\\gamma$ = 0.1"
+#' Function to make labels from parameters. Return a label formatted in Tex,
+#' for example "$\\xi_\\gamma$ = 0.5, $\\sigma_\\gamma$ = 0.1"
 #'
 #' @param parameter The parameter dataframe.
 #' @param method The method name.
@@ -110,44 +115,73 @@ convert_params_to_str <- function(method, parameters) {
 #' @keywords internal
 make_labels_from_parameters <- function(parameter, method) {
   # Round floating point parameters to 2 decimal places
-  parameter[sapply(parameter, is.numeric)] <- lapply(parameter[sapply(parameter, is.numeric)], round, 2)
+  parameter[sapply(
+    parameter,
+    is.numeric
+  )] <- lapply(parameter[sapply(parameter, is.numeric)], round, 2)
 
   # Select parameters with non-singleton ranges or display keyword = TRUE
   selection <- list()
 
   colnames(parameter) <- gsub("heterogeneity_prior\\.", "", colnames(parameter))
-  if (method == "commensurate_power_prior"){
-    if (is.null(parameter$family)){
-      if (!is.null(parameter$alpha) && !is.na(parameter$alpha)){
-        parameter$family = "inverse_gamma"
-      } else if (!is.null(parameter$std_dev) && !is.na(parameter$std_dev)){
-        parameter$family = "half_normal"
-      } else if (!is.null(parameter$location) && !is.na(parameter$location)){
-        parameter$family = "cauchy"
+  if (method == "commensurate_power_prior") {
+    if (is.null(parameter$family)) {
+      if (!is.null(parameter$alpha) && !is.na(parameter$alpha)) {
+        parameter$family <- "inverse_gamma"
+      } else if (!is.null(parameter$std_dev) && !is.na(parameter$std_dev)) {
+        parameter$family <- "half_normal"
+      } else if (!is.null(parameter$location) && !is.na(parameter$location)) {
+        parameter$family <- "cauchy"
       }
     }
-    if (parameter$family == "half_normal"){
-      parameters_list <- list(heterogeneity_prior_family = parameter$family, std_dev = parameter$std_dev)
-      label <- paste0("$\\tau \\sim HN(", round(as.numeric(parameters_list$std_dev),2), ")$")
-    } else if (parameter$family == "inverse_gamma"){
-      parameters_list <- list(heterogeneity_prior_family = parameter$family, alpha = parameter$alpha, beta = parameter$beta)
-      label <- paste0("$\\tau \\sim IG(\\alpha = ",  round( as.numeric(parameters_list$alpha),2),", \\beta = ",  round( as.numeric(parameters_list$beta),2), ")$")
-    } else if (parameter$family == "cauchy"){
-      parameters_list <- list(heterogeneity_prior_family = parameter$family, location =  parameter$location, scale =  parameter$scale)
-      label <- paste0("$\\tau \\sim Cauchy(x_0 = ",  round(as.numeric(parameter$location),2),"\\gamma = ", round( as.numeric(parameter$scale),2), ")$")
+    if (parameter$family == "half_normal") {
+      parameters_list <- list(
+        heterogeneity_prior_family = parameter$family,
+        std_dev = parameter$std_dev
+      )
+      label <- paste0(
+        "$\\tau \\sim HN(",
+        round(as.numeric(parameters_list$std_dev), 2), ")$"
+      )
+    } else if (parameter$family == "inverse_gamma") {
+      parameters_list <- list(
+        heterogeneity_prior_family = parameter$family,
+        alpha = parameter$alpha, beta = parameter$beta
+      )
+      label <- paste0(
+        "$\\tau \\sim IG(\\alpha = ",
+        round(as.numeric(parameters_list$alpha), 2), ", \\beta = ",
+        round(as.numeric(parameters_list$beta), 2), ")$"
+      )
+    } else if (parameter$family == "cauchy") {
+      parameters_list <- list(
+        heterogeneity_prior_family = parameter$family,
+        location = parameter$location, scale = parameter$scale
+      )
+      label <- paste0(
+        "$\\tau \\sim Cauchy(x_0 = ",
+        round(as.numeric(parameter$location), 2), "\\gamma = ",
+        round(as.numeric(parameter$scale), 2), ")$"
+      )
     } else {
       stop("Heterogeneity prior family not implemented.")
     }
   } else {
     for (parameter_name in names(parameter)) {
-      if (is.null(methods_dict[[method]][[parameter_name]])){
+      if (is.null(methods_dict[[method]][[parameter_name]])) {
         stop("Parameter not listed in the method configuration.")
       }
 
       if (!is.null(methods_dict[[method]][[parameter_name]]$display)) {
-        selection <- c(selection, methods_dict[[method]][[parameter_name]]$display)
+        selection <- c(
+          selection,
+          methods_dict[[method]][[parameter_name]]$display
+        )
       } else {
-        selection <- c(selection, length(methods_dict[[method]][[parameter_name]]$range) > 1)
+        selection <- c(
+          selection,
+          length(methods_dict[[method]][[parameter_name]]$range) > 1
+        )
       }
     }
 
@@ -158,12 +192,13 @@ make_labels_from_parameters <- function(parameter, method) {
       i <- 0
       parameters_to_display <- parameter[, selection, drop = FALSE]
       for (parameter_name in colnames(parameters_to_display)) {
-        # Combine column names and values and convert selected parameters to label
+        # Combine column names and values and convert selected parameters to
+        # label
 
         new_label <- sprintf(
           "%s = %s",
           methods_dict[[method]][[parameter_name]]$parameter_notation,
-          as.character(round(as.numeric(parameter[[parameter_name]]),2))
+          as.character(round(as.numeric(parameter[[parameter_name]]), 2))
         )
 
         if (i > 0) {
@@ -177,23 +212,23 @@ make_labels_from_parameters <- function(parameter, method) {
     }
   }
 
-  return(label)
+  label
 }
-
 
 
 process_method_parameters_label <- function(row,
                                             methods_labels,
                                             method_name = TRUE,
                                             parameters_colname = "parameters",
-                                            as_latex = TRUE){
+                                            as_latex = TRUE) {
   # Process the row of a results dataframe to create a Method + Parameters label
   method <- unlist(row["method"])
 
   if (is.null(methods_labels[[method]])) {
     stop(
       paste0(
-        "Method label is not defined. Add a label in methods_config.R for method ",
+        paste0("Method label is not defined. Add a label",
+          " in methods_config.R for method"),
         method
       )
     )
@@ -201,8 +236,12 @@ process_method_parameters_label <- function(row,
 
   parameters_df <- get_parameters(row[parameters_colname])
 
-  # Return a label formatted in Tex, for example "$\\xi_\\gamma$ = 0.5, $\\sigma_\\gamma$ = 0.1"
-  param_label <- make_labels_from_parameters(parameter = parameters_df, method = method)
+  # Return a label formatted in Tex, for example "$\\xi_\\gamma$ = 0.5,
+  # $\\sigma_\\gamma$ = 0.1"
+  param_label <- make_labels_from_parameters(
+    parameter = parameters_df,
+    method = method
+  )
 
 
   if (method_name == TRUE) {
@@ -210,7 +249,10 @@ process_method_parameters_label <- function(row,
     if (param_label == "") {
       full_label <- methods_labels[[method]]$label
     } else {
-      full_label <- paste(methods_labels[[method]]$label, param_label, sep = ", ")
+      full_label <- paste(methods_labels[[method]]$label, param_label,
+        sep =
+          ", "
+      )
     }
   } else {
     if (param_label == "") {
@@ -220,7 +262,7 @@ process_method_parameters_label <- function(row,
     }
   }
 
-  if (as_latex){
+  if (as_latex) {
     full_label <- latex2exp::TeX(full_label)
   }
 
@@ -228,13 +270,14 @@ process_method_parameters_label <- function(row,
     stop("Label is null.")
   }
 
-  return(full_label)
+  full_label
 }
 
 
 #' Function to return a dataframe of parameters from json strings
 #'
-#' @description This function returns, for a dataframe containing parameters (in json strings) for a given method, an R dataframe.
+#' @description This function returns, for a dataframe containing parameters
+#'   (in json strings) for a given method, an R dataframe.
 #'
 #' @param parameters_df The dataframe containing parameters in JSON strings.
 #' @return An R dataframe with parsed parameters.
@@ -243,10 +286,13 @@ get_parameters <- function(parameters_df) {
   if ("posterior_parameters" %in% colnames(parameters_df)) {
     # Process the posterior parameters
     parameters_df$parameters <- parameters_df$posterior_parameters
-    parameters_df <- parameters_df[, !(names(parameters_df) %in% c("posterior_parameters")), drop = FALSE]
+    parameters_df <- parameters_df[,
+      !(names(parameters_df) %in% c("posterior_parameters")),
+      drop = FALSE
+    ]
   }
 
-  if (is.null(parameters_df$parameters)){
+  if (is.null(parameters_df$parameters)) {
     stop("The input parameters dataframe does not contain parameters.")
   }
 
@@ -254,15 +300,17 @@ get_parameters <- function(parameters_df) {
     return(parameters_df)
   }
 
-  N <- nrow(parameters_df)
+  n <- nrow(parameters_df)
 
   # Check that the input is a dataframe
   if (!is.data.frame(parameters_df)) {
     if (length(parameters_df) == 1) {
       parameters_df <- gsub("'", "\"", parameters_df)
-      json_parameters_df <- jsonlite::fromJSON(parameters_df, simplifyDataFrame = TRUE)
+      json_parameters_df <- jsonlite::fromJSON(parameters_df,
+        simplifyDataFrame = TRUE
+      )
       if (length(names(json_parameters_df)) == 1 &&
-          (json_parameters_df) == "parameters") {
+            (json_parameters_df) == "parameters") {
         json_parameters_df <- unlist(unlist(json_parameters_df$parameters))
       } else {
         json_parameters_df <- unlist(json_parameters_df)
@@ -280,13 +328,15 @@ get_parameters <- function(parameters_df) {
 
   if (nrow(parameters_df) > 0) {
     # Loop through each row in the dataframe
-    for (i in 1:nrow(parameters_df)) {
-      json_parameters_df <- data.frame(jsonlite::fromJSON(parameters_df$parameters[i], simplifyDataFrame = TRUE))
+    for (i in seq_len(nrow(parameters_df))) {
+      json_parameters_df <-
+        data.frame(jsonlite::fromJSON(parameters_df$parameters[i],
+                                      simplifyDataFrame = TRUE))
 
       if (is.null(names(json_parameters_df))) {
         parameter_values <- NA
       } else if (length(names(json_parameters_df)) == 1 &&
-                 names(json_parameters_df) == "parameters") {
+                   names(json_parameters_df) == "parameters") {
         parameter_values <- unlist(unlist(json_parameters_df$parameters))
       } else {
         parameter_values <- unlist(json_parameters_df)
@@ -296,7 +346,8 @@ get_parameters <- function(parameters_df) {
     }
   }
 
-  # Combine the list of data frames into a single data frame, removing any NULL entries
+  # Combine the list of data frames into a single data frame, removing any NULL
+  # entries
   results_list <- results_list[!sapply(results_list, is.null)]
 
   # Get the number of columns for each element in the list
@@ -304,16 +355,16 @@ get_parameters <- function(parameters_df) {
 
   # Check if all elements have the same number of columns
   if (length(results_list) != 0 && length(unique(num_cols)) != 1) {
-
     # Step 1: Extract all unique column names across elements in the list
     all_columns <- unique(unlist(lapply(results_list, names)))
 
-    # Step 2: Ensure each element has the same columns by adding missing ones as NA
+    # Step 2: Ensure each element has the same columns by adding missing ones
+    # as NA
     results_list_aligned <- lapply(results_list, function(x) {
       missing_cols <- setdiff(all_columns, names(x))
       x[missing_cols] <- NA
-      x <- x[all_columns]  # Reorder to keep column order consistent
-      return(x)
+      x <- x[all_columns] # Reorder to keep column order consistent
+      x
     })
 
     # Step 3: Bind rows without error
@@ -322,7 +373,9 @@ get_parameters <- function(parameters_df) {
     # Now, results_df will have consistent columns
 
     # stop(
-    #   "Error: The elements in the list have different numbers of columns. The function should only be applied to a dataframe containing parameters for a single method."
+    # "Error: The elements in the list have different numbers of columns. The
+    # function should only be applied to a dataframe containing parameters for
+    # a single method."
     # )
   }
 
@@ -332,17 +385,17 @@ get_parameters <- function(parameters_df) {
     results_df <- data.frame(results_df)
   }
 
-  if (nrow(results_df) != N) {
+  if (nrow(results_df) != n) {
     stop("Output does not have the same number of rows as the input df.")
   }
 
-  return(results_df)
+  results_df
 }
 
 # Define a function to convert strings to numeric or boolean if possible
 convert_if_possible <- function(x) {
   output <- vector("list", length(x)) # Initialize output as a list
-  for (i in seq(length(x))) {
+  for (i in seq_along(x)) {
     if (is.character(x[i])) {
       # Try to convert to numeric
       numeric_value <- suppressWarnings(as.numeric(x[i]))
@@ -362,24 +415,24 @@ convert_if_possible <- function(x) {
     }
   }
   # Return the original value if no conversion was possible
-  return(unlist(output))
+  unlist(output)
 }
 
 export_plots <- function(plt,
                          file_path,
                          fig_width_in,
                          fig_height_in,
-                         type = "pdf", forest_plot = FALSE, adjust_theme = TRUE) {
-
-  if (!(forest_plot) && adjust_theme == TRUE){
+                         type = "pdf", forest_plot = FALSE, adjust_theme =
+                           TRUE) {
+  if (!(forest_plot) && adjust_theme == TRUE) {
     plt <- plt + theme_bw() + theme(
-      axis.text = element_text(family = font, size = text_size/2),
-      axis.text.y = element_text(family = font, size = small_text_size/2),
-      axis.text.x = element_text(family = font, size = small_text_size/2),
-      axis.title = element_text(family = font, size = text_size/2),
-      plot.title = element_text(family = font, size = text_size/2),
-      legend.text = element_text(family = font, size = small_text_size/2),
-      legend.title = element_text(family = font, size = text_size/2),
+      axis.text = element_text(family = font, size = text_size / 2),
+      axis.text.y = element_text(family = font, size = small_text_size / 2),
+      axis.text.x = element_text(family = font, size = small_text_size / 2),
+      axis.title = element_text(family = font, size = text_size / 2),
+      plot.title = element_text(family = font, size = text_size / 2),
+      legend.text = element_text(family = font, size = small_text_size / 2),
+      legend.title = element_text(family = font, size = text_size / 2),
       legend.key = element_blank(),
       # strip.background = element_blank(),
       panel.grid.major = element_blank(),
@@ -405,38 +458,52 @@ export_plots <- function(plt,
       dpi = dpi
     )
   }
-
 }
 
-format_title <- function(title, case_study, target_to_source_std_ratio = NA, source_denominator_change_factor = NA, as_latex = FALSE){
-  if (case_study %in% c("botox", "dapagliflozin") & !is.na(target_to_source_std_ratio)){
-    title <- paste0(title, ", $\\sigma_T/\\sigma_S = $", target_to_source_std_ratio)
-  }
-
-  if (!is.na(source_denominator_change_factor)){
-    if (!(case_study %in% c("botox", "dapagliflozin", "aprepitant"))){
-      title = paste0(title, ", Source denominator change factor = ",source_denominator_change_factor)
-    }
-  }
-
-  if (as_latex == FALSE){
-    title <- latex2exp::TeX(title)
-  }
-
-  return(title)
-}
-
-format_filename <- function(filename, case_study, target_to_source_std_ratio = NA, source_denominator_change_factor = NA){
-  if (case_study %in% c("botox", "dapagliflozin")){
-    filename <- paste0(filename,
-                       "_target_to_source_std_ratio=",
-                       target_to_source_std_ratio
+format_title <- function(
+  title, case_study, target_to_source_std_ratio = NA,
+  source_denominator_change_factor = NA, as_latex = FALSE
+) {
+  if (case_study %in% c("botox", "dapagliflozin") &&
+        !is.na(target_to_source_std_ratio)) {
+    title <- paste0(
+      title, ", $\\sigma_T/\\sigma_S = $",
+      target_to_source_std_ratio
     )
   }
 
-  if (!is.na(source_denominator_change_factor)){
-    if (!(case_study %in% c("botox", "dapagliflozin", "aprepitant"))){
-      filename <- paste0(filename, "_source_denominator_change_factor=",  source_denominator_change_factor)
+  if (!is.na(source_denominator_change_factor)) {
+    if (!(case_study %in% c("botox", "dapagliflozin", "aprepitant"))) {
+      title <- paste0(
+        title, ", Source denominator change factor = ",
+        source_denominator_change_factor
+      )
+    }
+  }
+
+  if (as_latex == FALSE) {
+    title <- latex2exp::TeX(title)
+  }
+
+  title
+}
+
+format_filename <- function(filename, case_study, target_to_source_std_ratio =
+                              NA, source_denominator_change_factor = NA) {
+  if (case_study %in% c("botox", "dapagliflozin")) {
+    filename <- paste0(
+      filename,
+      "_target_to_source_std_ratio=",
+      target_to_source_std_ratio
+    )
+  }
+
+  if (!is.na(source_denominator_change_factor)) {
+    if (!(case_study %in% c("botox", "dapagliflozin", "aprepitant"))) {
+      filename <- paste0(
+        filename, "_source_denominator_change_factor=",
+        source_denominator_change_factor
+      )
     }
   }
 
@@ -444,23 +511,30 @@ format_filename <- function(filename, case_study, target_to_source_std_ratio = N
   filename <- tolower(filename)
   filename <- gsub(" ", "_", filename)
 
-  return(filename)
+  filename
 }
 
-format_results_df_parameters <- function(results_df, include_method_name = TRUE){
+format_results_df_parameters <- function(results_df, include_method_name =
+                                           TRUE) {
   labels <- c()
   for (i in seq_len(nrow(results_df))) {
     method <- unlist(results_df[i, "method"])
 
     parameters_df <- get_parameters(results_df[i, "parameters", drop = FALSE])
 
-    param_label <- make_labels_from_parameters(parameter = parameters_df, method = method)
+    param_label <- make_labels_from_parameters(
+      parameter = parameters_df,
+      method = method
+    )
 
-    if (include_method_name){
+    if (include_method_name) {
       if (param_label == "") {
         full_label <- methods_labels[[method]]$label
       } else {
-        full_label <- paste(methods_labels[[method]]$label, param_label, sep = ", ")
+        full_label <- paste(methods_labels[[method]]$label, param_label,
+          sep =
+            ", "
+        )
       }
     } else {
       full_label <- param_label
@@ -468,20 +542,20 @@ format_results_df_parameters <- function(results_df, include_method_name = TRUE)
     # Append the label to the labels vector
     labels <- c(labels, full_label)
   }
-  return(labels)
+  labels
 }
 
-format_results_df_methods <- function(results_df){
+format_results_df_methods <- function(results_df) {
   methods <- c()
   for (i in seq_len(nrow(results_df))) {
     method <- unlist(results_df[i, "method"])
     methods <- c(methods, methods_labels[[method]]$label)
   }
-  return(methods)
+  methods
 }
 
 
-convert_CI_columns <- function(table_data_df) {
+convert_ci_columns <- function(table_data_df) {
   # Get the names of all columns that start with "conf_int"
   conf_int_cols <- grep("^conf_int", colnames(table_data_df), value = TRUE)
 
@@ -498,7 +572,8 @@ convert_CI_columns <- function(table_data_df) {
     if (param %in% colnames(table_data_df)) {
       # Combine the value and confidence interval into a single string
       table_data_df[[param]] <- paste0(
-        table_data_df[[param]], " [", table_data_df[[lower_col]], ", ", table_data_df[[upper_col]], "]"
+        table_data_df[[param]], " [", table_data_df[[lower_col]], ", ",
+        table_data_df[[upper_col]], "]"
       )
     } else {
       # If the parameter column doesn't exist, create a new one with just the CI
@@ -510,43 +585,40 @@ convert_CI_columns <- function(table_data_df) {
   # Drop the original confidence interval columns
   cols_to_keep <- !grepl("^conf_int", colnames(table_data_df))
   table_data_df <- table_data_df[, cols_to_keep, drop = FALSE]
-  return(table_data_df)
+  table_data_df
 }
 
 
-com_pp_params_filtering = function(key, parameter){ # TODO : remove ?
-  if (is.null(parameter$family)){
-    if ((!is.null(parameter$alpha) && !is.na(parameter$alpha))){
-      parameter$family = "inverse_gamma"
-    } else if (!is.null(parameter$std_dev) && !is.na(parameter$std_dev)){
-      parameter$family = "half_normal"
-    } else if (!is.null(parameter$location) && !is.na(parameter$location)){
-      parameter$family = "cauchy"
+com_pp_params_filtering <- function(key, parameter) { # TODO : remove ?
+  if (is.null(parameter$family)) {
+    if ((!is.null(parameter$alpha) && !is.na(parameter$alpha))) {
+      parameter$family <- "inverse_gamma"
+    } else if (!is.null(parameter$std_dev) && !is.na(parameter$std_dev)) {
+      parameter$family <- "half_normal"
+    } else if (!is.null(parameter$location) && !is.na(parameter$location)) {
+      parameter$family <- "cauchy"
     }
 
-    if ((!is.null(parameter$heterogeneity_prior.alpha) && !is.na(parameter$heterogeneity_prior.alpha))){
-      parameter$family = "inverse_gamma"
-    } else if (!is.null(parameter$heterogeneity_prior.std_dev) && !is.na(parameter$heterogeneity_prior.std_dev)){
-      parameter$family = "half_normal"
-    } else if (!is.null(parameter$heterogeneity_prior.location) && !is.na(parameter$heterogeneity_prior.location)){
-      parameter$family = "cauchy"
+    if ((!is.null(parameter$heterogeneity_prior.alpha) &&
+           !is.na(parameter$heterogeneity_prior.alpha))) {
+      parameter$family <- "inverse_gamma"
+    } else if (!is.null(parameter$heterogeneity_prior.std_dev) &&
+                 !is.na(parameter$heterogeneity_prior.std_dev)) {
+      parameter$family <- "half_normal"
+    } else if (!is.null(parameter$heterogeneity_prior.location) &&
+                 !is.na(parameter$heterogeneity_prior.location)) {
+      parameter$family <- "cauchy"
     }
   }
 
-  if (parameter$family == "half_normal"){
-    parameters_list <- list(heterogeneity_prior_family = parameter$family, std_dev = parameter$std_dev)
-    label <- paste0("$\\tau \\sim HN(", round(as.numeric(parameters_list$std_dev),2), ")$")
-  } else if (parameter$family == "inverse_gamma"){
-    parameters_list <- list(heterogeneity_prior_family = parameter$family, alpha = parameter$alpha, beta = parameter$beta)
-    label <- paste0("$\\tau \\sim IG(\\alpha = ",  round( as.numeric(parameters_list$alpha),2),", \\beta = ",  round( as.numeric(parameters_list$beta),2), ")$")
-  } else if (parameter$family == "cauchy"){
-    parameters_list <- list(heterogeneity_prior_family = parameter$family, location =  parameter$location, scale =  parameter$scale)
-    label <- paste0("$\\tau \\sim Cauchy(x_0 = ",  round(as.numeric(parameter$location),2),"\\gamma = ", round( as.numeric(parameter$scale),2), ")$")
+  if (parameter$family == "half_normal") {
+  } else if (parameter$family == "inverse_gamma") {
+  } else if (parameter$family == "cauchy") {
   } else {
     stop("Heterogeneity prior family not implemented.")
   }
 
   methods_dict[[method]][[key]][["range"]]
 
-  return(filter)
+  filter
 }

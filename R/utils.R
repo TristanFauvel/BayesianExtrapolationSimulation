@@ -96,11 +96,11 @@ bayesian_col_types <- cols(
   prior_proba_success = col_double(),
   prior_proba_no_benefit = col_double(),
   prior_proba_benefit = col_double(),
-  prepost_proba_FP = col_double(),
-  prepost_proba_TP = col_double(),
+  prepost_proba_fp = col_double(),
+  prepost_proba_tp = col_double(),
   average_tie = col_double(),
   average_power = col_double(),
-  upper_bound_proba_FP = col_double(),
+  upper_bound_proba_fp = col_double(),
   source_treatment_effect_estimate = col_double(),
   source_standard_error = col_double(),
   endpoint = col_character(),
@@ -142,34 +142,51 @@ sweet_spot_col_types <- cols(
 )
 
 
-scenario_columns <- c("target_sample_size_per_arm", "control_drift", "source_denominator", "source_denominator_change_factor",
-                      "case_study", "sampling_approximation", "source_treatment_effect_estimate",
-                      "target_to_source_std_ratio", "theta_0", "null_space",
-                      "summary_measure_likelihood", "source_standard_error", "source_sample_size_control",
-                      "source_sample_size_treatment", "equivalent_source_sample_size_per_arm", "endpoint",
-                      "source_control_rate", "source_treatment_rate")
+scenario_columns <- c(
+  "target_sample_size_per_arm", "control_drift", "source_denominator",
+  "source_denominator_change_factor",
+  "case_study", "sampling_approximation", "source_treatment_effect_estimate",
+  "target_to_source_std_ratio", "theta_0", "null_space",
+  "summary_measure_likelihood", "source_standard_error",
+  "source_sample_size_control",
+  "source_sample_size_treatment", "equivalent_source_sample_size_per_arm",
+  "endpoint",
+  "source_control_rate", "source_treatment_rate"
+)
 
-unique_scenario_columns <- c("case_study", "target_sample_size_per_arm", "source_denominator_change_factor",
-                      "target_to_source_std_ratio")
+unique_scenario_columns <- c(
+  "case_study", "target_sample_size_per_arm",
+  "source_denominator_change_factor",
+  "target_to_source_std_ratio"
+)
 
 
-results_columns <- c("success_proba", "mcse_success_proba", "conf_int_success_proba_lower",
-                     "conf_int_success_proba_upper", "coverage", "conf_int_coverage_lower",
-                     "conf_int_coverage_upper", "mse", "conf_int_mse_lower", "conf_int_mse_upper",
-                     "bias", "conf_int_bias_lower", "conf_int_bias_upper", "posterior_mean",
-                     "conf_int_posterior_mean_lower", "conf_int_posterior_mean_upper", "posterior_median",
-                     "conf_int_posterior_median_lower", "conf_int_posterior_median_upper", "precision",
-                     "conf_int_precision_lower", "conf_int_precision_upper", "credible_interval_lower",
-                     "credible_interval_upper", "posterior_parameters", "ess_moment",
-                     "conf_int_ess_moment_lower", "conf_int_ess_moment_upper", "ess_precision",
-                     "conf_int_ess_precision_lower", "conf_int_ess_precision_upper", "ess_elir",
-                     "conf_int_ess_elir_lower", "conf_int_ess_elir_upper", "rhat", "conf_int_rhat_lower",
-                     "conf_int_rhat_upper", "mcmc_ess", "conf_int_mcmc_ess_lower", "conf_int_mcmc_ess_upper",
-                     "n_divergences", "conf_int_n_divergences_lower", "conf_int_n_divergences_upper",
-                     "warning", "tie", "mcse_tie", "conf_int_tie_lower", "conf_int_tie_upper",
-                     "frequentist_power_at_equivalent_tie", "frequentist_power_at_equivalent_tie_lower",
-                     "frequentist_power_at_equivalent_tie_upper", "frequentist_test",
-                     "nominal_frequentist_power_separate", "nominal_frequentist_power_pooling")
+results_columns <- c(
+  "success_proba", "mcse_success_proba", "conf_int_success_proba_lower",
+  "conf_int_success_proba_upper", "coverage", "conf_int_coverage_lower",
+  "conf_int_coverage_upper", "mse", "conf_int_mse_lower", "conf_int_mse_upper",
+  "bias", "conf_int_bias_lower", "conf_int_bias_upper", "posterior_mean",
+  "conf_int_posterior_mean_lower", "conf_int_posterior_mean_upper",
+  "posterior_median",
+  "conf_int_posterior_median_lower", "conf_int_posterior_median_upper",
+  "precision",
+  "conf_int_precision_lower", "conf_int_precision_upper",
+  "credible_interval_lower",
+  "credible_interval_upper", "posterior_parameters", "ess_moment",
+  "conf_int_ess_moment_lower", "conf_int_ess_moment_upper", "ess_precision",
+  "conf_int_ess_precision_lower", "conf_int_ess_precision_upper", "ess_elir",
+  "conf_int_ess_elir_lower", "conf_int_ess_elir_upper", "rhat",
+  "conf_int_rhat_lower",
+  "conf_int_rhat_upper", "mcmc_ess", "conf_int_mcmc_ess_lower",
+  "conf_int_mcmc_ess_upper",
+  "n_divergences", "conf_int_n_divergences_lower",
+  "conf_int_n_divergences_upper",
+  "warning", "tie", "mcse_tie", "conf_int_tie_lower", "conf_int_tie_upper",
+  "frequentist_power_at_equivalent_tie",
+  "frequentist_power_at_equivalent_tie_lower",
+  "frequentist_power_at_equivalent_tie_upper", "frequentist_test",
+  "nominal_frequentist_power_separate", "nominal_frequentist_power_pooling"
+)
 
 
 expected_colnames_scenario <- c(
@@ -253,10 +270,12 @@ expected_colnames_source <- c(
 
 #' Check columns in a dataframe
 #'
-#' This function checks if a dataframe contains the expected columns and only the expected columns.
+#' This function checks if a dataframe contains the expected columns and only
+#' the expected columns.
 #'
 #' @param df A dataframe to check.
-#' @param expected_colnames A character vector of column names the dataframe should contain.
+#' @param expected_colnames A character vector of column names the dataframe
+#'   should contain.
 #'
 #' @return No return value, called for side effects.
 #'
@@ -297,16 +316,19 @@ remove_columns_from_df <- function(df, to_remove) {
       df <- df[, -which(colnames(df) == key)]
     }
   }
-  return(df)
+  df
 }
 
 #' Concatenate all simulation results to a global dataframe
 #'
-#' This function reads all CSV files with names starting with "results" from the specified
+#' This function reads all CSV files with names starting with "results" from
+#' the specified
 #' directory, concatenates them, and saves the result to a new CSV file.
 #'
-#' @param results_dir A character string specifying the path of the results folder.
-#' @param ocs_filename A character string specifying the filename of the results dataframe.
+#' @param results_dir A character string specifying the path of the results
+#'   folder.
+#' @param ocs_filename A character string specifying the filename of the
+#'   results dataframe.
 #'
 #' @return No return value, called for side effects.
 #'
@@ -348,11 +370,11 @@ concatenate_simulation_results <- function(results_dir, ocs_filename) {
 
 # Function to concatenate files
 concatenate_files <- function(file_name, folders, output_path) {
-  if (file_name == "results_frequentist.csv"){
+  if (file_name == "results_frequentist.csv") {
     col_types <- frequentist_col_types
-  } else if (file_name == "results_bayesian_simpson.csv"){
+  } else if (file_name == "results_bayesian_simpson.csv") {
     col_types <- bayesian_col_types
-  } else if (file_name == "sweet_spot.csv"){
+  } else if (file_name == "sweet_spot.csv") {
     col_types <- sweet_spot_col_types
   } else {
     col_types <- NULL
@@ -362,15 +384,17 @@ concatenate_files <- function(file_name, folders, output_path) {
     file_path <- file.path(folder, file_name)
     if (file.exists(file_path)) {
       data <- read_csv(file_path, col_types = col_types, col_names = TRUE)
-      return(data)
+      data
     } else {
-      NULL  # Handle cases where the file might not exist in some folders
+      NULL # Handle cases where the file might not exist in some folders
     }
   }))
 
 
-  if (!(setequal(colnames(combined_data), names(col_types$cols)))){
-    warning("Invalid column names in the concatenated results. Concatenated results file not created.")
+  if (!(setequal(colnames(combined_data), names(col_types$cols)))) {
+    warning(
+            paste0("Invalid column names in the concatenated",
+              " results. Concatenated results file not", " created."))
   } else {
     # Write the combined data to the root folder
     write_csv(combined_data, file.path(output_path, file_name))
@@ -380,10 +404,13 @@ concatenate_files <- function(file_name, folders, output_path) {
 
 #' Concatenate all simulation logs to a global dataframe
 #'
-#' This function reads all CSV files with names starting with "logs" from both the "bayesian" and
-#' "frequentist" subdirectories, concatenates them, adds an "OCs" column, and saves the result to a new CSV file.
+#' This function reads all CSV files with names starting with "logs" from both
+#' the "bayesian" and
+#' "frequentist" subdirectories, concatenates them, adds an "OCs" column, and
+#' saves the result to a new CSV file.
 #'
-#' @param results_dir A character string specifying the path of the results folder.
+#' @param results_dir A character string specifying the path of the results
+#'   folder.
 #'
 #' @return No return value, called for side effects.
 #'
@@ -416,7 +443,7 @@ concatenate_simulation_logs <- function(results_dir) {
     }
   }
   # Reorder columns to place OCs column at the start
-  df_logs <- df_logs %>%
+  df_logs <- df_logs |>
     dplyr::select(OCs, everything())
   # Save the global data frame to a new CSV file
   readr::write_csv(df_logs, file.path(results_dir, "logs.csv"))
@@ -508,18 +535,18 @@ format_simulation_output_table <- function(output) {
 
 format_parameters_to_json <- function(json_parameters, escape = FALSE) {
   json_parameters <- jsonlite::toJSON(json_parameters, pretty = TRUE)
-  json_parameters <- gsub("\"", "\'", json_parameters)
+  json_parameters <- gsub("\"", "'", json_parameters)
   json_parameters <- as.character(json_parameters)
   if (escape == TRUE) {
     json_parameters <- paste0("[\n  ", json_parameters, "\n]")
   }
-  return(json_parameters)
+  json_parameters
 }
 
 
 format_case_study_config <- function(case_study_config) {
-  if (case_study_config$endpoint == "continuous" |
-      case_study_config$endpoint == "recurrent_event") {
+  if (case_study_config$endpoint == "continuous" ||
+        case_study_config$endpoint == "recurrent_event") {
     data <- data.frame(
       Parameter = c(
         "Name",
@@ -563,12 +590,13 @@ format_case_study_config <- function(case_study_config) {
 
     # Create the table with headers and horizontal lines
     kable(data,
-          col.names = c("Parameter", "Value"),
-          align = "l") %>%
-      kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
-      kableExtra::kable_styling("striped", full_width = F) %>%
-      kableExtra::pack_rows("General", 1, 7) %>%
-      kableExtra::pack_rows("Target", 8, 12) %>%
+      col.names = c("Parameter", "Value"),
+      align = "l"
+    ) |>
+      kableExtra::add_header_above(c("Case Study Configuration" = 2)) |>
+      kableExtra::kable_styling("striped", full_width = FALSE) |>
+      kableExtra::pack_rows("General", 1, 7) |>
+      kableExtra::pack_rows("Target", 8, 12) |>
       kableExtra::pack_rows("Source", 13, 17)
   } else if (case_study_config$endpoint == "time_to_event") {
     data <- data.frame(
@@ -616,12 +644,13 @@ format_case_study_config <- function(case_study_config) {
 
     # Create the table with headers and horizontal lines
     kable(data,
-          col.names = c("Parameter", "Value"),
-          align = "l") %>%
-      kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
-      kableExtra::kable_styling("striped", full_width = F) %>%
-      kableExtra::pack_rows("General", 1, 6) %>%
-      kableExtra::pack_rows("Target", 7, 12) %>%
+      col.names = c("Parameter", "Value"),
+      align = "l"
+    ) |>
+      kableExtra::add_header_above(c("Case Study Configuration" = 2)) |>
+      kableExtra::kable_styling("striped", full_width = FALSE) |>
+      kableExtra::pack_rows("General", 1, 6) |>
+      kableExtra::pack_rows("Target", 7, 12) |>
       kableExtra::pack_rows("Source", 13, 18)
   } else if (case_study_config$endpoint == "binary") {
     data <- data.frame(
@@ -675,12 +704,13 @@ format_case_study_config <- function(case_study_config) {
 
     # Create the table with headers and horizontal lines
     kable(data,
-          col.names = c("Parameter", "Value"),
-          align = "l") %>%
-      kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
-      kableExtra::kable_styling("striped", full_width = F) %>%
-      kableExtra::pack_rows("General", 1, 7) %>%
-      kableExtra::pack_rows("Target", 8, 14) %>%
+      col.names = c("Parameter", "Value"),
+      align = "l"
+    ) |>
+      kableExtra::add_header_above(c("Case Study Configuration" = 2)) |>
+      kableExtra::kable_styling("striped", full_width = FALSE) |>
+      kableExtra::pack_rows("General", 1, 7) |>
+      kableExtra::pack_rows("Target", 8, 14) |>
       kableExtra::pack_rows("Source", 15, 21)
   }
 }
@@ -697,16 +727,20 @@ compile_stan_model <- function(model_name, stan_model_code) {
 
   if (!file.exists(stan_exe_file_path)) {
     stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
-                                          exe_file = stan_exe_file_path,
-                                          cpp_options = cpp_options)
+      exe_file = stan_exe_file_path,
+      cpp_options = cpp_options
+    )
   } else {
-    stan_model <- cmdstanr::cmdstan_model(exe_file = stan_exe_file_path, cpp_options = cpp_options)
+    stan_model <- cmdstanr::cmdstan_model(
+      exe_file = stan_exe_file_path,
+      cpp_options = cpp_options
+    )
   }
-  return(stan_model)
+  stan_model
 }
 
 load_data <- function(results_row, type, reload_data_objects = FALSE) {
-  if (!(type %in% c("target", "source"))){
+  if (!(type %in% c("target", "source"))) {
     stop("type must either be 'target' or 'source'.")
   }
 
@@ -716,12 +750,12 @@ load_data <- function(results_row, type, reload_data_objects = FALSE) {
       package = "RBExT"
     ))
 
-    source_data <- SourceData$new(
+    source_data <- source_data$new(
       case_study_config = case_study_config,
       source_denominator = results_row$source_denominator
     )
     if (type == "target") {
-      data <- TargetDataFactory$new()
+      data <- target_data_factory$new()
       data <- data$create(
         source_data = source_data,
         case_study_config = case_study_config,
@@ -748,22 +782,26 @@ load_data <- function(results_row, type, reload_data_objects = FALSE) {
       )
     } else if (type == "source") {
       data <- list(
-        treatment_effect_estimate = results_row$source_treatment_effect_estimate,
+        treatment_effect_estimate =
+          results_row$source_treatment_effect_estimate,
         standard_error = results_row$source_standard_error,
         sample_size_control = results_row$source_sample_size_control,
         sample_size_treatment = results_row$source_sample_size_treatment,
-        equivalent_source_sample_size_per_arm = results_row$equivalent_source_sample_size_per_arm,
+        equivalent_source_sample_size_per_arm =
+          results_row$equivalent_source_sample_size_per_arm,
         treatment_rate = results_row$source_treatment_rate,
         control_rate = results_row$source_control_rate
       )
 
-      if (is.null(data$equivalent_source_sample_size_per_arm) |
-          any(is.na(data$equivalent_source_sample_size_per_arm))) {
-        data$equivalent_source_sample_size_per_arm <- 2 * data$sample_size_control * data$sample_size_treatment / (data$sample_size_control + data$sample_size_treatment)
+      if (is.null(data$equivalent_source_sample_size_per_arm) ||
+            any(is.na(data$equivalent_source_sample_size_per_arm))) {
+        data$equivalent_source_sample_size_per_arm <- 2 *
+          data$sample_size_control * data$sample_size_treatment /
+          (data$sample_size_control + data$sample_size_treatment)
       }
     }
   }
-  return(data)
+  data
 }
 
 # Function to create boolean filter
@@ -773,8 +811,9 @@ create_boolean_filter <- function(df, conditions, exclude_key = NULL) {
   }
 
   # Convert all columns to numeric where possible
-  df <- data.frame(lapply(df, function(x)
-    as.numeric(x)))
+  df <- data.frame(lapply(df, function(x) {
+    as.numeric(x)
+  }))
 
 
   filter <- rep(TRUE, nrow(df))
@@ -782,7 +821,7 @@ create_boolean_filter <- function(df, conditions, exclude_key = NULL) {
     condition <- conditions[[col]]
     filter <- (df[[col]] == condition) & filter
   }
-  return(filter)
+  filter
 }
 
 
@@ -794,17 +833,19 @@ check_confidence_intervals <- function(df, metrics) {
 
     # Check if the metric and its CI bounds exist in the dataframe
     if (all(c(metric, lower_col, upper_col) %in% names(df))) {
-
       # Check if the lower bound is indeed lower than the upper bound
       invalid_bounds <- which(df[[lower_col]] > df[[upper_col]])
 
       if (length(invalid_bounds) > 0) {
-        issue <- paste0("Lower bound of the CI is larger than the upper bound for ", metric)
+        issue <-
+          paste0("Lower bound of the CI is larger than the upper bound for ",
+                 metric)
         warning(issue)
       }
 
       # Check if the metric value lies within the confidence interval
-      out_of_bounds <- which(df[[metric]] < df[[lower_col]] | df[[metric]] > df[[upper_col]])
+      out_of_bounds <- which(df[[metric]] < df[[lower_col]] |
+                               df[[metric]] > df[[upper_col]])
       if (length(out_of_bounds) > 0) {
         issue <- paste0("Mean value outside the CI bounds for ", metric)
         warning(issue)
@@ -815,13 +856,12 @@ check_confidence_intervals <- function(df, metrics) {
 
 
 # Used to extract parameters as nested list
-extract_nested_parameter = function(parameters){
+extract_nested_parameter <- function(parameters) {
   # Initialize an empty list to store the nested list
   nested_list <- list()
 
   # Iterate over the column names of the parameters to construct the nested list
   for (colname in colnames(parameters)) {
-
     # Split the column name by period (".") to find the hierarchy
     split_names <- strsplit(colname, "\\.")[[1]]
 
@@ -844,25 +884,29 @@ extract_nested_parameter = function(parameters){
       nested_list[colname] <- parameters[[colname]]
     }
   }
-  return(nested_list)
+  nested_list
 }
 
 # Function to log errors globally
 global_error_handler <- function() {
-  err <- geterrmessage()  # Get the error message
+  err <- geterrmessage() # Get the error message
   futile.logger::flog.error("Global error occurred: %s", err)
 
   # Optionally log other debugging info such as the call stack
-  futile.logger::flog.error("Call stack:\n%s", paste(deparse(sys.calls()), collapse = "\n"))
+  futile.logger::flog.error("Call stack:\n%s", paste(deparse(sys.calls()),
+    collapse = "\n"
+  ))
 
   # Log additional variables of interest (if needed)
   # For instance, if you're in a loop or a function with certain variables
-  # futile.logger::flog.error("Variable state at error - x: %s, y: %s", x, y)  # Customize as needed
+  # futile.logger::flog.error("Variable state at error - x: %s, y: %s", x, y) #
+  # Customize as needed
 }
 
-generate_log_filename <- function(base_name = "error_log.log", suffix_type = "timestamp") {
+generate_log_filename <- function(base_name = "error_log.log", suffix_type =
+                                    "timestamp") {
   if (!file.exists(base_name)) {
-    return(base_name)  # Return the base name if no file exists
+    return(base_name) # Return the base name if no file exists
   }
 
   # If the file exists, create a new filename with a suffix
@@ -880,14 +924,20 @@ generate_log_filename <- function(base_name = "error_log.log", suffix_type = "ti
     }
   }
 
-  return(new_name)
+  new_name
 }
 
 save_state <- function(iteration, scenario, worker_id = NULL, env) {
-  if (is.null(worker_id)){
-    file = paste0("./logs/", env, "/checkpoints/checkpoint_iter_", iteration, ".RData")
+  if (is.null(worker_id)) {
+    file <- paste0(
+      "./logs/", env, "/checkpoints/checkpoint_iter_", iteration,
+      ".RData"
+    )
   } else {
-    file = paste0("./logs/", env, "/checkpoints/checkpoint_iter_", worker_id, "_iter_", iteration, ".RData")
+    file <- paste0(
+      "./logs/", env, "/checkpoints/checkpoint_iter_", worker_id,
+      "_iter_", iteration, ".RData"
+    )
   }
   # Extract the directory path from the file path
   dir_path <- dirname(file)
@@ -900,59 +950,91 @@ save_state <- function(iteration, scenario, worker_id = NULL, env) {
   save(scenario, file = file)
 }
 
-read_function_code <- function(function_obj){
+read_function_code <- function(function_obj) {
   function_name <- substitute(function_obj)
 
   # Use deparse() to get the function's source code
   function_code <- deparse(function_obj)
 
   # Prepend the function name and assignment
-  cat(paste0(function_name, " <- ", paste(function_code, collapse = "\n"), sep = ""))
+  cat(paste0(function_name, " <- ", paste(function_code, collapse = "\n"),
+    sep = ""
+  ))
 }
 
 
-
-check_simulation_completeness <- function(results_dir = results_dir, ocs_filename = ocs_filename, scenarios_config, config_dir) {
-  for (case_study in scenarios_config$case_studies){
+check_simulation_completeness <- function(
+  results_dir = results_dir,
+  ocs_filename = ocs_filename, scenarios_config, config_dir
+) {
+  for (case_study in scenarios_config$case_studies) {
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
       package = "RBExT"
     ))
-    for (method in scenarios_config$method){
-      file_path <- paste0(results_dir, 'frequentist/', case_study, '/', method, '/', ocs_filename)
+    for (method in scenarios_config$method) {
+      file_path <- paste0(
+        results_dir, "frequentist/", case_study, "/",
+        method, "/", ocs_filename
+      )
 
       if (file.exists(file_path)) {
-        results_df <- readr::read_csv(file_path, col_types = frequentist_col_types, col_names = TRUE)
+        results_df <- readr::read_csv(file_path,
+          col_types =
+            frequentist_col_types, col_names = TRUE
+        )
       } else {
         # File doesn't exist, continue with the rest of the code
         message("File does not exist, continuing...")
         next
       }
 
-      null_space <- case_study_config$null_space
-      theta_0 <- case_study_config$theta_0
 
-      source_denominator_change_factors <- unique(results_df$source_denominator_change_factor)
+      source_denominator_change_factors <-
+        unique(results_df$source_denominator_change_factor)
 
-      if (!setequal(scenarios_config$denominator_change_factor, source_denominator_change_factors) && !(case_study %in% c("botox", "dapagliflozin", "aprepitant"))){
-        warning(paste0("Simulaton is incomplete, all denominator change factors are not included. Method: ", method, ", Case study : ", case_study))
+      if (!setequal(
+        scenarios_config$denominator_change_factor,
+        source_denominator_change_factors
+      ) && !(case_study %in% c(
+        "botox",
+        "dapagliflozin", "aprepitant"
+      ))) {
+        warning(paste0(
+                       paste0("Simulaton is incomplete, all denominator",
+                         " change factors are not included.", " Method:"),
+                           method, ", Case study : ", case_study))
       }
 
-      for (source_denominator_change_factor in source_denominator_change_factors) {
-        results_df_1 <- results_df %>%
+      for (
+           source_denominator_change_factor in source_denominator_change_factors) {
+        results_df_1 <- results_df |>
           dplyr::filter(
-            source_denominator_change_factor == !!source_denominator_change_factor  |
+            source_denominator_change_factor ==
+              !!source_denominator_change_factor |
               is.na(source_denominator_change_factor)
           )
-        target_to_source_std_ratio_range <- unique(results_df_1$target_to_source_std_ratio)
+        target_to_source_std_ratio_range <-
+          unique(results_df_1$target_to_source_std_ratio)
 
-        if (!setequal(scenarios_config$target_to_source_std_ratio_range, target_to_source_std_ratio_range) && (case_study %in% c("botox", "dapagliflozin"))){
-          warning(paste0("Simulaton is incomplete, all target to source std ratios are not included. Method: ", method, ", Case study : ", case_study))
+        if (!setequal(
+          scenarios_config$target_to_source_std_ratio_range,
+          target_to_source_std_ratio_range
+        ) && (case_study %in% c(
+          "botox",
+          "dapagliflozin"
+        ))) {
+          warning(paste0(
+                         paste0("Simulaton is incomplete, all target to",
+                           " source std ratios are not included.",
+                             " Method:"), method, ", Case study : ",
+                               case_study))
         }
 
         for (target_to_source_std_ratio in target_to_source_std_ratio_range) {
-          results_df_2 <- results_df_1 %>%
-            dplyr::filter(target_to_source_std_ratio == !!target_to_source_std_ratio |
+          results_df_2 <- results_df_1 |>
+            dplyr::filter(target_to_source_std_ratio ==
+                            !!target_to_source_std_ratio |
                             is.na(target_to_source_std_ratio))
 
 
@@ -960,30 +1042,44 @@ check_simulation_completeness <- function(results_dir = results_dir, ocs_filenam
             stop("Dataframe is empty")
           }
 
-          theta_0 <- case_study_config$theta_0
 
           target_sample_sizes <- unique(results_df_2$target_sample_size_per_arm)
 
-          if (!(length(scenarios_config$sample_size_factors) == length(target_sample_sizes))){
-            warning(paste0("Simulaton is incomplete, all sample size factors are not included. Method: ", method, ", Case study : ", case_study))
+          if (!(length(scenarios_config$sample_size_factors) ==
+                  length(target_sample_sizes))) {
+            warning(paste0(
+                           paste0("Simulaton is incomplete, all sample size",
+                             " factors are not included. Method:"), method,
+                               ", Case study : ", case_study))
           }
 
           for (target_sample_size_per_arm in target_sample_sizes) {
-            results_df_3 <- results_df_2 %>%
-              dplyr::filter(target_sample_size_per_arm == !!target_sample_size_per_arm)
+            results_df_3 <- results_df_2 |>
+              dplyr::filter(target_sample_size_per_arm ==
+                              !!target_sample_size_per_arm)
 
-            mandatory_drift_values <- important_drift_values(unique(results_df_3$source_treatment_effect_estimate), case_study_config)
+            mandatory_drift_values <-
+              important_drift_values(unique(
+                                            results_df_3$source_treatment_effect_estimate),
+              case_study_config)
 
             # Make sure the mandatory drift values are in the drift values
             drift_values <- unique(results_df_3$drift)
 
-            if (sum(!(mandatory_drift_values %in% drift_values))>1){
-              stop(paste0("Simulaton is incomplete, some mandatory drift values are not included. Method: ", method, ", Case study : ", case_study))
+            if (sum(!(mandatory_drift_values %in% drift_values)) > 1) {
+              stop(paste0(
+                          paste0("Simulaton is incomplete, some mandatory",
+                            " drift values are not included. Method:"),
+                              method, ", Case study : ", case_study))
             }
 
             drift_values <- setdiff(drift_values, mandatory_drift_values)
-            if (length(drift_values) < (scenarios_config$ndrift - length(mandatory_drift_values))){
-              stop(paste0("Simulaton is incomplete, all drift values are not included. Method: ", method, ", Case study : ", case_study))
+            if (length(drift_values) < (scenarios_config$ndrift - length(
+                                                                         mandatory_drift_values))) {
+              stop(paste0(
+                          paste0("Simulaton is incomplete, all drift",
+                            " values are not included. Method:"), method,
+                              ", Case study : ", case_study))
             }
           }
         }

@@ -1,96 +1,118 @@
 library(dplyr)
 library(ggplot2)
 
-plot_effect_standard_deviation = function(results_df, metric, figures_dir, treatment_effect = NULL, design_prior = NULL){
-
-  if (nrow(results_df)<2){
+plot_effect_standard_deviation <- function(
+  results_df, metric, figures_dir,
+  treatment_effect = NULL, design_prior = NULL
+) {
+  if (nrow(results_df) < 2) {
     return()
   }
 
-  if (length(unique(results_df$target_to_source_std_ratio)) < 2){
+  if (length(unique(results_df$target_to_source_std_ratio)) < 2) {
     return()
   }
 
-  results_df <- results_df %>%
-    dplyr::group_by(parameters) %>%
-    dplyr::filter(n_distinct(target_to_source_std_ratio) > 1) %>%
+  results_df <- results_df |>
+    dplyr::group_by(parameters) |>
+    dplyr::filter(n_distinct(target_to_source_std_ratio) > 1) |>
     dplyr::ungroup()
 
-  if (nrow(results_df) == 0){
+  if (nrow(results_df) == 0) {
     return()
   }
 
   boolean_filter <- c()
   # Sort by method before filtering on parameters
-  results_df <- results_df %>% arrange(method)
+  results_df <- results_df |> arrange(method)
   # Filter on the important parameters values for each method
-  for (method in unique(results_df$method)){
-
-    parameters <- get_parameters(results_df[results_df$method == method, "parameters", drop = FALSE])
-    filter_per_method = rep(TRUE, nrow(parameters))
+  for (method in unique(results_df$method)) {
+    parameters <- get_parameters(results_df[results_df$method == method,
+                                   "parameters",
+                                   drop = FALSE
+                                 ])
+    filter_per_method <- rep(TRUE, nrow(parameters))
     for (key in names(methods_dict[[method]])) {
       # Loop over the method's parameters
 
-      if (method == "commensurate_power_prior"){
-        filter <- (parameters$heterogeneity_prior.family == "half_normal" &  parameters$heterogeneity_prior.std_dev == 1) | (parameters$heterogeneity_prior.family == "inverse_gamma" &  parameters$heterogeneity_prior.alpha == 0.3333)
+      if (method == "commensurate_power_prior") {
+        filter <- (parameters$heterogeneity_prior.family == "half_normal" &
+                     parameters$heterogeneity_prior.std_dev == 1) |
+          (parameters$heterogeneity_prior.family == "inverse_gamma" &
+             parameters$heterogeneity_prior.alpha == 0.3333)
       } else {
         # Get the important values for which we will make plots
         if (is.null(methods_dict[[method]][[key]][["important_values"]])) {
-          important_parameters_values <- methods_dict[[method]][[key]][["range"]]
+          important_parameters_values <-
+            methods_dict[[method]][[key]][["range"]]
         } else {
-          important_parameters_values <- methods_dict[[method]][[key]][["important_values"]]
+          important_parameters_values <-
+            methods_dict[[method]][[key]][["important_values"]]
         }
 
-        filter <- parameters[,key] %in% important_parameters_values
+        filter <- parameters[, key] %in% important_parameters_values
       }
       filter_per_method <- filter & filter_per_method
     }
     boolean_filter <- c(boolean_filter, filter_per_method)
   }
 
-  results_df <- results_df[boolean_filter,]
+  results_df <- results_df[boolean_filter, ]
 
   if (any(metric %in% names(bayesian_metrics))) {
-
     if (design_prior == "analysis_prior") {
       design_prior_label <- "Analysis prior"
-    } else if (design_prior == "source_posterior"){
+    } else if (design_prior == "source_posterior") {
       design_prior_label <- "Source posterior"
-    } else if (design_prior == "ui_design_prior"){
+    } else if (design_prior == "ui_design_prior") {
       design_prior_label <- "UI design prior"
     } else {
       stop("Unknown design prior type.")
     }
 
-    results_df <- results_df %>%
+    results_df <- results_df |>
       dplyr::filter(design_prior_type == design_prior)
   }
 
-  if (nrow(results_df) == 0){
+  if (nrow(results_df) == 0) {
     return()
   }
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  parameters_labels <- sapply(1:nrow(results_df), function(i) {
+  parameters_labels <- sapply(seq_len(nrow(results_df)), function(i) {
     process_method_parameters_label(results_df[i, ], methods_labels)
   })
   # Process the rows to create parameter labels
-  results_df$parameters_labels <- lapply(1:nrow(results_df), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE)
-  })
+  results_df$parameters_labels <- lapply(
+    seq_len(nrow(results_df)),
+    function(i) {
+      process_method_parameters_label(results_df[i, ], methods_labels,
+        method_name = TRUE
+      )
+    }
+  )
 
-  results_df$methods_parameters_labels <- lapply(1:nrow(results_df), function(i) {
-    process_method_parameters_label(results_df[i, ], methods_labels, method_name = TRUE, as_latex = FALSE)
-  })
+  results_df$methods_parameters_labels <- lapply(
+    seq_len(nrow(results_df)),
+    function(i) {
+      process_method_parameters_label(results_df[i, ], methods_labels,
+        method_name = TRUE, as_latex = FALSE
+      )
+    }
+  )
 
-  parameters_labels <- setNames(object = results_df$parameters_labels, nm = results_df$parameters_labels)
+  parameters_labels <- setNames(
+    object = results_df$parameters_labels, nm =
+      results_df$parameters_labels
+  )
   methods <- format_results_df_methods(results_df)
   results_df$method <- methods
   methods <- unique(methods)
 
   target_sample_size_per_arm <- unique(results_df$target_sample_size_per_arm)
 
-  if (any(metric %in% names(frequentist_metrics)) || any(metric %in% names(inference_metrics))) {
+  if (any(metric %in% names(frequentist_metrics)) ||
+        any(metric %in% names(inference_metrics))) {
     treatment_effects_labels <- list(
       no_effect = "No effect",
       partially_consistent = "Partially consistent effect",
@@ -98,21 +120,24 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
     )
 
     if (treatment_effect == "consistent") {
-      results_df <- results_df %>%
-        dplyr::filter(target_treatment_effect == source_treatment_effect_estimate)
+      results_df <- results_df |>
+        dplyr::filter(target_treatment_effect ==
+                        source_treatment_effect_estimate)
     } else if (treatment_effect == "no_effect") {
-      results_df <- results_df %>%
+      results_df <- results_df |>
         dplyr::filter(target_treatment_effect == theta_0)
     } else if (treatment_effect == "partially_consistent") {
-      results_df <- results_df %>%
+      results_df <- results_df |>
         dplyr::filter(abs(
           target_treatment_effect - source_treatment_effect_estimate / 2
         ) < 1e-4)
     } else {
-      stop('treatment_effect must be "consistent", "no_effect" or "partially_consistent"')
+      stop(
+           paste0('treatment_effect must be "consistent",',
+             ' "no_effect" or "partially_consistent"'))
     }
 
-    if (nrow(results_df) == 0){
+    if (nrow(results_df) == 0) {
       return()
     }
 
@@ -133,14 +158,12 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
       "_target_sample_size_per_arm=",
       target_sample_size_per_arm
     )
-
   } else if (any(metric %in% names(bayesian_metrics))) {
-
     if (design_prior == "analysis_prior") {
       design_prior_label <- "Analysis prior"
-    } else if (design_prior == "source_posterior"){
+    } else if (design_prior == "source_posterior") {
       design_prior_label <- "Source posterior"
-    } else if (design_prior == "ui_design_prior"){
+    } else if (design_prior == "ui_design_prior") {
       design_prior_label <- "UI design prior"
     } else {
       stop("Unknown design prior type.")
@@ -168,16 +191,21 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
 
   plot_title <- format_title(
     title = plot_title,
-    case_study = unique(results_df$case_study))
+    case_study = unique(results_df$case_study)
+  )
 
   filename <- format_filename(
     filename = filename,
-    case_study = unique(results_df$case_study))
+    case_study = unique(results_df$case_study)
+  )
 
   directory <- paste0(figures_dir, unique(results_df$case_study))
   file_path <- file.path(directory, filename)
 
-  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE){
+  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(
+    file_path,
+    ".png"
+  )) && remake_figures == FALSE) {
     return()
   }
 
@@ -185,16 +213,20 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
   # Calculate the range of the x-axis
   x_range <- range(results_df$target_to_source_std_ratio)
   x_width <- diff(x_range)
-  cap_size <- x_width * relative_error_cap_width # Adjust relative_error_cap_width to control the relative cap size
+  cap_size <- x_width *
+    relative_error_cap_width # Adjust relative_error_cap_width to control the relative cap size
 
   labels_title <- "Methods"
 
 
-  selected_metric_uncertainty_lower <- rlang::sym(paste0(metric$metric_uncertainty, "_lower"))
-  selected_metric_uncertainty_upper <- rlang::sym(paste0(metric$metric_uncertainty, "_upper"))
+  selected_metric_uncertainty_lower <-
+    rlang::sym(paste0(metric$metric_uncertainty, "_lower"))
+  selected_metric_uncertainty_upper <-
+    rlang::sym(paste0(metric$metric_uncertainty, "_upper"))
 
 
-  if (c(selected_metric_uncertainty_lower) %in% colnames(results_df) && c(selected_metric_uncertainty_upper) %in% colnames(results_df)){
+  if (c(selected_metric_uncertainty_lower) %in% colnames(results_df) &&
+        c(selected_metric_uncertainty_upper) %in% colnames(results_df)) {
     plt <- ggplot2::ggplot()
     plt <- plot_element_metric_vs_xvar_methods(
       plt,
@@ -209,7 +241,7 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
       join_points = TRUE,
       color,
       dodging = FALSE,
-      parameters_labels =  parameters_labels
+      parameters_labels = parameters_labels
     )
   } else {
     plt <- ggplot2::ggplot()
@@ -226,7 +258,7 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
       join_points = TRUE,
       color,
       dodging = FALSE,
-      parameters_labels =  parameters_labels
+      parameters_labels = parameters_labels
     )
   }
 
@@ -250,22 +282,27 @@ plot_effect_standard_deviation = function(results_df, metric, figures_dir, treat
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
 
-  return()
+  NULL
 }
 
-loop_plot_effect_target_standard_deviation = function(results_df, metrics){
+loop_plot_effect_target_standard_deviation <- function(results_df, metrics) {
   # Define the columns that uniquely define a scenario
-  scenario_vars <- c("target_sample_size_per_arm",
-                     "drift", "case_study") #"method", "parameters",
+  scenario_vars <- c(
+    "target_sample_size_per_arm",
+    "drift", "case_study"
+  ) # "method", "parameters",
   existing_vars <- intersect(scenario_vars, colnames(results_df))
 
   # Get a data frame of unique scenarios
-  unique_scenarios <- results_df %>%
+  unique_scenarios <- results_df |>
     distinct(across(all_of(existing_vars)))
 
-  unique_scenarios  <- subset(results_df,  case_study %in% c("botox", "dapagliflozin"))
+  unique_scenarios <- subset(results_df, case_study %in% c(
+    "botox",
+    "dapagliflozin"
+  ))
 
-  main_treatment_effects <-  list(
+  main_treatment_effects <- list(
     no_effect = "no_effect",
     partially_consistent = "partially_consistent",
     consistent = "consistent"
@@ -278,27 +315,37 @@ loop_plot_effect_target_standard_deviation = function(results_df, metrics){
 
     # Filter the main data frame for this scenario
 
-    scenario_df <- results_df %>%
+    scenario_df <- results_df |>
       filter(
-        #method == scenario$method,
-        #parameters == scenario$parameters,
+        # method == scenario$method,
+        # parameters == scenario$parameters,
         target_sample_size_per_arm == scenario$target_sample_size_per_arm,
-        if ("drift" %in% colnames(results_df)) drift == scenario$drift else TRUE,
+        if ("drift" %in% colnames(results_df)) {
+          drift ==
+            scenario$drift
+        } else {
+          TRUE
+        },
         case_study == scenario$case_study
       )
 
-    for (metric in metrics){
-      if (metric$name %in% names(bayesian_metrics)){
-        for (design_prior in c('analysis_prior', 'source_posterior', 'ui_design_prior')){
-          plot_effect_standard_deviation(scenario_df, metric, figures_dir, design_prior = design_prior)
+    for (metric in metrics) {
+      if (metric$name %in% names(bayesian_metrics)) {
+        for (design_prior in c(
+          "analysis_prior", "source_posterior",
+          "ui_design_prior"
+        )) {
+          plot_effect_standard_deviation(scenario_df, metric, figures_dir,
+            design_prior = design_prior
+          )
         }
       } else {
-        for (treatment_effect in main_treatment_effects){
-          plot_effect_standard_deviation(scenario_df, metric, figures_dir, treatment_effect = treatment_effect)
+        for (treatment_effect in main_treatment_effects) {
+          plot_effect_standard_deviation(scenario_df, metric, figures_dir,
+            treatment_effect = treatment_effect
+          )
         }
       }
     }
   }
 }
-
-
