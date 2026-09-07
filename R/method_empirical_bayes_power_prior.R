@@ -2,9 +2,14 @@
 #'
 #' @description This function finds the calibration parameter for type I error control in empirical Bayes power prior methods.
 #' It is based on the code in Nikolakopoulos et al, 2018, "Dynamic borrowing through adaptive power priors that control type I error". We just renamed the variables to be more explicit.
-#' The function estimates the calibration parameter using an iterative approach.
+#' The function finds the calibration parameter by the same bisection search as
+#' the original, but evaluates the type I error at each step exactly rather than
+#' by simulation. The result is deterministic.
 #'
-#' @param n_iter Number of iterations for estimation (default: 1e6)
+#' @param n_iter Formerly the number of simulated target estimates used to
+#'   estimate the type I error. The type I error is now integrated exactly by
+#'   [adaptive_power_prior_type_I_error()], so this argument is ignored. It is
+#'   retained because existing method configurations still supply it.
 #' @param source_sample_size_per_arm Sample size per arm in the source study
 #' @param target_sample_size_per_arm Sample size per arm in the target study
 #' @param source_treatment_effect_estimate Treatment effect estimate in the source study
@@ -13,7 +18,6 @@
 #' @param target_data_sampling_variance Sampling variance of the target study data
 #' @param source_data_sampling_variance Sampling variance of the source study data
 #' @param tolerance Tolerance for convergence of the estimation
-#' @param seed Seed for random number generation
 #' @param theta_0 True mean for type I error computation
 #' @return A matrix containing the calibration parameter and other related values
 #' @export
@@ -27,7 +31,6 @@ findCalibrationParameter <- function(n_iter = 1e6,
                                      source_data_sampling_variance,
                                      tolerance = 0.0001,
                                      theta_0 = 0) {
-  prior_variance <- target_data_sampling_variance / source_sample_size_per_arm
   true_mean <- theta_0 # True mean is theta_0 for type I error computation
 
   n0 <- target_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
@@ -48,14 +51,22 @@ findCalibrationParameter <- function(n_iter = 1e6,
     sqrt(target_data_sampling_variance) * sqrt(n0 + target_sample_size_per_arm) / (n0 + target_sample_size_per_arm)
   ) * qnorm(significance_level) # significance level was hard coded as 0.05 here in the original code
 
-  X <- rnorm(
-    n_iter,
-    true_mean,
-    sqrt(target_data_sampling_variance / target_sample_size_per_arm)
-  )
-
-  if (any(is.na(X))) {
-    stop("Samples contain NaNs")
+  # Type I error attained by a given calibration parameter. This used to be
+  # estimated from n_iter simulated target estimates; it is now integrated
+  # exactly, which is both faster and free of the Monte Carlo noise that the
+  # bisection below could not resolve (its tolerance is finer than the standard
+  # error of a 1e6-draw estimate).
+  attained_type_I_error <- function(calibration_parameter) {
+    adaptive_power_prior_type_I_error(
+      calibration_parameter = calibration_parameter,
+      source_sample_size_per_arm = source_sample_size_per_arm,
+      target_sample_size_per_arm = target_sample_size_per_arm,
+      source_treatment_effect_estimate = source_treatment_effect_estimate,
+      significance_level = significance_level,
+      target_data_sampling_variance = target_data_sampling_variance,
+      source_data_sampling_variance = source_data_sampling_variance,
+      theta_0 = true_mean
+    )
   }
 
   upper_limit <- min(maxZ_1_m_c2, 1)
@@ -77,31 +88,8 @@ findCalibrationParameter <- function(n_iter = 1e6,
       while ((t1 > desired_tie) &
              (abs(upper_limit - lower_limit) > tolerance)) {
         upper_limit <- Z_1_m_c2
-        lower_limit <- lower_limit
         Z_1_m_c2 <- mean(c(lower_limit, upper_limit))
-        B <- 2 * pnorm(-Z_1_m_c2)
-        A1 <- ifelse((((
-          X > (
-            source_treatment_effect_estimate + (std_predictive_dist) * qnorm(1 - B / 2)
-          )
-        )) |
-          ((
-            X < (
-              source_treatment_effect_estimate + (std_predictive_dist) * qnorm(B / 2)
-            )
-          ))), (
-            prior_variance / (
-              (((X - source_treatment_effect_estimate) / qnorm(1 - B / 2)
-              ) ^ 2) - target_data_sampling_variance / target_sample_size_per_arm
-            )
-          ), 1)
-
-        t1 <- sum(((
-          A1 * n0 * source_treatment_effect_estimate + X * target_sample_size_per_arm
-        ) / (A1 * n0 + target_sample_size_per_arm) + sqrt(
-          target_data_sampling_variance / (A1 * n0 + target_sample_size_per_arm)
-        ) * qnorm(significance_level)
-        ) > 0) / n_iter
+        t1 <- attained_type_I_error(Z_1_m_c2)
 
         if (is.na(t1)) {
           stop("t1 is NA")
@@ -116,35 +104,11 @@ findCalibrationParameter <- function(n_iter = 1e6,
       )) {
         t2 <- t1
       }
-      counter <- 0
       while ((t2 < desired_tie) &
              (abs(upper_limit - lower_limit) > tolerance)) {
-        counter <- counter + 1
-        upper_limit <- upper_limit
         lower_limit <- Z_1_m_c2
         Z_1_m_c2 <- mean(c(lower_limit, upper_limit))
-        B <- 2 * pnorm(-Z_1_m_c2)
-        A1 <- ifelse((((
-          X > (
-            source_treatment_effect_estimate + (std_predictive_dist) * qnorm(1 - B / 2)
-          )
-        )) |
-          ((
-            X < (
-              source_treatment_effect_estimate + (std_predictive_dist) * qnorm(B / 2)
-            )
-          ))), (
-            prior_variance / (
-              (((X - source_treatment_effect_estimate) / qnorm(1 - B / 2)
-              ) ^ 2) - target_data_sampling_variance / target_sample_size_per_arm
-            )
-          ), 1)
-        t2 <- sum(((
-          A1 * n0 * source_treatment_effect_estimate + X * target_sample_size_per_arm
-        ) / (A1 * n0 + target_sample_size_per_arm) + sqrt(
-          target_data_sampling_variance / (A1 * n0 + target_sample_size_per_arm)
-        ) * qnorm(significance_level)
-        ) > 0) / n_iter
+        t2 <- attained_type_I_error(Z_1_m_c2)
       }
     }
   }
