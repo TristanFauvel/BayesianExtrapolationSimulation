@@ -73,22 +73,21 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
   }
 
   # The reference scale for effective sample sizes is the per-replicate
-  # sampling standard deviation, exactly as the replicate loop sets it.
+  # sampling standard deviation, exactly as the replicate loop sets it. The two
+  # ESS definitions come from the same helper the replicate loop uses, applied
+  # here to every replicate at once, so the two paths cannot drift apart.
   reference_scale <- samples$standard_deviation
 
-  ess_moments <- if (requested("ess_moment")) {
-    reference_scale^2 / summaries$sd^2 - target_data$sample_size_per_arm
-  } else {
-    NULL
-  }
+  ess <- normal_reference_ess(
+    reference_scale = reference_scale,
+    posterior_sd = summaries$sd,
+    lower = credible_intervals[, 1],
+    upper = credible_intervals[, 2],
+    sample_size_per_arm = target_data$sample_size_per_arm
+  )
 
-  ess_precisions <- if (requested("ess_precision")) {
-    half_width <- (credible_intervals[, 2] - credible_intervals[, 1]) / 2
-    implied_sd <- half_width / stats::qnorm(0.975)
-    reference_scale^2 / implied_sd^2 - target_data$sample_size_per_arm
-  } else {
-    NULL
-  }
+  ess_moments <- if (requested("ess_moment")) ess$moment else NULL
+  ess_precisions <- if (requested("ess_precision")) ess$precision else NULL
 
   ess_elir <- if (requested("ess_elir")) {
     # Passed through unrecycled: a prior shared by every replicate only needs

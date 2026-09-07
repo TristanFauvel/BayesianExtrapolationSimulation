@@ -147,6 +147,31 @@ BinomialConjugate <- R6::R6Class(
       return(self$posterior_quantile(c(alpha, 1 - alpha)))
     },
 
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' The posterior variance is available in closed form and the credible
+    #' interval comes from the same quadrature the rest of the class uses, so
+    #' both effective sample sizes are evaluated directly. The inherited route
+    #' would instead fit a mixture to a finite sample drawn from the posterior,
+    #' which costs a mixture fit per replicate and leaves Monte Carlo error in a
+    #' quantity that has no need of it.
+    #'
+    #' @param target_data Target study data
+    #' @param ... Unused, kept so that the simulation can call every model the
+    #'   same way.
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, ...) {
+      interval <- self$credible_interval(level = 0.95)
+
+      return(normal_reference_ess(
+        reference_scale = target_data$sample$standard_deviation,
+        posterior_sd = sqrt(self$post_var),
+        lower = interval[[1]],
+        upper = interval[[2]],
+        sample_size_per_arm = target_data$sample_size_per_arm
+      ))
+    },
+
     #' @description Draw independent samples from the posterior
     #' @param n_samples Number of samples to draw
     sample_posterior = function(n_samples) {

@@ -604,32 +604,25 @@ Model <- R6::R6Class(
           }
 
           if (requested("ess_moment") || requested("ess_precision")) {
+            posterior_ess <- self$posterior_ess(
+              target_data = target_data,
+              simulation_config = simulation_config
+            )
 
-            self$posterior_to_RBesT(target_data = target_data, simulation_config = simulation_config)
             if (requested("ess_moment")) {
-              ess_moments[r] <- prior_moment_ess(rbest_model = self$RBesT_posterior_normix,
-                                                 target_data = target_data)
+              ess_moments[r] <- posterior_ess$moment
             }
 
             if (requested("ess_precision")) {
-              ess_precisions[r] <- prior_precision_ess(rbest_model = self$RBesT_posterior_normix,
-                                                       target_data = target_data)
+              ess_precisions[r] <- posterior_ess$precision
             }
           }
 
           if (requested("ess_elir")) {
-            if (r == 1 || self$empirical_bayes == TRUE){
-              # Only Empirical Bayes Methods have a prior that varies from on replicate to another
-              self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
-            }
-
-            target_standard_deviation = target_data$sample$standard_deviation
-
-            RBesT::sigma(self$RBesT_prior) <- target_standard_deviation
-            RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation
-
-            ess_elir[r] <- prior_ess_elir(rbest_model = self$RBesT_prior_normix,
-                                          target_data = target_data)
+            ess_elir[r] <- self$prior_elir_ess(
+              target_data = target_data,
+              simulation_config = simulation_config
+            )
           }
 
           if (requested("mcmc_diagnostics") && self$mcmc) {
@@ -1103,6 +1096,65 @@ Model <- R6::R6Class(
       #   RBesT::sigma(prior_mixture_approximation) <- target_standard_deviation # Set the reference scale
       # }
       self$RBesT_prior <- prior_mixture_approximation
+    },
+
+    #' @description ELIR effective sample size of the current prior
+    #'
+    #' The default route approximates the prior by a mixture fitted to samples
+    #' drawn from it, and refits between replicates only when the prior is data
+    #' dependent. Subclasses whose prior has a closed form override this.
+    #'
+    #' @param target_data Target study data, whose sampling standard deviation
+    #'   is the reference scale.
+    #' @param simulation_config Configuration of simulation study
+    #' @return The ELIR effective sample size.
+    prior_elir_ess = function(target_data, simulation_config) {
+      # Only empirical Bayes methods have a prior that varies from one replicate
+      # to another, so otherwise the mixture fitted for the first replicate
+      # still describes the prior.
+      if (self$empirical_bayes || is.null(self$RBesT_prior_normix)) {
+        self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
+      }
+
+      target_standard_deviation <- target_data$sample$standard_deviation
+
+      RBesT::sigma(self$RBesT_prior) <- target_standard_deviation
+      RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation
+
+      return(prior_ess_elir(
+        rbest_model = self$RBesT_prior_normix,
+        target_data = target_data
+      ))
+    },
+
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' Returns the moment-based and precision-based effective sample sizes the
+    #' simulation reports per replicate. The default route approximates the
+    #' posterior by a mixture fitted to samples drawn from it, which is the only
+    #' option when neither the posterior summary nor draws from it are
+    #' available. Subclasses that know their posterior standard deviation and
+    #' credible interval override this and evaluate the definitions directly.
+    #'
+    #' @param target_data Target study data
+    #' @param simulation_config Configuration of simulation study
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, simulation_config) {
+      self$posterior_to_RBesT(
+        target_data = target_data,
+        simulation_config = simulation_config
+      )
+
+      return(list(
+        moment = prior_moment_ess(
+          rbest_model = self$RBesT_posterior_normix,
+          target_data = target_data
+        ),
+        precision = prior_precision_ess(
+          rbest_model = self$RBesT_posterior_normix,
+          target_data = target_data
+        )
+      ))
     },
 
     #' @description Convert the posterior distribution to RBesT format
@@ -2133,6 +2185,31 @@ MCMCModel <- R6::R6Class(
       self$credible_interval_97.5 <- self$treatment_effect_summary$q97.5
       self$credible_interval_2.5 <- self$treatment_effect_summary$q2.5
       return(ci)
+    },
+
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' The single summary pass over the draws already produced the posterior
+    #' standard deviation and the credible interval bounds, so both effective
+    #' sample sizes read straight off it. The inherited route would resample the
+    #' draws and fit a mixture to the resample, which costs a mixture fit per
+    #' replicate and adds a second layer of Monte Carlo error on top of the one
+    #' the sampler already carries.
+    #'
+    #' @param target_data Target study data
+    #' @param ... Unused, kept so that the simulation can call every model the
+    #'   same way.
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, ...) {
+      interval <- self$credible_interval(level = 0.95)
+
+      return(normal_reference_ess(
+        reference_scale = target_data$sample$standard_deviation,
+        posterior_sd = sqrt(self$post_var),
+        lower = interval[[1]],
+        upper = interval[[2]],
+        sample_size_per_arm = target_data$sample_size_per_arm
+      ))
     },
 
     #' @description Get the posterior median
