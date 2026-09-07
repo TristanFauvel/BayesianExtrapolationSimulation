@@ -518,7 +518,7 @@ Model <- R6::R6Class(
         while (retry) {
           retry <- FALSE
           start_time <- Sys.time()
-          target_data$sample <- target_data_samples[r, ]
+          target_data$sample <- target_data_samples[r, , drop = FALSE]
 
           # Fit the model
           inference_status <- self$inference(target_data = target_data)
