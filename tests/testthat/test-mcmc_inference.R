@@ -25,9 +25,12 @@ stub_fit <- function(draws) {
 
 # Records the arguments the model hands to the sampler.
 recording_stan_model <- function(draws, calls) {
+  calls$sample_args_log <- list()
   list(
     sample = function(...) {
-      calls$sample_args <- list(...)
+      args <- list(...)
+      calls$sample_args <- args
+      calls$sample_args_log <- c(calls$sample_args_log, list(args))
       stub_fit(draws)
     }
   )
@@ -141,4 +144,73 @@ test_that("inference does not ask the sampler for per-fit console output", {
 
   expect_identical(calls$sample_args$refresh, 0)
   expect_false(calls$sample_args$show_messages)
+})
+
+
+test_that("stan_sampler_seed yields a fresh seed each time", {
+  set.seed(1)
+  seeds <- replicate(20, stan_sampler_seed())
+
+  expect_length(unique(seeds), 20)
+})
+
+
+test_that("stan_sampler_seed is reproducible from the session seed", {
+  set.seed(42)
+  first <- replicate(5, stan_sampler_seed())
+  set.seed(42)
+  second <- replicate(5, stan_sampler_seed())
+
+  expect_identical(first, second)
+})
+
+
+test_that("stan_sampler_seed stays within the range CmdStan accepts", {
+  set.seed(1)
+  seeds <- replicate(100, stan_sampler_seed())
+
+  expect_true(all(seeds > 0))
+  expect_true(all(seeds <= .Machine$integer.max))
+  expect_identical(seeds, as.integer(seeds))
+})
+
+
+test_that("inference seeds the sampler", {
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls)
+
+  set.seed(1)
+  model$inference(target_data = NULL)
+
+  expect_true(is.numeric(calls$sample_args$seed))
+  expect_length(calls$sample_args$seed, 1)
+})
+
+
+test_that("inference gives every replicate a different sampler seed", {
+  # A single fixed seed would make every replicate share one random stream,
+  # correlating draws across replicates that are meant to be independent.
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls)
+
+  set.seed(1)
+  model$inference(target_data = NULL)
+  model$inference(target_data = NULL)
+
+  seeds <- vapply(calls$sample_args_log, function(args) args$seed, numeric(1))
+  expect_length(unique(seeds), 2)
+})
+
+
+test_that("the sequence of sampler seeds is reproducible", {
+  seeds_for_run <- function() {
+    calls <- new.env(parent = emptyenv())
+    model <- fitted_stub_model(calls)
+    set.seed(20260907)
+    model$inference(target_data = NULL)
+    model$inference(target_data = NULL)
+    vapply(calls$sample_args_log, function(args) args$seed, numeric(1))
+  }
+
+  expect_identical(seeds_for_run(), seeds_for_run())
 })

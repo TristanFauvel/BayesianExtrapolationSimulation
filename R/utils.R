@@ -711,6 +711,19 @@ write_stan_file_if_changed <- function(path, stan_model_code) {
   return(invisible(TRUE))
 }
 
+#' Draw a seed for one Stan sampler run
+#'
+#' Taken from the session random number stream, which the scenario simulation
+#' seeds from the configuration. Runs are therefore reproducible, while every
+#' replicate still gets its own stream: a single fixed seed would correlate
+#' draws across replicates that are meant to be independent.
+#'
+#' @return A positive integer seed.
+#' @noRd
+stan_sampler_seed <- function() {
+  sample.int(.Machine$integer.max, size = 1)
+}
+
 #' Directory holding the Stan draws of one model in one process
 #'
 #' Parallel workers share a case study and a method, and the draws cleanup
