@@ -46,7 +46,7 @@ pdccpp_fixture <- function(desired_tie = 0.065,
     target_standard_error^2 * target_sample_size_per_arm
   source_data_sampling_variance <-
     source_data$equivalent_source_sample_size_per_arm * source_data$standard_error^2
-  equivalent_target_sample_size <- target_sample_size_per_arm *
+  equivalent_target_sample_size <- source_data$equivalent_source_sample_size_per_arm *
     target_data_sampling_variance / source_data_sampling_variance
 
   calibration_parameter <- as.numeric(findCalibrationParameter(
@@ -151,7 +151,7 @@ test_that("Gravestock's EBPP applies a cut-off of one predictive standard deviat
     target_standard_error^2 * target_sample_size_per_arm
   source_data_sampling_variance <-
     source_data$equivalent_source_sample_size_per_arm * source_data$standard_error^2
-  equivalent_target_sample_size <- target_sample_size_per_arm *
+  equivalent_target_sample_size <- source_data$equivalent_source_sample_size_per_arm *
     target_data_sampling_variance / source_data_sampling_variance
   std_predictive_dist <- sqrt(
     target_data_sampling_variance / equivalent_target_sample_size +
