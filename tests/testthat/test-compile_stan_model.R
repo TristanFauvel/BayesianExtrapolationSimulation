@@ -47,3 +47,24 @@ test_that("write_stan_file_if_changed handles code given as multiple lines", {
   expect_identical(readLines(path), code)
   expect_false(write_stan_file_if_changed(path, code))
 })
+
+
+test_that("compile_stan_model rebuilds after changing the Stan source", {
+  calls <- new.env(parent = emptyenv())
+
+  result <- testthat::with_mocked_bindings(
+    testthat::with_mocked_bindings(
+      compile_stan_model("changed_model", "parameters { real x; }"),
+      cmdstan_model = function(...) {
+        calls$args <- list(...)
+        "compiled model"
+      },
+      .package = "cmdstanr"
+    ),
+    write_stan_file_if_changed = function(...) TRUE,
+    .package = "RBExT"
+  )
+
+  expect_identical(result, "compiled model")
+  expect_true(calls$args$force_recompile)
+})

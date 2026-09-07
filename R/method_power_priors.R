@@ -738,8 +738,8 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 
                                       data {
                                         int<lower=0,upper=2> prior_type; // Type of prior on the commensurability parameter; 0 for inverse_gamma, 1 for half normal, 2 for Cauchy
-                                        int<lower=0> NS;       // Number of samples in dataset S
-                                        int<lower=0> NT;       // Number of samples in dataset T
+                                        int<lower=1> NS;       // Number of samples in dataset S
+                                        int<lower=1> NT;       // Number of samples in dataset T
                                         real<lower=0> target_sampling_variance;  // Known variance of the target data
                                         real<lower=0> prior_variance; // Prior variance component
                                         real source_treatment_effect_estimate;      // Estimate from dataset S
@@ -769,6 +769,9 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
                                         real u = power_parameter * NS + tau * prior_variance;
                                         real tau2 = tau^2;
                                         real log_tau = log(tau);
+                                        real marginal_variance = target_sampling_variance / NT
+                                                                  + 1 / tau
+                                                                  + prior_variance / (power_parameter * NS);
 
                                         // Priors
                                         if (prior_type == 0) {
@@ -789,6 +792,15 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 
 
                                         power_parameter ~ beta(g_function(log_tau), 1);
+
+                                        // Marginal target-data likelihood for the borrowing
+                                        // parameters. Together with the conditional distribution
+                                        // below, this gives the joint posterior from equation (9)
+                                        // of Hobbs et al. (2011). Omitting this term leaves tau and
+                                        // power_parameter distributed according to their priors.
+                                        target_treatment_effect_estimate ~ normal(
+                                          source_treatment_effect_estimate,
+                                          sqrt(marginal_variance));
 
                                         target_treatment_effect ~ normal(
     (power_parameter * NS * tau * target_sampling_variance * source_treatment_effect_estimate + NT * u * target_treatment_effect_estimate) /

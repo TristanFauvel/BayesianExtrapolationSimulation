@@ -753,7 +753,13 @@ compile_stan_model <- function(model_name, stan_model_code) {
   stan_model_file_path <- paste0(stan_directory, model_name, ".stan")
   stan_exe_file_path <- paste0(stan_directory, model_name, ".exe")
 
-  write_stan_file_if_changed(stan_model_file_path, stan_model_code)
+  stan_file_changed <- write_stan_file_if_changed(
+    stan_model_file_path,
+    stan_model_code
+  )
+
+  executable_is_stale <- !file.exists(stan_exe_file_path) ||
+    file.mtime(stan_exe_file_path) < file.mtime(stan_model_file_path)
 
   # Always hand cmdstanr the model file, so that an executable left over from an
   # earlier version of the code is rebuilt rather than silently reused. None of
@@ -761,7 +767,9 @@ compile_stan_model <- function(model_name, stan_model_code) {
   # engage: building with STAN_THREADS would only make the autodiff stack
   # thread-local, which costs speed for no parallelism in return.
   stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
-                                        exe_file = stan_exe_file_path)
+                                        exe_file = stan_exe_file_path,
+                                        force_recompile = stan_file_changed ||
+                                          executable_is_stale)
 
   return(stan_model)
 }
