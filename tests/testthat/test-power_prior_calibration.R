@@ -20,8 +20,8 @@ monte_carlo_type_I_error <- function(calibration_parameter,
                                      n_draws) {
   n <- target_sample_size_per_arm
   tau2 <- target_data_sampling_variance
-  n0 <- n * tau2 / source_data_sampling_variance
-  prior_variance <- tau2 / source_sample_size_per_arm
+  n0 <- source_sample_size_per_arm * tau2 / source_data_sampling_variance
+  prior_variance <- tau2 / n0
   std_predictive_dist <- sqrt(tau2 / n0 + tau2 / n)
 
   x <- rnorm(n_draws, theta_0, sqrt(tau2 / n))
@@ -227,8 +227,8 @@ scanned_type_I_error <- function(calibration_parameter,
                                  n_points = 400001L) {
   n <- target_sample_size_per_arm
   tau2 <- target_data_sampling_variance
-  n0 <- n * tau2 / source_data_sampling_variance
-  prior_variance <- tau2 / source_sample_size_per_arm
+  n0 <- source_sample_size_per_arm * tau2 / source_data_sampling_variance
+  prior_variance <- tau2 / n0
   cutoff <- sqrt(tau2 / n0 + tau2 / n) * calibration_parameter
 
   probabilities <- seq(1e-12, 1 - 1e-12, length.out = n_points)
@@ -371,14 +371,15 @@ test_that("the search reproduces the reference implementation from the paper", {
     S
   }
 
-  # RBExT splits the original's single n0 into two inputs. These settings make
-  # both agree with it: prior_variance = sR / n0 and the posterior weight = n0.
+  # The paper carries one variance shared by the historical and new data, so
+  # the port reproduces it by giving the source and target the same sampling
+  # variance. Its prior sample size is then the paper's n0 directly.
   ported <- function(n0, n1, m0, aD, sig, sR, tol) {
     as.numeric(findCalibrationParameter(
       source_sample_size_per_arm = n0, target_sample_size_per_arm = n1,
       source_treatment_effect_estimate = m0, desired_tie = aD,
       significance_level = sig, target_data_sampling_variance = sR,
-      source_data_sampling_variance = n1 * sR / n0,
+      source_data_sampling_variance = sR,
       tolerance = tol, theta_0 = 0)[1, 2])
   }
 
@@ -414,7 +415,7 @@ test_that("the reported full-borrowing type I error is equation (5)", {
       source_data_sampling_variance = design$sigma0_2,
       tolerance = 1e-4, theta_0 = 0
     )
-    n0 <- design$n * design$tau2 / design$sigma0_2
+    n0 <- design$ess * design$tau2 / design$sigma0_2
     expected <- pnorm(
       (sqrt(design$tau2) * sqrt(n0 + design$n) * qnorm(0.05) + n0 * design$theta_s) /
         sqrt(design$tau2 * design$n)

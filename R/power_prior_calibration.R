@@ -45,9 +45,14 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
 
   n <- target_sample_size_per_arm
   tau2 <- target_data_sampling_variance
-  equivalent_target_sample_size <- n * tau2 / source_data_sampling_variance
-  prior_variance <- tau2 / source_sample_size_per_arm
-  std_predictive_dist <- sqrt(tau2 / equivalent_target_sample_size + tau2 / n)
+  # The prior sample size n0 of Nikolakopoulos et al (2018), which that paper
+  # defines through the prior variance: mu | sigma^2 ~ N(mu_0, sigma^2 / n0).
+  # Rescaling the source's own sample size by the ratio of sampling variances
+  # expresses it in units of target observations, so that sigma^2 / n0 is the
+  # source's squared standard error.
+  prior_sample_size <- source_sample_size_per_arm * tau2 / source_data_sampling_variance
+  prior_variance <- tau2 / prior_sample_size
+  std_predictive_dist <- sqrt(tau2 / prior_sample_size + tau2 / n)
   sampling_sd <- sqrt(tau2 / n)
   z_alpha <- qnorm(significance_level)
 
@@ -69,7 +74,7 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
   # the (always positive) posterior precision denominator leaves this, which has
   # the same sign and no removable singularity.
   decision_statistic <- function(x) {
-    effective_source_size <- borrowing_weight(x) * equivalent_target_sample_size
+    effective_source_size <- borrowing_weight(x) * prior_sample_size
     effective_source_size * source_treatment_effect_estimate + x * n +
       z_alpha * sqrt(tau2 * (effective_source_size + n))
   }
@@ -80,8 +85,8 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
   # Between the cut-offs the weight is one, so the statistic is linear in the
   # estimate and its single zero is explicit.
   full_borrowing_boundary <-
-    (-z_alpha * sqrt(tau2 * (equivalent_target_sample_size + n)) -
-       equivalent_target_sample_size * source_treatment_effect_estimate) / n
+    (-z_alpha * sqrt(tau2 * (prior_sample_size + n)) -
+       prior_sample_size * source_treatment_effect_estimate) / n
 
   # Outside them the weight is prior_variance / D(x), with D quadratic in the
   # estimate. Clearing that denominator in
@@ -100,7 +105,7 @@ adaptive_power_prior_type_I_error <- function(calibration_parameter,
     -2 * source_treatment_effect_estimate / calibration_parameter^2,
     1 / calibration_parameter^2
   )
-  scaled_source_size <- equivalent_target_sample_size * prior_variance
+  scaled_source_size <- prior_sample_size * prior_variance
   cubic <- c(scaled_source_size * source_treatment_effect_estimate, n * quadratic)
 
   pad <- function(coefficients, degree) {

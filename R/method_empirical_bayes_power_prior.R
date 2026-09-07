@@ -33,7 +33,10 @@ findCalibrationParameter <- function(n_iter = 1e6,
                                      theta_0 = 0) {
   true_mean <- theta_0 # True mean is theta_0 for type I error computation
 
-  n0 <- target_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+  # Prior sample size, equation (6) of Nikolakopoulos et al (2018). It is the
+  # source's sample size rescaled to units of target observations, so that
+  # target_data_sampling_variance / n0 is the source's squared standard error.
+  n0 <- source_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
 
   std_predictive_dist <- sqrt(
     target_data_sampling_variance / n0 + target_data_sampling_variance / target_sample_size_per_arm
@@ -415,7 +418,13 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
       source_data_sampling_variance <- self$prior$source$standard_error ^
         2 * self$prior$source$equivalent_source_sample_size_per_arm
 
-      n0 <- target_data$sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+      # Prior sample size, equation (6) of Nikolakopoulos et al (2018): the
+      # source's sample size rescaled to units of target observations, so that
+      # target_data_sampling_variance / n0 is the source's squared standard
+      # error. Equation (9) of that paper is this estimator at z_{1-c/2} = 1,
+      # so it takes the same n0 as PDCCPP.
+      n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
+        target_data_sampling_variance / source_data_sampling_variance
 
       standard_deviation_predictive <- sqrt(
         target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
@@ -459,8 +468,8 @@ Gaussian_Gravestock_EBPP <- R6::R6Class(
       source_sampling_variance <- self$prior$source$standard_error^2 *
         self$prior$source$equivalent_source_sample_size_per_arm
 
-      n0 <- target_data$sample_size_per_arm * target_sampling_variance /
-        source_sampling_variance
+      n0 <- self$prior$source$equivalent_source_sample_size_per_arm *
+        target_sampling_variance / source_sampling_variance
 
       standard_deviation_predictive <- sqrt(
         target_sampling_variance / n0 +
@@ -558,7 +567,9 @@ PDCCPP <- R6::R6Class(
       if (calibration_parameter > 1 || calibration_parameter < 0) {
         stop("Calibration parameter must be in [0,1].")
       }
-      n0 <- target_data$sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
+      # Same prior sample size the calibration used, so that the cut-off is
+      # measured against the same predictive standard deviation.
+      n0 <- equivalent_source_sample_size_per_arm * target_data_sampling_variance / source_data_sampling_variance
 
       standard_deviation_predictive <- sqrt(
         target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
