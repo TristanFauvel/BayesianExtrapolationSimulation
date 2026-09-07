@@ -72,10 +72,16 @@ findCalibrationParameter <- function(n_iter = 1e6,
   upper_limit <- min(maxZ_1_m_c2, 1)
   lower_limit <- 0
   Z_1_m_c2 <- min(maxZ_1_m_c2, 1) # Z_1-c/2 : as defined in the manuscript, calibration parameter for type I error control
-  t1 <- ex.t1 <- pnorm((
+  # Type I error of full borrowing: equation (5) of Nikolakopoulos et al (2018),
+  #   Phi((sigma * sqrt(n0 + n1) * z_{1-eta} + n0 * mu_0) / (sqrt(n1) * sigma)).
+  # Named because the search below compares against it in two places, and the
+  # reference script wrote the second one without its leading sigma. That is
+  # harmless there, where sigma^2 is fixed at 1, but not here.
+  full_borrowing_type_I_error <- pnorm((
     sqrt(target_data_sampling_variance) * sqrt(n0 + target_sample_size_per_arm) * qnorm(significance_level) + n0 * source_treatment_effect_estimate
   ) / sqrt(target_data_sampling_variance * target_sample_size_per_arm)
   )
+  t1 <- ex.t1 <- full_borrowing_type_I_error
   t2 <- 0
   if (t1 < desired_tie) {
     Z_1_m_c2 <- maxZ_1_m_c2
@@ -96,12 +102,7 @@ findCalibrationParameter <- function(n_iter = 1e6,
         }
       }
 
-      if (t1 < pnorm((
-        sqrt(n0 + target_sample_size_per_arm) * qnorm(significance_level) + n0 * source_treatment_effect_estimate
-      ) / sqrt(
-        target_data_sampling_variance * target_sample_size_per_arm
-      )
-      )) {
+      if (t1 < full_borrowing_type_I_error) {
         t2 <- t1
       }
       while ((t2 < desired_tie) &

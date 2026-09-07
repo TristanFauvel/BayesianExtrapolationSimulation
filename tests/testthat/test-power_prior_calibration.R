@@ -397,3 +397,28 @@ test_that("the search reproduces the reference implementation from the paper", {
                               design$n0, design$m0, reference, exact))
   }
 })
+
+test_that("the reported full-borrowing type I error is equation (5)", {
+  # Equation (5) of Nikolakopoulos et al (2018):
+  #   Phi((sigma * sqrt(n0 + n1) * z_{1-eta} + n0 * mu_0) / (sqrt(n1) * sigma)).
+  # The search compares against this value in two places; the reference script
+  # wrote the second without its leading sigma, which is an identity only when
+  # sigma^2 is 1. This pins the quantity so the two cannot drift apart again.
+  for (design in calibration_designs()) {
+    calibration <- findCalibrationParameter(
+      source_sample_size_per_arm = design$ess,
+      target_sample_size_per_arm = design$n,
+      source_treatment_effect_estimate = design$theta_s,
+      desired_tie = 0.065, significance_level = 0.05,
+      target_data_sampling_variance = design$tau2,
+      source_data_sampling_variance = design$sigma0_2,
+      tolerance = 1e-4, theta_0 = 0
+    )
+    n0 <- design$n * design$tau2 / design$sigma0_2
+    expected <- pnorm(
+      (sqrt(design$tau2) * sqrt(n0 + design$n) * qnorm(0.05) + n0 * design$theta_s) /
+        sqrt(design$tau2 * design$n)
+    )
+    expect_equal(as.numeric(calibration[5, 2]), expected, tolerance = 1e-12)
+  }
+})
