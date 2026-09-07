@@ -28,6 +28,7 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
+  mcmc_config <- limit_mcmc_chain_parallelism(mcmc_config, scenarios_config$parallelization)
 
   source_data <- SourceData$new(case_study_config, source_denominator)
 

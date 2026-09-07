@@ -875,15 +875,17 @@ TruncatedGaussianRMP <- R6::R6Class(
       real<lower = 0, upper = 1> control_rate;
       real<lower = - control_rate, upper = 1 - control_rate> target_treatment_effect;
     }
-    transformed parameters {
+    model {
+      // Local to the model block: these are intermediate quantities, and
+      // declaring them as transformed parameters would write five extra columns
+      // per draw to the output CSV for no downstream use.
       real treatment_rate = control_rate + target_treatment_effect;
 
       real vague_normalizing_constant = normal_cdf(1-control_rate | vague_mean, vague_sd) - normal_cdf(-control_rate | vague_mean, vague_sd);
       real info_normalizing_constant = normal_cdf(1-control_rate | info_mean, info_sd) - normal_cdf(-control_rate | info_mean, info_sd);
       real log_vague_normalizing_constant = log(vague_normalizing_constant);
       real log_info_normalizing_constant = log(info_normalizing_constant);
-    }
-    model {
+
       // robust mixture prior
 
       control_rate ~ uniform(0, 1);

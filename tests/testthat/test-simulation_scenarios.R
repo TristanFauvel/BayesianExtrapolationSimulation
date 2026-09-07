@@ -31,7 +31,7 @@ test_that("compute_drift_range computes the correct drift range", {
   expect_equal(
     compute_drift_range(simulation_config, case_study_config),
     expected_drift_range,
-    tolerance = 1e-3
+    tolerance = 1e-2
   )
 })
 

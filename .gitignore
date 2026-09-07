@@ -13,13 +13,9 @@
 .Rproj.user
 .Ruserdata
 
-# ignore stan files
-.exe
-.stan
-inst/stan/*.exe
-inst/stan/*.stan
-inst/stan/draws/
-inst/stan/draws/*.csv
+# ignore stan files (compiled models, sources, and per-run outputs)
+inst/stan/*
+!inst/stan/.gitkeep
 
 # ignore the logs
 logs/**

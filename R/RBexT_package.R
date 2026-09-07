@@ -10,14 +10,12 @@
 #' @importFrom knitr opts_chunk
 #' @importFrom latex2exp TeX
 #' @importFrom jsonlite write_json toJSON
-#' @importFrom MASS glm.nb
 #' @importFrom gridExtra grid.arrange
 #' @importFrom kableExtra pack_rows add_header_above kable_styling collapse_rows
 #' @importFrom RBesT sigma ess mixnorm postmix automixfit
 #' @importFrom Bolstad2 sintegral
 #' @importFrom progress progress_bar
 #' @importFrom yaml yaml.load_file read_yaml
-#' @importFrom bayesplot rhat neff_ratio
 #' @importFrom parallel makeCluster clusterEvalQ stopCluster clusterExport detectCores
 #' @importFrom doParallel registerDoParallel
 #' @importFrom truncnorm rtruncnorm

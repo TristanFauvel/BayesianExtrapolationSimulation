@@ -84,7 +84,7 @@ compute_freq_power <- function(alpha,
 
       test_decisions = numeric(n_replicates)
       for (r in 1:nrow(target_data_samples)) {
-        target_data$sample <- target_data_samples[r, ]
+        target_data$sample <- target_data_samples[r, , drop = FALSE]
         if (frequentist_test == 't-test'){
           test <- BSDA::tsum.test(
             mean.x = target_data$sample$treatment_effect_estimate,
@@ -119,6 +119,38 @@ compute_freq_power <- function(alpha,
   }
 
   return(list(power = power, conf_int_power = conf_int_power))
+}
+
+#' Compute a binomial credible interval
+#'
+#' @description Computes the Clopper-Pearson (exact) confidence interval for a
+#'   binomial proportion estimated from 0/1 samples, along with the overall
+#'   mean of the samples.
+#'
+#' @param samples A vector of 0/1 samples, or a matrix whose rows each contain
+#'   a separate set of 0/1 samples.
+#' @param confidence_level The confidence level of the interval.
+#'
+#' @return A list with `mean` (the overall mean of `samples`) and `conf_int`
+#'   (a data frame with one row per group, containing `lower` and `upper`
+#'   bounds).
+#'
+#' @export
+compute_binomial_credible_interval <- function(samples, confidence_level = 0.95) {
+  if (is.matrix(samples)) {
+    successes <- rowSums(samples)
+    trials <- ncol(samples)
+  } else {
+    successes <- sum(samples)
+    trials <- length(samples)
+  }
+
+  conf_int <- binom::binom.confint(successes, trials, conf.level = confidence_level, methods = "exact")
+
+  list(
+    mean = mean(samples),
+    conf_int = conf_int[, c("lower", "upper")]
+  )
 }
 
 #' Compute the frequentist power
@@ -223,7 +255,7 @@ compute_freq_power_pooling <- function(alpha,
 
       test_decisions = numeric(n_replicates)
       for (r in 1:nrow(target_data_samples)) {
-        target_data$sample <- target_data_samples[r, ]
+        target_data$sample <- target_data_samples[r, , drop = FALSE]
 
         target_treatment_effect_standard_error <- target_data$sample$standard_deviation / sqrt(target_data$sample$sample_size_per_arm)
 

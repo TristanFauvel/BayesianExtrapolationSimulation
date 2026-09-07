@@ -686,22 +686,83 @@ format_case_study_config <- function(case_study_config) {
 }
 
 
+#' Write Stan code to a file only when the content would change
+#'
+#' cmdstanr decides whether to rebuild by comparing the timestamps of the model
+#' file and the executable, so rewriting identical code would force a rebuild
+#' every time a model is constructed. Leaving an unchanged file untouched also
+#' means parallel workers do not write over a file another worker is compiling.
+#'
+#' @param path Path of the Stan model file.
+#' @param stan_model_code Stan code, as a single string or a character vector.
+#'
+#' @return TRUE when the file was written, FALSE when it was already up to date.
+#' @noRd
+write_stan_file_if_changed <- function(path, stan_model_code) {
+  if (file.exists(path)) {
+    current <- tryCatch(readLines(path, warn = FALSE), error = function(e) NULL)
+    if (identical(current, unlist(strsplit(stan_model_code, "\n", fixed = TRUE)))) {
+      return(invisible(FALSE))
+    }
+  }
+
+  writeLines(stan_model_code, con = path)
+
+  return(invisible(TRUE))
+}
+
+#' Draw a seed for one Stan sampler run
+#'
+#' Taken from the session random number stream, which the scenario simulation
+#' seeds from the configuration. Runs are therefore reproducible, while every
+#' replicate still gets its own stream: a single fixed seed would correlate
+#' draws across replicates that are meant to be independent.
+#'
+#' @return A positive integer seed.
+#' @noRd
+stan_sampler_seed <- function() {
+  sample.int(.Machine$integer.max, size = 1)
+}
+
+#' Directory holding the Stan draws of one model in one process
+#'
+#' Parallel workers share a case study and a method, and the draws cleanup
+#' removes files by age, so a shared directory lets one worker delete the CSVs
+#' backing another worker's fit. cmdstanr reads those files lazily, so give each
+#' process a directory of its own.
+#'
+#' @param case_study Case study name.
+#' @param method Method name.
+#' @param process_id Identifier of the process writing the draws.
+#'
+#' @return Path of the directory, which is not created here.
+#' @noRd
+stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) {
+  # system.file() returns "" for a directory absent from the installed package,
+  # so build the path from the package root, which always exists.
+  file.path(
+    system.file(package = "RBExT"),
+    "stan",
+    "draws",
+    paste0(tolower(case_study), "_", method, "_", process_id)
+  )
+}
+
 compile_stan_model <- function(model_name, stan_model_code) {
   stan_directory <- paste0(system.file("stan", package = "RBExT"), "/")
   stan_model_file_path <- paste0(stan_directory, model_name, ".stan")
-  writeLines(stan_model_code, con = stan_model_file_path)
   stan_exe_file_path <- paste0(stan_directory, model_name, ".exe")
 
-  cpp_options <- list(stan_threads = TRUE)
+  write_stan_file_if_changed(stan_model_file_path, stan_model_code)
 
+  # Always hand cmdstanr the model file, so that an executable left over from an
+  # earlier version of the code is rebuilt rather than silently reused. None of
+  # the models use reduce_sum or map_rect, so within-chain threading cannot
+  # engage: building with STAN_THREADS would only make the autodiff stack
+  # thread-local, which costs speed for no parallelism in return.
+  stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
+                                        exe_file = stan_exe_file_path)
 
-  if (!file.exists(stan_exe_file_path)) {
-    stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
-                                          exe_file = stan_exe_file_path,
-                                          cpp_options = cpp_options)
-  } else {
-    stan_model <- cmdstanr::cmdstan_model(exe_file = stan_exe_file_path, cpp_options = cpp_options)
-  }
   return(stan_model)
 }
 
@@ -1002,4 +1063,26 @@ compare_ignore_na <- function(row, ref_row) {
   # Only compare non-NA elements in the reference row
   non_na_indices <- !is.na(ref_row)
   all(row[non_na_indices] == ref_row[non_na_indices])
+}
+
+#' Summarise the posterior draws consumed by the simulation
+#'
+#' Computes the moments, the credible interval bounds and the convergence
+#' diagnostics in a single pass over the draws. The estimators are the ones the
+#' simulation reported when these quantities were collected separately:
+#' `bayesplot::rhat()` is `posterior::rhat()`, and `bayesplot::neff_ratio()`
+#' multiplied back up by the number of draws is `posterior::ess_basic()`.
+#'
+#' @param draws Posterior draws, restricted to the variables of interest.
+#'
+#' @return A summary data frame with one row per variable.
+#' @noRd
+summarise_posterior_draws <- function(draws) {
+  posterior::summarise_draws(
+    draws,
+    posterior::default_summary_measures(),
+    extra_quantiles = ~ posterior::quantile2(., probs = c(0.025, 0.975)),
+    rhat = posterior::rhat,
+    n_eff = posterior::ess_basic
+  )
 }

@@ -41,6 +41,7 @@ Imports:
     rlang,
     kableExtra,
     bayesplot,
+    posterior,
     BSDA,
     scModels,
     extraDistr,

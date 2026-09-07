@@ -985,31 +985,140 @@ BinaryTargetData <- R6::R6Class(
   )
 )
 
+# Maximum likelihood estimate of 1 / theta, the inverse of the negative
+# binomial size parameter, for an intercept-only model whose mean is already
+# known to be the sample mean.
+#
+# The estimate is parameterised by 1 / theta so that the Poisson limit is the
+# finite boundary value 0 rather than an infinity. That boundary is treated as
+# an explicit candidate: its profile likelihood is computed in closed form and
+# compared against the best interior maximum, rather than being selected from
+# the sign of the boundary score alone. The interior search is seeded from a
+# coarse grid so that it does not rely on the profile being unimodal.
+negative_binomial_inverse_dispersion <- function(input_data, rate_estimate) {
+  n_observations <- length(input_data)
+
+  if (rate_estimate <= 0) {
+    return(0)
+  }
+
+  # Sparse frequency representation: the cost scales with the number of
+  # distinct counts rather than with the largest one.
+  runs <- rle(sort(input_data))
+  values <- runs$values
+  counts <- runs$lengths
+  total_count <- sum(counts * values)
+  largest_count <- values[length(values)]
+
+  # Profile log likelihood of theta at mu = rate_estimate, dropping the
+  # -lgamma(y + 1) term, which does not depend on theta.
+  #
+  # For large theta, lgamma(y + theta) and lgamma(theta) are enormous and
+  # nearly equal, so subtracting them loses most of the significant digits
+  # exactly where the interior maximum has to be compared against the Poisson
+  # boundary. Summing log(theta + j) over j < y instead is accurate
+  # throughout, and costs O(largest count), so it is used whenever the counts
+  # are small enough for that to be cheap -- which covers the event counts
+  # this package simulates. log1p keeps the second term accurate in the same
+  # regime.
+  use_rising_factorial <- largest_count <= 1000
+
+  profile_loglikelihood <- function(log_theta) {
+    theta <- exp(log_theta)
+    rising_factorial <- if (use_rising_factorial) {
+      cumulative <- c(0, cumsum(log(theta + seq_len(largest_count) - 1)))
+      sum(counts * cumulative[values + 1])
+    } else {
+      sum(counts * (lgamma(values + theta) - lgamma(theta)))
+    }
+    rising_factorial -
+      n_observations * theta * log1p(rate_estimate / theta) +
+      total_count * log(rate_estimate / (rate_estimate + theta))
+  }
+
+  # Limit of the profile log likelihood as theta -> Inf, where the negative
+  # binomial collapses to the Poisson model with the same mean.
+  boundary_loglikelihood <- total_count * log(rate_estimate) -
+    n_observations * rate_estimate
+
+  # Coarse scan, then refine around the best grid point. Seeding this way
+  # avoids assuming that the profile has a single interior maximum.
+  log_theta_grid <- seq(log(1e-8), log(1e8), length.out = 24)
+  grid_loglikelihood <- vapply(log_theta_grid, profile_loglikelihood, numeric(1))
+  best <- which.max(grid_loglikelihood)
+  lower <- log_theta_grid[max(best - 1, 1)]
+  upper <- log_theta_grid[min(best + 1, length(log_theta_grid))]
+
+  optimum <- stats::optimize(
+    profile_loglikelihood,
+    interval = c(lower, upper),
+    maximum = TRUE,
+    tol = 1e-8
+  )
+
+  interior_loglikelihood <- max(optimum$objective, grid_loglikelihood[best])
+  if (interior_loglikelihood <= boundary_loglikelihood) {
+    return(0)
+  }
+
+  best_log_theta <- if (optimum$objective >= grid_loglikelihood[best]) {
+    optimum$maximum
+  } else {
+    log_theta_grid[best]
+  }
+
+  return(1 / exp(best_log_theta))
+}
+
 #' Estimate rate and standard error
 #'
-#' @description This function fits a model using glm.nb and estimates the rate parameter and its standard error.
+#' @description This function estimates the rate parameter of an intercept-only
+#' negative binomial model and its standard error.
 #'
 #' @param input_data The data for which the rate parameter and standard error need to be estimated.
 #' @return A list containing the rate estimate, standard error of the rate estimate, and standard error of the log(rate) estimate.
 #' @export
 negative_binomial_regression <- function(input_data) {
-  if (all(input_data == 0)) {
-    warning("All values are zero. Negative binomial regression will fail. Adding random noise.")
-    futile.logger::flog.warn("All values are zero. Negative binomial regression will fail. Adding random noise.")
-    input_data[sample(1:length(input_data), 1)] <- 1
+  if (length(input_data) == 0 || anyNA(input_data) ||
+        !all(is.finite(input_data))) {
+    stop("input_data must be a non-empty vector of finite counts.")
   }
-  # Proceed with negative binomial regression
-  # Fit the model using glm.nb
+  if (any(input_data < 0) || any(input_data != trunc(input_data))) {
+    stop("input_data must contain non-negative integer counts.")
+  }
 
-  model <- MASS::glm.nb(input_data ~ 1, link = log)
+  if (all(input_data == 0)) {
+    # The maximum likelihood estimate of the rate is 0. The negative binomial
+    # is then degenerate at zero, the dispersion is not identifiable, and the
+    # log rate is not finite, so no standard error is defined.
+    warning("All counts are zero: the rate estimate is 0 and the dispersion is not identifiable.")
+    futile.logger::flog.warn("All counts are zero: the rate estimate is 0 and the dispersion is not identifiable.")
+    return(list(
+      rate_estimate = 0,
+      se_rate = NA_real_,
+      se_log_rate = NA_real_
+    ))
+  }
 
-  model_summary <- summary(model)
+  n_observations <- length(input_data)
 
-  # Rate parameter estimate:
-  rate_estimate <- exp(coef(model))
+  # For an intercept-only negative binomial model with a log link, the score
+  # equation for the mean reduces to sum(y_i - mu) = 0 whatever the dispersion,
+  # so the maximum likelihood estimate of the rate is exactly the sample mean.
+  # Only the dispersion has to be estimated numerically, which makes the
+  # iteratively reweighted least squares performed by glm.nb redundant here.
+  rate_estimate <- mean(input_data)
 
-  # Standard error for the log(rate) parameter estimate:
-  se_log_rate <- model_summary$coefficients["(Intercept)", "Std. Error"]
+  inverse_dispersion <- negative_binomial_inverse_dispersion(
+    input_data = input_data,
+    rate_estimate = rate_estimate
+  )
+
+  # Standard error for the log(rate) parameter estimate, read off the negative
+  # binomial Fisher information at the estimates, which is
+  # 1 / (n * mu) + 1 / (n * theta).
+  se_log_rate <- sqrt(1 / (n_observations * rate_estimate) +
+                        inverse_dispersion / n_observations)
 
   # Backtransform the SE:
   se_rate <- se_log_rate * rate_estimate
@@ -1155,7 +1264,14 @@ RecurrentEventTargetData <- R6::R6Class(
 
           control <- negative_binomial_regression(input_data = target_data_control)
 
-          log_rate_ratio <- log(treatment$rate_estimate) - log(control$rate_estimate)
+          # The log rate ratio is not estimable if an arm records no event at
+          # all, in which case its rate estimate is zero.
+          if (treatment$rate_estimate == 0 || control$rate_estimate == 0) {
+            log_rate_ratio <- NA_real_
+          } else {
+            log_rate_ratio <- log(treatment$rate_estimate) -
+              log(control$rate_estimate)
+          }
 
           # Calculate the SE of the rate ratio using the delta method
           se_log_rate_ratio <- sqrt(treatment$se_log_rate ^ 2 + control$se_log_rate ^

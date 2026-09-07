@@ -19,7 +19,7 @@ hellinger_distance <- function(mu1, sigma1, mu2, sigma2) {
 #'
 #' @return A vector representing the drift range.
 compute_drift_range <- function(scenarios_config, case_study_config) {
-  # theta_0 <- case_study_config$theta_0
+  theta_0 <- case_study_config$theta_0
   source_treatment_effect <- case_study_config$source$treatment_effect
 
   if (case_study_config$summary_measure_likelihood == "normal") {
@@ -35,10 +35,10 @@ compute_drift_range <- function(scenarios_config, case_study_config) {
     upper_bound <- solver_result$root
     lower_bound <- -upper_bound
 
-    # if (lower_bound > theta_0 - source_treatment_effect) {
-    #   lower_bound <- theta_0 - source_treatment_effect
-    # }
-    # upper_bound <- abs(lower_bound) / 2
+    if (lower_bound > theta_0 - source_treatment_effect) {
+      lower_bound <- theta_0 - source_treatment_effect
+    }
+    upper_bound <- abs(lower_bound) / 2
   } else if (case_study_config$summary_measure_likelihood == "binomial") {
     source_control_rate <- case_study_config$source$responses$control / case_study_config$source$control
     source_treatment_rate <- case_study_config$source$responses$treatment / case_study_config$source$treatment
