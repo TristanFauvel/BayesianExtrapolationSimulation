@@ -563,18 +563,26 @@ PDCCPP <- R6::R6Class(
         target_data_sampling_variance / n0 + target_data_sampling_variance / target_data$sample_size_per_arm
       )
 
+      # findCalibrationParameter reports z_{1-c/2}, which equation (9) of
+      # Nikolakopoulos et al (2018) uses as the number of predictive standard
+      # deviations that X-bar may deviate from mu_0 before borrowing is
+      # discounted. The formula below is shared with Gaussian_Gravestock_EBPP,
+      # which parameterises the same cut-off by the tail probability c and
+      # recovers z_{1-c/2} as qnorm(1 - c / 2). Sending a z-score through that
+      # conversion a second time applied a wider cut-off than the one the
+      # search had just calibrated.
       power_parameter <- ifelse(((
         target_treatment_effect_estimate > (
-          source_treatment_effect_estimate + standard_deviation_predictive * qnorm(1 - calibration_parameter / 2)
+          source_treatment_effect_estimate + standard_deviation_predictive * calibration_parameter
         )
       )) |
         ((
           target_treatment_effect_estimate < (
-            source_treatment_effect_estimate + standard_deviation_predictive * qnorm(calibration_parameter / 2)
+            source_treatment_effect_estimate - standard_deviation_predictive * calibration_parameter
           )
         )), ((target_data_sampling_variance / n0) / (((
           target_treatment_effect_estimate - source_treatment_effect_estimate
-        ) / qnorm(1 - calibration_parameter / 2)
+        ) / calibration_parameter
         ) ^ 2 - target_data_sampling_variance / target_data$sample_size_per_arm
         )
         ), 1)
