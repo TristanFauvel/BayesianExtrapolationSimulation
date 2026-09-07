@@ -686,21 +686,70 @@ format_case_study_config <- function(case_study_config) {
 }
 
 
+#' Write Stan code to a file only when the content would change
+#'
+#' cmdstanr decides whether to rebuild by comparing the timestamps of the model
+#' file and the executable, so rewriting identical code would force a rebuild
+#' every time a model is constructed. Leaving an unchanged file untouched also
+#' means parallel workers do not write over a file another worker is compiling.
+#'
+#' @param path Path of the Stan model file.
+#' @param stan_model_code Stan code, as a single string or a character vector.
+#'
+#' @return TRUE when the file was written, FALSE when it was already up to date.
+#' @noRd
+write_stan_file_if_changed <- function(path, stan_model_code) {
+  if (file.exists(path)) {
+    current <- tryCatch(readLines(path, warn = FALSE), error = function(e) NULL)
+    if (identical(current, unlist(strsplit(stan_model_code, "\n", fixed = TRUE)))) {
+      return(invisible(FALSE))
+    }
+  }
+
+  writeLines(stan_model_code, con = path)
+
+  return(invisible(TRUE))
+}
+
+#' Directory holding the Stan draws of one model in one process
+#'
+#' Parallel workers share a case study and a method, and the draws cleanup
+#' removes files by age, so a shared directory lets one worker delete the CSVs
+#' backing another worker's fit. cmdstanr reads those files lazily, so give each
+#' process a directory of its own.
+#'
+#' @param case_study Case study name.
+#' @param method Method name.
+#' @param process_id Identifier of the process writing the draws.
+#'
+#' @return Path of the directory, which is not created here.
+#' @noRd
+stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) {
+  # system.file() returns "" for a directory absent from the installed package,
+  # so build the path from the package root, which always exists.
+  file.path(
+    system.file(package = "RBExT"),
+    "stan",
+    "draws",
+    paste0(tolower(case_study), "_", method, "_", process_id)
+  )
+}
+
 compile_stan_model <- function(model_name, stan_model_code) {
   stan_directory <- paste0(system.file("stan", package = "RBExT"), "/")
   stan_model_file_path <- paste0(stan_directory, model_name, ".stan")
-  writeLines(stan_model_code, con = stan_model_file_path)
   stan_exe_file_path <- paste0(stan_directory, model_name, ".exe")
 
-  # None of the models use reduce_sum or map_rect, so within-chain threading
-  # cannot engage. Building with STAN_THREADS would only make the autodiff stack
+  write_stan_file_if_changed(stan_model_file_path, stan_model_code)
+
+  # Always hand cmdstanr the model file, so that an executable left over from an
+  # earlier version of the code is rebuilt rather than silently reused. None of
+  # the models use reduce_sum or map_rect, so within-chain threading cannot
+  # engage: building with STAN_THREADS would only make the autodiff stack
   # thread-local, which costs speed for no parallelism in return.
-  if (!file.exists(stan_exe_file_path)) {
-    stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
-                                          exe_file = stan_exe_file_path)
-  } else {
-    stan_model <- cmdstanr::cmdstan_model(exe_file = stan_exe_file_path)
-  }
+  stan_model <- cmdstanr::cmdstan_model(stan_model_file_path,
+                                        exe_file = stan_exe_file_path)
+
   return(stan_model)
 }
 

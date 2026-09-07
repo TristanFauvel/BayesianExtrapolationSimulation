@@ -131,3 +131,14 @@ test_that("a valid target acceptance rate is accepted", {
     StubMCMCModel$new(prior = list(), mcmc_config = stub_mcmc_config(0.99))
   )
 })
+
+
+test_that("inference does not ask the sampler for per-fit console output", {
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls)
+
+  model$inference(target_data = NULL)
+
+  expect_identical(calls$sample_args$refresh, 0)
+  expect_false(calls$sample_args$show_messages)
+})

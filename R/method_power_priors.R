@@ -160,6 +160,8 @@ BinomialCPP <- R6::R6Class(
         iter_sampling = self$mcmc_config$chain_length,
         iter_warmup = self$mcmc_config$tune,
         adapt_delta = self$mcmc_config$target_accept,
+        refresh = 0,
+        show_messages = FALSE,
         output_dir = self$draws_dir
       )
     }

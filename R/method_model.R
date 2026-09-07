@@ -178,17 +178,10 @@ Model <- R6::R6Class(
 
 
       if (model$mcmc == TRUE) {
-        draws_dir <- paste0(
-          system.file("stan/draws", package = "RBExT"),
-          "/",
-          tolower(case_study_config$name),
-          "_",
-          method,
-          "/"
-        )
+        draws_dir <- stan_draws_directory(case_study_config$name, method)
         if (!dir.exists(draws_dir)) {
           # If it doesn't exist, create it
-          dir.create(draws_dir)
+          dir.create(draws_dir, recursive = TRUE)
         }
         model$draws_dir <- draws_dir
       }
@@ -508,16 +501,10 @@ Model <- R6::R6Class(
         invisible(NULL)
       }
 
-      if (self$mcmc) {
-        package_path <- system.file("", package = "RBExT")
-        stan_draws_path <- paste0(
-          package_path,
-          "/stan/draws/",
-          tolower(case_study),
-          "_",
-          method,
-          "/"
-        )
+      if (self$mcmc && !is.null(self$draws_dir)) {
+        # Clean the directory the sampler actually writes to, rather than
+        # rebuilding the path here and risking the two drifting apart.
+        stan_draws_path <- self$draws_dir
         cleanup_stan_draws()
         next_stan_cleanup <- Sys.time() + 60
       }
@@ -641,7 +628,7 @@ Model <- R6::R6Class(
 
           # Avoid scanning the draws directory after every replicate. Files cannot
           # become eligible for age-based cleanup more often than once per minute.
-          if (self$mcmc && Sys.time() >= next_stan_cleanup) {
+          if (!is.null(next_stan_cleanup) && Sys.time() >= next_stan_cleanup) {
             cleanup_stan_draws()
             next_stan_cleanup <- Sys.time() + 60
           }
@@ -1825,6 +1812,8 @@ MCMCModel <- R6::R6Class(
         iter_sampling = self$mcmc_config$chain_length,
         iter_warmup = self$mcmc_config$tune,
         adapt_delta = self$mcmc_config$target_accept,
+        refresh = 0,
+        show_messages = FALSE,
         output_dir = self$draws_dir
       )
 
