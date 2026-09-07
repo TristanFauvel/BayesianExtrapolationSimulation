@@ -205,6 +205,23 @@ Model <- R6::R6Class(
       return("Success")
     },
 
+    #' @description Run every replicate at once, when the method allows it
+    #'
+    #' Methods with a closed-form posterior can produce the whole simulation
+    #' output with vector arithmetic instead of one inference per replicate.
+    #' Subclasses that can do so override this method; returning `NULL` means
+    #' "no fast path available", and
+    #' [Model$simulation_for_given_treatment_effect()] falls back to the
+    #' replicate loop.
+    #'
+    #' @param ... Arguments describing the simulation, passed through by
+    #'   [Model$simulation_for_given_treatment_effect()].
+    #' @return `NULL`, or a list shaped like the return value of
+    #'   [Model$simulation_for_given_treatment_effect()].
+    vectorised_replicate_inference = function(...) {
+      NULL
+    },
+
     #' @description Abstract method to calculate the posterior moments
     #' @param target_data Data for which posterior moments need to be calculated
     #' @return none
@@ -513,12 +530,31 @@ Model <- R6::R6Class(
       # Generate data for n_replicates clinical trials
       target_data_samples <- target_data$generate(n_replicates)
 
+      # Methods with a closed-form posterior compute every replicate at once.
+      # No random number is drawn below this point for those methods, so the
+      # two paths see exactly the same data and agree replicate by replicate.
+      vectorised_results <- self$vectorised_replicate_inference(
+        target_data = target_data,
+        samples = target_data_samples,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space
+      )
+
+      if (!is.null(vectorised_results)) {
+        return(vectorised_results)
+      }
+
       for (r in 1:nrow(target_data_samples)) {
         retry <- TRUE # Indicator as to whether to restart the iteration or not
         while (retry) {
           retry <- FALSE
           start_time <- Sys.time()
-          target_data$sample <- target_data_samples[r, ]
+          # drop = FALSE keeps a single-column sample a data frame, so that
+          # downstream `$` access keeps working.
+          target_data$sample <- target_data_samples[r, , drop = FALSE]
 
           # Fit the model
           inference_status <- self$inference(target_data = target_data)
@@ -1337,6 +1373,71 @@ ConjugateGaussian <- R6::R6Class(
       self$post_mean <- self$posterior_mean(target_data)
       self$post_var <- self$posterior_variance(target_data)
     },
+    #' @description Run every replicate at once
+    #'
+    #' The prior is a single normal, so the posterior is available in closed
+    #' form for all replicates simultaneously. Empirical Bayes subclasses
+    #' re-derive the prior variance from each replicate; they supply it through
+    #' `vectorised_prior_variance()`.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @param to_return Character vector of requested outputs.
+    #' @param critical_value Critical value for hypothesis testing.
+    #' @param theta_0 Null hypothesis value.
+    #' @param confidence_level Confidence level for the credible interval.
+    #' @param null_space The null space for hypothesis testing.
+    #' @return A list of simulation results, or `NULL` to use the replicate loop.
+    vectorised_replicate_inference = function(target_data, samples, to_return,
+                                              critical_value, theta_0,
+                                              confidence_level, null_space) {
+      prior_variance <- self$vectorised_prior_variance(target_data, samples)
+      if (is.null(prior_variance)) {
+        return(NULL)
+      }
+
+      n_replicates <- nrow(samples)
+
+      vectorised_normal_mixture_simulation(
+        weights = matrix(1, nrow = n_replicates, ncol = 1),
+        means = matrix(self$prior_mean, nrow = n_replicates, ncol = 1),
+        sds = matrix(sqrt(prior_variance), nrow = n_replicates, ncol = 1),
+        samples = samples,
+        target_data = target_data,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        decision_rule = "posterior_cdf",
+        posterior_parameters = self$vectorised_posterior_parameters(prior_variance)
+      )
+    },
+
+    #' @description Prior variance for each replicate
+    #'
+    #' A fixed prior gives the same variance to every replicate. Empirical Bayes
+    #' subclasses override this to derive one variance per replicate. Returning
+    #' `NULL` disables the vectorised path.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A scalar, a vector with one entry per replicate, or `NULL`.
+    vectorised_prior_variance = function(target_data, samples) {
+      self$prior_var
+    },
+
+    #' @description Posterior parameters reported by the vectorised path
+    #'
+    #' The plain conjugate models report none. Empirical Bayes subclasses
+    #' override this to report the power parameter they estimated.
+    #'
+    #' @param prior_variance Per-replicate prior variance.
+    #' @return A data frame, or `NULL`.
+    vectorised_posterior_parameters = function(prior_variance) {
+      NULL
+    },
+
     #' @description Posterior median
     #' @param ... Additional argument
     #' @return The posterior median
@@ -1617,6 +1718,74 @@ Model_RBesT <- R6::R6Class(
         stop("Not implemented for other than 95% CrI")
       }
       return(c(self$posterior_summary["cri95L"], self$posterior_summary["cri95U"]))
+    },
+
+    #' @description Prior mixture components for each replicate
+    #'
+    #' Subclasses return the `weights`, `means` and `sds` of their prior, either
+    #' as vectors shared by every replicate or as matrices with one row per
+    #' replicate. Returning `NULL` disables the vectorised path.
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A list with `weights`, `means` and `sds`, or `NULL`.
+    vectorised_prior_components = function(target_data, samples) {
+      NULL
+    },
+
+    #' @description Posterior parameters reported by the vectorised path
+    #' @param posterior Posterior mixture returned by [normal_mixture_posterior()].
+    #' @return A data frame, or `NULL`.
+    vectorised_posterior_parameters = function(posterior) {
+      NULL
+    },
+
+    #' @description Run every replicate at once
+    #'
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @param to_return Character vector of requested outputs.
+    #' @param critical_value Critical value for hypothesis testing.
+    #' @param theta_0 Null hypothesis value.
+    #' @param confidence_level Confidence level for the credible interval.
+    #' @param null_space The null space for hypothesis testing.
+    #' @return A list of simulation results, or `NULL` to use the replicate loop.
+    vectorised_replicate_inference = function(target_data, samples, to_return,
+                                              critical_value, theta_0,
+                                              confidence_level, null_space) {
+      prior <- self$vectorised_prior_components(target_data, samples)
+      if (is.null(prior)) {
+        return(NULL)
+      }
+
+      if (confidence_level != 0.95) {
+        # Matches the scalar credible_interval(), which only supports 95%.
+        stop("Not implemented for other than 95% CrI")
+      }
+
+      n_replicates <- nrow(samples)
+      posterior <- normal_mixture_posterior(
+        weights = prior$weights,
+        means = prior$means,
+        sds = prior$sds,
+        estimate = samples$treatment_effect_estimate,
+        standard_error = samples$treatment_effect_standard_error
+      )
+
+      vectorised_normal_mixture_simulation(
+        weights = prior$weights,
+        means = prior$means,
+        sds = prior$sds,
+        samples = samples,
+        target_data = target_data,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        decision_rule = "credible_interval",
+        posterior_parameters = self$vectorised_posterior_parameters(posterior)
+      )
     }
   )
 )
@@ -1658,6 +1827,14 @@ SeparateGaussian_RBesT <- R6::R6Class(
     posterior_to_RBesT = function(target_data, ...) {
       self$RBesT_posterior <- RBesT::mixnorm(c(1, self$post_mean, sqrt(self$post_var)), sigma =  target_data$sample$standard_deviation)
       self$RBesT_posterior_normix <- self$RBesT_posterior
+    },
+
+    #' @description Prior mixture components for each replicate.
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A list with `weights`, `means` and `sds`.
+    vectorised_prior_components = function(target_data, samples) {
+      list(weights = 1, means = self$prior_mean, sds = sqrt(self$prior_var))
     }
   )
 )
@@ -1707,6 +1884,14 @@ PoolGaussian_RBesT <- R6::R6Class(
       self$RBesT_posterior_normix <- self$RBesT_posterior
 
       smix <- summary(self$RBesT_posterior)
+    },
+
+    #' @description Prior mixture components for each replicate.
+    #' @param target_data Target study data.
+    #' @param samples Data frame of generated replicates.
+    #' @return A list with `weights`, `means` and `sds`.
+    vectorised_prior_components = function(target_data, samples) {
+      list(weights = 1, means = self$prior_mean, sds = sqrt(self$prior_var))
     }
   )
 )
