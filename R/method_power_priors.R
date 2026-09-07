@@ -908,7 +908,7 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
 
         prior_tau <- 2 * tau * extraDistr::dinvgamma(tau2,
                                          alpha = heterogeneity_prior$alpha,
-                                         beta = 1 / heterogeneity_prior$beta) # Adjust for the Jacobian of the transformation
+                                         beta = heterogeneity_prior$beta) # Adjust for the Jacobian of the transformation
       } else if (self$heterogeneity_prior_family =="half_normal"){
         prior_tau <- extraDistr::dhnorm(tau, sigma = heterogeneity_prior$std_dev)
       } else {
