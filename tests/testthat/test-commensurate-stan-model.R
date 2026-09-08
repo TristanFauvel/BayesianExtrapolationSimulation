@@ -1,37 +1,3 @@
-commensurate_mcmc_config <- function() {
-  list(
-    num_chains = 1L,
-    parallel_chains = 1L,
-    tune = 1L,
-    target_accept = 0.8,
-    chain_length = 1L,
-    max_chain_length = 2L,
-    target_ess = 1L,
-    rhat_threshold = 1.1,
-    max_divergence_rate = 0.01
-  )
-}
-
-commensurate_stan_model <- function() {
-  prior <- list(
-    source = list(),
-    method_parameters = list(
-      initial_prior = list("noninformative"),
-      heterogeneity_prior = list(family = "half_normal", std_dev = 1)
-    )
-  )
-
-  testthat::with_mocked_bindings(
-    GaussianCommensuratePowerPrior$new(
-      prior = prior,
-      mcmc_config = commensurate_mcmc_config()
-    ),
-    compile_stan_model = function(...) NULL,
-    .package = "RBExT"
-  )
-}
-
-
 test_that("commensurate Stan model updates borrowing parameters with target data", {
   stan_code <- commensurate_stan_model()$stan_model_code
 

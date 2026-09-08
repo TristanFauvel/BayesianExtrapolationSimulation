@@ -378,7 +378,8 @@ Gaussian_NPP <- R6::R6Class(
         decision_rule = "posterior_cdf",
         posterior_parameters = npp_power_parameter_summary(
           posterior$weights, prior$power_parameter
-        )
+        ),
+        posterior = posterior
       )
     },
 
@@ -874,6 +875,66 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
       data <- c(data, parameters)
 
       return(data)
+    },
+    #' @description Run all simulation replicates through a quadrature mixture
+    #' instead of launching one Stan fit per replicate. The Stan implementation
+    #' remains available through `inference()` for reference and single-data-set
+    #' analyses.
+    #' @param target_data Target study data
+    #' @param samples Generated target-study replicates
+    #' @param to_return Requested simulation outputs
+    #' @param critical_value Critical posterior probability
+    #' @param theta_0 Null treatment effect
+    #' @param confidence_level Credible interval level
+    #' @param null_space Side of the null hypothesis
+    vectorised_replicate_inference = function(target_data, samples, to_return,
+                                              critical_value, theta_0,
+                                              confidence_level, null_space) {
+      if ("test_decision" %in% to_return) {
+        # MCMCModel sets mcmc = TRUE, so Model$test_decision() decides this
+        # model from the 2.5 and 97.5 percentiles and refuses a critical value
+        # those percentiles do not correspond to. The fast path decides from
+        # the same interval, so it has to refuse the same values rather than
+        # silently deciding at confidence_level instead.
+        stopifnot(
+          "Only the 97.5 and 2.5 percentiles are computed, so you can only consider " = critical_value == (1 + confidence_level) / 2
+        )
+      }
+
+      prior_mixture <- commensurate_prior_mixture(self)
+      posterior <- normal_mixture_posterior(
+        weights = prior_mixture$weights,
+        means = prior_mixture$means,
+        sds = prior_mixture$sds,
+        estimate = samples$treatment_effect_estimate,
+        standard_error = samples$treatment_effect_standard_error
+      )
+
+      posterior_parameters <- commensurate_parameter_summary(
+        posterior_weights = posterior$weights,
+        mixture = prior_mixture,
+        heterogeneity_prior_family = self$heterogeneity_prior_family,
+        heterogeneity_prior = self$prior$method_parameters$heterogeneity_prior
+      )
+
+      vectorised_normal_mixture_simulation(
+        weights = prior_mixture$weights,
+        means = prior_mixture$means,
+        sds = prior_mixture$sds,
+        samples = samples,
+        target_data = target_data,
+        to_return = to_return,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        decision_rule = "credible_interval",
+        posterior_parameters = posterior_parameters,
+        posterior = posterior,
+        # This model samples when it is not on the fast path, so zero-filled
+        # diagnostics would read as a perfectly converged, never-diverging run.
+        mcmc = self$mcmc
+      )
     },
     #' @description Compute posterior parameters
     compute_posterior_parameters = function() {
