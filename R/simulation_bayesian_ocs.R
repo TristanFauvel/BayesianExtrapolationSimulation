@@ -29,7 +29,13 @@ bayesian_ocs_scenario_simulation <- function(scenario,
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
-  mcmc_config <- limit_mcmc_chain_parallelism(mcmc_config, scenarios_config$parallelization)
+  # As in the frequentist driver: `parallelization` may name the methods that
+  # run in parallel rather than apply to all of them.
+  runs_in_parallel <- method_runs_in_parallel(
+    scenarios_config$parallelization,
+    method
+  )
+  mcmc_config <- limit_mcmc_chain_parallelism(mcmc_config, runs_in_parallel)
 
   source_data <- SourceData$new(case_study_config = case_study_config,
                                 source_denominator = source_denominator)
@@ -98,8 +104,8 @@ bayesian_ocs_scenario_simulation <- function(scenario,
     results_bayesian_ocs_source_posterior
   )
 
-  # If scenarios_config$parallelization == FALSE, the csv files containing the results are built in an iterative manner, so that in case of bugs results are not lost (not possible if parallelization is used).
-  if (scenarios_config$parallelization == FALSE) {
+  # When this method's scenarios run sequentially, the csv files containing the results are built in an iterative manner, so that in case of bugs results are not lost (not possible if parallelization is used).
+  if (!runs_in_parallel) {
     if (!file.exists(bayes_filename)) {
       # Get the column names
       fieldnames_bayes <- colnames(combined_results)
@@ -311,7 +317,7 @@ simulation_bayesian_ocs <- function(env,
         file.remove(bayes_filename)
       }
 
-      if (scenarios_config$parallelization == FALSE) {
+      if (!method_runs_in_parallel(scenarios_config$parallelization, method)) {
         # Loop through cases
         for (i in 1:nrow(cases)) {
           scenario <- cases[i, ]

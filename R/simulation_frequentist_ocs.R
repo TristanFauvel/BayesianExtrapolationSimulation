@@ -28,7 +28,14 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
   mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
-  mcmc_config <- limit_mcmc_chain_parallelism(mcmc_config, scenarios_config$parallelization)
+  # `parallelization` may name the methods that run in parallel rather than
+  # apply to all of them, so it has to be resolved for this scenario's method
+  # before anything keys off it.
+  runs_in_parallel <- method_runs_in_parallel(
+    scenarios_config$parallelization,
+    method
+  )
+  mcmc_config <- limit_mcmc_chain_parallelism(mcmc_config, runs_in_parallel)
 
   source_data <- SourceData$new(case_study_config, source_denominator)
 
@@ -90,7 +97,7 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   computation_state$computation_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
 
   sim_outputs$posterior_parameters <- format_parameters_to_json(sim_outputs$posterior_parameters)
-  scenario$parallelization <- scenarios_config$parallelization
+  scenario$parallelization <- runs_in_parallel
 
   check_colnames(scenario, expected_colnames_scenario)
 
@@ -168,8 +175,8 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   check_confidence_intervals(results_frequentist_ocs, c(names(inference_metrics), names(frequentist_metrics)))
 
 
-  # If scenarios_config$parallelization == FALSE, the csv files containing the results are built in an iterative manner, so that in case of bugs results are not lost (not possible if parallelization is used).
-  if (scenarios_config$parallelization == FALSE) {
+  # When this method's scenarios run sequentially, the csv files containing the results are built in an iterative manner, so that in case of bugs results are not lost (not possible if parallelization is used).
+  if (!runs_in_parallel) {
     if (!file.exists(freq_filename)) {
       # Get the column names
       fieldnames_freq <- colnames(results_frequentist_ocs)
@@ -296,7 +303,7 @@ simulation_frequentist_ocs <- function(env,
 
       # Temporarily disable the global error handler within the tryCatch block. Otherwise there will be interference between the tryCatch block and the global error handler.
       options(error = NULL)
-      if (scenarios_config$parallelization == FALSE) {
+      if (!method_runs_in_parallel(scenarios_config$parallelization, method)) {
         # Loop through cases
 
         for (i in 1:nrow(cases)) {

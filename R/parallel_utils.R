@@ -38,3 +38,43 @@ limit_mcmc_chain_parallelism <- function(mcmc_config, parallelization) {
 
   return(mcmc_config)
 }
+
+#' Whether one method's scenarios run in parallel
+#'
+#' `parallelization` in the scenarios configuration is either a single logical,
+#' which applies to every method in the run, or a list of method names, which
+#' parallelises only those. The per-method form exists because the cost profiles
+#' differ: a method left on the replicate loop gains the full worker count from
+#' scenario-level parallelism, while a vectorised one already holds a large
+#' posterior mixture in memory and multiplies that footprint by every worker.
+#'
+#' @param parallelization The `parallelization` entry of the scenarios config.
+#' @param method Method name.
+#'
+#' @return A single logical.
+#' @noRd
+method_runs_in_parallel <- function(parallelization, method) {
+  if (is.null(parallelization)) {
+    return(FALSE)
+  }
+
+  if (is.logical(parallelization)) {
+    if (length(parallelization) != 1L || is.na(parallelization)) {
+      stop(
+        "parallelization must be a single TRUE or FALSE, or a list of method names.",
+        call. = FALSE
+      )
+    }
+    return(parallelization)
+  }
+
+  methods <- unlist(parallelization, use.names = FALSE)
+  if (!is.character(methods) || length(methods) == 0L) {
+    stop(
+      "parallelization must be a single TRUE or FALSE, or a list of method names.",
+      call. = FALSE
+    )
+  }
+
+  method %in% methods
+}
