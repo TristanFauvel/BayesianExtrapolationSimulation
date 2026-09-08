@@ -75,3 +75,19 @@ test_that("false-positive probability rejects misaligned inputs", {
     fixed = TRUE
   )
 })
+
+test_that("false-positive probability warns when the grid stops before the rejection rate reaches zero", {
+  treatment_effect_values <- seq(-1, 0, length.out = 101)
+
+  expect_warning(
+    preposterior_proba_FP(
+      conditional_proba_success = rep(0.4, length(treatment_effect_values)),
+      treatment_effect_values = treatment_effect_values,
+      theta_0 = 0,
+      null_space = "left",
+      design_prior_pdf = stats::dnorm(treatment_effect_values),
+      design_prior_cdf = function(x) stats::pnorm(x)
+    ),
+    "does not extend far enough into the null space"
+  )
+})

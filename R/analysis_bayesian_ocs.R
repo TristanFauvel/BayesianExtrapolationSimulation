@@ -265,12 +265,67 @@ upper_bound_proba_FP <- function(prior_proba_no_benefit,
   return(p)
 }
 
+# Contribution of the design-prior mass that lies outside the simulated
+# treatment-effect grid.
+#
+# The grid is derived from the sampling distributions of the data, not from the
+# design prior (see `compute_drift_range()`), so a design prior can place a
+# large share of its mass outside it. Integrating the numerator over the grid
+# alone, while normalising by the hypothesis-space mass obtained from the design
+# prior CDF, understates the operating characteristics -- badly so for wide
+# priors such as the unit-information one.
+#
+# Beyond the grid the rejection rate sits at its limit: 0 far inside the null
+# space and 1 far inside the alternative space. The tail integral therefore
+# collapses to the tail mass times that limit, and needs no extra simulation.
+design_prior_tail_contribution <- function(design_prior_cdf,
+                                           edge_value,
+                                           side,
+                                           limit,
+                                           edge_proba_success,
+                                           space_label) {
+  tail_mass <- if (side == "lower") {
+    design_prior_cdf(edge_value)
+  } else {
+    1 - design_prior_cdf(edge_value)
+  }
+
+  if (length(tail_mass) != 1L || !is.finite(tail_mass)) {
+    return(0)
+  }
+
+  tail_mass <- min(max(tail_mass, 0), 1)
+
+  # The extrapolation is only trustworthy once the grid reaches the flat part of
+  # the rejection rate. Say so when it does not, rather than quietly reporting a
+  # tail contribution the simulation does not support.
+  if (tail_mass > 0.01 && abs(edge_proba_success - limit) > 0.05) {
+    msg <- sprintf(
+      paste0(
+        "The treatment-effect grid does not extend far enough into the %s space: ",
+        "the conditional probability of success is %.3g at its outer edge (%.3g), ",
+        "but %.1f%% of the design prior mass lies beyond it and is extrapolated as %g."
+      ),
+      space_label,
+      edge_proba_success,
+      edge_value,
+      100 * tail_mass,
+      limit
+    )
+    warning(msg)
+    futile.logger::flog.warn(msg)
+  }
+
+  tail_mass * limit
+}
+
 # Preposterior probability of a False Positive
 preposterior_proba_FP <- function(conditional_proba_success,
                                   treatment_effect_values,
                                   theta_0,
                                   null_space,
-                                  design_prior_pdf) {
+                                  design_prior_pdf,
+                                  design_prior_cdf) {
   input_lengths <- c(
     length(conditional_proba_success),
     length(treatment_effect_values),
@@ -282,13 +337,13 @@ preposterior_proba_FP <- function(conditional_proba_success,
 
   if (null_space == "left") {
     values_in_null_space <- treatment_effect_values <= theta_0
+    outward_side <- "lower"
   } else if (null_space == "right") {
     values_in_null_space <- treatment_effect_values >= theta_0
+    outward_side <- "upper"
   } else {
     stop("Null space must be either 'left' or 'right'.")
   }
-
-  design_prior_pdf <- design_prior_pdf[values_in_null_space]
 
   if (sum(values_in_null_space) < 2) {
     p <- NA
@@ -296,11 +351,29 @@ preposterior_proba_FP <- function(conditional_proba_success,
       "The number of values in the null space is less than 2, the preposterior probability of FP cannot be computed."
     )
   } else {
+    null_treatment_effects <- treatment_effect_values[values_in_null_space]
+    null_proba_success <- conditional_proba_success[values_in_null_space]
+
     p <- Bolstad2::sintegral(
-      x = treatment_effect_values[values_in_null_space],
-      fx = design_prior_pdf * conditional_proba_success[values_in_null_space],
+      x = null_treatment_effects,
+      fx = design_prior_pdf[values_in_null_space] * null_proba_success,
       n.pts = sum(values_in_null_space)
     )$int
+
+    edge <- if (outward_side == "lower") {
+      which.min(null_treatment_effects)
+    } else {
+      which.max(null_treatment_effects)
+    }
+
+    p <- p + design_prior_tail_contribution(
+      design_prior_cdf = design_prior_cdf,
+      edge_value = null_treatment_effects[edge],
+      side = outward_side,
+      limit = 0,
+      edge_proba_success = null_proba_success[edge],
+      space_label = "null"
+    )
 
     p <- sapply(p, check_probability_value)
     assertions::assert_number(p)
@@ -312,7 +385,8 @@ preposterior_proba_TP <- function(conditional_proba_success,
                                   treatment_effect_values,
                                   theta_0,
                                   null_space,
-                                  design_prior_pdf) {
+                                  design_prior_pdf,
+                                  design_prior_cdf) {
   input_lengths <- c(
     length(conditional_proba_success),
     length(treatment_effect_values),
@@ -324,8 +398,10 @@ preposterior_proba_TP <- function(conditional_proba_success,
 
   if (null_space == "left") {
     values_in_alt_space <- treatment_effect_values > theta_0
+    outward_side <- "upper"
   } else if (null_space == "right") {
     values_in_alt_space <- treatment_effect_values < theta_0
+    outward_side <- "lower"
   } else {
     stop("Null space must be either 'left' or 'right'.")
   }
@@ -333,11 +409,29 @@ preposterior_proba_TP <- function(conditional_proba_success,
   if (sum(values_in_alt_space) < 2) {
     p <- NA
   } else {
+    alt_treatment_effects <- treatment_effect_values[values_in_alt_space]
+    alt_proba_success <- conditional_proba_success[values_in_alt_space]
+
     p <- Bolstad2::sintegral(
-      x = treatment_effect_values[values_in_alt_space],
-      fx = design_prior_pdf[values_in_alt_space] * conditional_proba_success[values_in_alt_space],
+      x = alt_treatment_effects,
+      fx = design_prior_pdf[values_in_alt_space] * alt_proba_success,
       n.pts = sum(values_in_alt_space)
     )$int
+
+    edge <- if (outward_side == "lower") {
+      which.min(alt_treatment_effects)
+    } else {
+      which.max(alt_treatment_effects)
+    }
+
+    p <- p + design_prior_tail_contribution(
+      design_prior_cdf = design_prior_cdf,
+      edge_value = alt_treatment_effects[edge],
+      side = outward_side,
+      limit = 1,
+      edge_proba_success = alt_proba_success[edge],
+      space_label = "alternative"
+    )
 
     p <- sapply(p, check_probability_value)
     assertions::assert_number(p)
@@ -348,7 +442,19 @@ preposterior_proba_TP <- function(conditional_proba_success,
 
 prior_proba_success <- function(conditional_proba_success,
                                 treatment_effect_values,
-                                design_prior_pdf) {
+                                design_prior_pdf,
+                                design_prior_cdf,
+                                null_space) {
+  if (null_space == "left") {
+    lower_tail_limit <- 0
+    upper_tail_limit <- 1
+  } else if (null_space == "right") {
+    lower_tail_limit <- 1
+    upper_tail_limit <- 0
+  } else {
+    stop("Null space must be either 'left' or 'right'.")
+  }
+
   if (length(conditional_proba_success) < 2) {
     return(NA)
   }
@@ -358,6 +464,25 @@ prior_proba_success <- function(conditional_proba_success,
     fx = design_prior_pdf * conditional_proba_success,
     n.pts = length(treatment_effect_values)
   )$int
+
+  lower_edge <- which.min(treatment_effect_values)
+  upper_edge <- which.max(treatment_effect_values)
+
+  p <- p + design_prior_tail_contribution(
+    design_prior_cdf = design_prior_cdf,
+    edge_value = treatment_effect_values[lower_edge],
+    side = "lower",
+    limit = lower_tail_limit,
+    edge_proba_success = conditional_proba_success[lower_edge],
+    space_label = if (null_space == "left") "null" else "alternative"
+  ) + design_prior_tail_contribution(
+    design_prior_cdf = design_prior_cdf,
+    edge_value = treatment_effect_values[upper_edge],
+    side = "upper",
+    limit = upper_tail_limit,
+    edge_proba_success = conditional_proba_success[upper_edge],
+    space_label = if (null_space == "left") "alternative" else "null"
+  )
 
   p <- sapply(p, check_probability_value)
   assertions::assert_number(p)
@@ -514,7 +639,9 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                   prior_proba_success_SI <- prior_proba_success(
                     conditional_proba_success = conditional_proba_success,
                     treatment_effect_values = treatment_effect_values,
-                    design_prior_pdf = design_prior_pdf
+                    design_prior_pdf = design_prior_pdf,
+                    design_prior_cdf = design_prior$cdf,
+                    null_space = null_space
                   )
 
                   prepost_proba_FP_SI <- preposterior_proba_FP(
@@ -522,7 +649,8 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                     treatment_effect_values = treatment_effect_values,
                     theta_0 = theta_0,
                     null_space = null_space,
-                    design_prior_pdf = design_prior_pdf
+                    design_prior_pdf = design_prior_pdf,
+                    design_prior_cdf = design_prior$cdf
                   )
 
                   prepost_proba_TP_SI <- preposterior_proba_TP(
@@ -530,7 +658,8 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
                     treatment_effect_values = treatment_effect_values,
                     theta_0 = theta_0,
                     null_space = null_space,
-                    design_prior_pdf = design_prior_pdf
+                    design_prior_pdf = design_prior_pdf,
+                    design_prior_cdf = design_prior$cdf
                   )
 
                   average_tie_SI <- average_tie(
