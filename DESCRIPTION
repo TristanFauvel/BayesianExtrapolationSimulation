@@ -50,6 +50,7 @@ Imports:
     ParallelLogger,
     Hmisc,
     knitr,
+    statmod,
     tinytex
 License: GPL-3 | file LICENSE
 LazyData: true

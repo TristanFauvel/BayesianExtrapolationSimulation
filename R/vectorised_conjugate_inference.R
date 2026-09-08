@@ -24,6 +24,10 @@
 #'   conjugate models do.
 #' @param posterior_parameters Optional data frame of per-replicate posterior
 #'   parameters to report.
+#' @param posterior Optional output from [normal_mixture_posterior()] when the
+#'   caller already needed it for method-specific parameter summaries.
+#' @param mcmc Whether the calling model samples when it is not on this fast
+#'   path, which decides what the MCMC diagnostics report.
 #' @return A list shaped like the return value of
 #'   [Model$simulation_for_given_treatment_effect()].
 #' @keywords internal
@@ -33,20 +37,24 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
                                                  critical_value, theta_0,
                                                  confidence_level, null_space,
                                                  decision_rule,
-                                                 posterior_parameters = NULL) {
+                                                 posterior_parameters = NULL,
+                                                 posterior = NULL,
+                                                 mcmc = FALSE) {
   requested <- function(output) output %in% to_return
 
   estimate <- samples$treatment_effect_estimate
   standard_error <- samples$treatment_effect_standard_error
   n_replicates <- length(estimate)
 
-  posterior <- normal_mixture_posterior(
-    weights = weights,
-    means = means,
-    sds = sds,
-    estimate = estimate,
-    standard_error = standard_error
-  )
+  if (is.null(posterior)) {
+    posterior <- normal_mixture_posterior(
+      weights = weights,
+      means = means,
+      sds = sds,
+      estimate = estimate,
+      standard_error = standard_error
+    )
+  }
 
   alpha <- (1 - confidence_level) / 2
   summaries <- normal_mixture_summary(
@@ -103,6 +111,16 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
     NULL
   }
 
+  # No sampler runs on this path, so there are no diagnostics to report. The
+  # replicate loop zero-fills them for a model that never samples at all, and
+  # estimate_frequentist_operating_characteristics() averages them into
+  # required result columns, so those models keep their zeros rather than
+  # turning the columns into NA. A model that does sample off this path is a
+  # different case: rhat = 0 would read as a chain converged beyond perfectly,
+  # and a mean divergence count of 0 as a sampler that never diverged, so it
+  # reports the diagnostics as not applicable instead.
+  diagnostic <- if (mcmc) NA_real_ else 0
+
   list(
     test_decisions = test_decisions,
     posterior_means = if (requested("posterior_mean")) summaries$mean else NULL,
@@ -113,14 +131,9 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
     ess_precisions = ess_precisions,
     ess_elir = ess_elir,
     fit_success = if (requested("fit_success")) rep("Success", n_replicates) else NULL,
-    # No method with a closed-form posterior samples, but the replicate loop
-    # still returns zero-filled diagnostics when they are asked for, and
-    # estimate_frequentist_operating_characteristics() averages them into
-    # required result columns. Returning NULL instead would turn those columns
-    # into NA.
-    mcmc_ess = if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL,
-    rhat = if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL,
-    n_divergences = if (requested("mcmc_diagnostics")) numeric(n_replicates) else NULL
+    mcmc_ess = if (requested("mcmc_diagnostics")) rep(diagnostic, n_replicates) else NULL,
+    rhat = if (requested("mcmc_diagnostics")) rep(diagnostic, n_replicates) else NULL,
+    n_divergences = if (requested("mcmc_diagnostics")) rep(diagnostic, n_replicates) else NULL
   )
 }
 
@@ -190,6 +203,17 @@ vectorised_test_decision <- function(lower, upper,
 #' @export
 normal_mixture_posterior <- function(weights, means, sds, estimate, standard_error) {
   n_replicates <- length(estimate)
+  standard_error <- rep_len(standard_error, n_replicates)
+
+  if (!is.matrix(weights) && !is.matrix(means) && !is.matrix(sds)) {
+    return(shared_normal_mixture_posterior(
+      weights = weights,
+      means = means,
+      sds = sds,
+      estimate = estimate,
+      standard_error = standard_error
+    ))
+  }
 
   weights <- recycle_prior_component(weights, n_replicates)
   means <- recycle_prior_component(means, n_replicates)
@@ -206,6 +230,56 @@ normal_mixture_posterior <- function(weights, means, sds, estimate, standard_err
   # that a component with negligible weight cannot underflow to an NaN weight.
   log_weight <- log(weights) +
     stats::dnorm(estimate, means, sqrt(sds^2 + standard_error^2), log = TRUE)
+  log_weight <- log_weight - apply(log_weight, 1, max)
+  posterior_weight <- exp(log_weight)
+  posterior_weight <- posterior_weight / rowSums(posterior_weight)
+
+  list(
+    weights = posterior_weight,
+    means = posterior_mean,
+    sds = sqrt(posterior_variance)
+  )
+}
+
+#' Conjugate update of a normal mixture prior shared by every replicate
+#'
+#' @description The same update as [normal_mixture_posterior()], for the common
+#' case of one prior serving every replicate. Broadcasting the component values
+#' against the observations with [outer()] keeps three constant
+#' `n_replicates x n_components` copies of the prior out of memory. For the
+#' commensurate quadrature mixture those copies alone run to hundreds of
+#' megabytes; the posterior matrices are irreducible and dominate what is left.
+#'
+#' @param weights Prior component weights, a vector of length `n_components`.
+#' @param means Prior component means, shaped like `weights`.
+#' @param sds Prior component standard deviations, shaped like `weights`.
+#' @param estimate Vector of per-replicate treatment effect estimates.
+#' @param standard_error Per-replicate standard errors, already recycled to the
+#'   same length as `estimate`.
+#' @return A list of three `n_replicates x n_components` matrices: `weights`,
+#'   `means` and `sds` of the posterior mixture.
+#' @keywords internal
+shared_normal_mixture_posterior <- function(weights, means, sds,
+                                            estimate, standard_error) {
+  n_replicates <- length(estimate)
+
+  prior_precision <- 1 / sds^2
+  data_precision <- 1 / standard_error^2
+
+  posterior_variance <- 1 / outer(data_precision, prior_precision, "+")
+  posterior_mean <- posterior_variance *
+    outer(estimate * data_precision, means * prior_precision, "+")
+
+  # Marginal likelihood of the observation under each component, in log space so
+  # that a component with negligible weight cannot underflow to an NaN weight.
+  # The density's constant factor is dropped, since the weights are renormalised
+  # below.
+  marginal_variance <- outer(standard_error^2, sds^2, "+")
+  log_weight <- outer(estimate, means, "-")^2 / marginal_variance
+  log_weight <- -0.5 * (log_weight + log(marginal_variance)) +
+    rep(log(weights), each = n_replicates)
+  rm(marginal_variance)
+
   log_weight <- log_weight - apply(log_weight, 1, max)
   posterior_weight <- exp(log_weight)
   posterior_weight <- posterior_weight / rowSums(posterior_weight)
@@ -360,6 +434,14 @@ normal_mixture_elir_ess <- function(weights, means, sds, sigma,
     return(sigma^2 / sds[, 1]^2)
   }
 
+  if (n_replicates == 1L && length(unique(means[1, ])) == 1L) {
+    information <- centered_normal_mixture_information(
+      weights = weights[1, ],
+      sds = sds[1, ]
+    )
+    return(sigma^2 * information)
+  }
+
   breakpoints <- mixture_support_breakpoints(means, sds, spread)
   rule <- statmod::gauss.quad(n_nodes, kind = "legendre")
 
@@ -377,6 +459,56 @@ normal_mixture_elir_ess <- function(weights, means, sds, sigma,
   }
 
   sigma^2 * expected_information
+}
+
+
+#' Fisher information of a centred normal scale mixture
+#'
+#' @description All components of the power-prior mixtures have the same mean.
+#' In that case the expected Fisher information can be integrated directly as
+#' `integral p(x) score(x)^2 dx`. This avoids constructing three panels per
+#' component and turns the ELIR calculation for a thousand-component
+#' quadrature mixture from quadratic work into a single adaptive integral.
+#'
+#' @param weights Component weights.
+#' @param sds Component standard deviations.
+#' @return Expected Fisher information for unit reference scale.
+#' @keywords internal
+centered_normal_mixture_information <- function(weights, sds) {
+  weights <- weights / sum(weights)
+  log_weights <- log(weights)
+  precisions <- 1 / sds^2
+
+  integrand <- function(x) {
+    vapply(x, function(value) {
+      log_density <- log_weights + stats::dnorm(
+        value,
+        mean = 0,
+        sd = sds,
+        log = TRUE
+      )
+      largest <- max(log_density)
+
+      if (!is.finite(largest)) {
+        return(0)
+      }
+
+      scaled_density <- exp(log_density - largest)
+      normaliser <- sum(scaled_density)
+      density <- exp(largest) * normaliser
+      score <- value * sum(scaled_density * precisions) / normaliser
+
+      density * score^2
+    }, numeric(1))
+  }
+
+  2 * stats::integrate(
+    integrand,
+    lower = 0,
+    upper = Inf,
+    rel.tol = 1e-8,
+    subdivisions = 500L
+  )$value
 }
 
 #' Density times Fisher information of a normal mixture at a grid of points

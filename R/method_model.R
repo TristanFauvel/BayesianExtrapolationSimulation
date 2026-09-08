@@ -1839,7 +1839,8 @@ Model_RBesT <- R6::R6Class(
         confidence_level = confidence_level,
         null_space = null_space,
         decision_rule = "credible_interval",
-        posterior_parameters = self$vectorised_posterior_parameters(posterior)
+        posterior_parameters = self$vectorised_posterior_parameters(posterior),
+        posterior = posterior
       )
     }
   )

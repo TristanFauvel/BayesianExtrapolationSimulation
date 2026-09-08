@@ -205,6 +205,23 @@ test_that("normal_mixture_elir_ess scales with the square of the reference scale
   expect_equal(at_three, 9 * at_one)
 })
 
+test_that("centred scale-mixture ELIR shortcut matches RBesT", {
+  weights <- c(0.15, 0.35, 0.5)
+  means <- rep(0.4, 3)
+  sds <- c(0.03, 0.4, 20)
+  sigma <- 2.3
+
+  actual <- normal_mixture_elir_ess(weights, means, sds, sigma)
+  mixture <- RBesT::mixnorm(
+    narrow = c(weights[1], means[1], sds[1]),
+    middle = c(weights[2], means[2], sds[2]),
+    wide = c(weights[3], means[3], sds[3])
+  )
+  expected <- RBesT::ess(mixture, method = "elir", sigma = sigma)
+
+  expect_equal(actual, expected, tolerance = 1e-6)
+})
+
 test_that("normal_mixture_posterior accepts a different prior for each replicate", {
   # Empirical Bayes methods re-derive the prior from each replicate, so the
   # prior arrives as one row per replicate rather than as a shared vector.
@@ -235,4 +252,59 @@ test_that("normal_mixture_posterior accepts a different prior for each replicate
     expect_equal(posterior$means[r, ], as.numeric(expected[2, ]))
     expect_equal(posterior$sds[r, ], as.numeric(expected[3, ]))
   }
+})
+
+test_that("a shared prior gives the same posterior as one repeated per replicate", {
+  weights <- c(0.15, 0.35, 0.5)
+  means <- c(0.4, 0.4, 0.4)
+  sds <- c(0.05, 0.6, 4.0)
+
+  set.seed(4)
+  estimates <- rnorm(25, 0.5, 0.2)
+  standard_errors <- runif(25, 0.05, 0.4)
+
+  shared <- normal_mixture_posterior(
+    weights = weights, means = means, sds = sds,
+    estimate = estimates, standard_error = standard_errors
+  )
+
+  # Handing the same prior over as one row per replicate takes the matrix
+  # branch instead, which is the branch RBesT is checked against above. The
+  # shared branch exists only to keep three constant copies of the prior out of
+  # memory, so it has to agree with it to the last bit that matters.
+  per_replicate <- normal_mixture_posterior(
+    weights = recycle_prior_component(weights, length(estimates)),
+    means = recycle_prior_component(means, length(estimates)),
+    sds = recycle_prior_component(sds, length(estimates)),
+    estimate = estimates, standard_error = standard_errors
+  )
+
+  expect_equal(shared$weights, per_replicate$weights)
+  expect_equal(shared$means, per_replicate$means)
+  expect_equal(shared$sds, per_replicate$sds)
+})
+
+
+test_that("a shared prior is broadcast against a single standard error", {
+  weights <- c(0.3, 0.7)
+  means <- c(0.2, 0.2)
+  sds <- c(0.1, 1.5)
+  estimates <- c(0.1, 0.35, 0.6)
+
+  # A scalar standard error used to reach the arithmetic by recycling; the
+  # shared branch broadcasts explicitly, so it has to be expanded first.
+  posterior <- normal_mixture_posterior(
+    weights = weights, means = means, sds = sds,
+    estimate = estimates, standard_error = 0.25
+  )
+
+  expect_equal(dim(posterior$weights), c(3L, 2L))
+  expect_equal(rowSums(posterior$weights), rep(1, 3))
+  expect_equal(
+    posterior$sds,
+    normal_mixture_posterior(
+      weights = weights, means = means, sds = sds,
+      estimate = estimates, standard_error = rep(0.25, 3)
+    )$sds
+  )
 })
