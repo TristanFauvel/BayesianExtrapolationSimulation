@@ -275,11 +275,9 @@ compute_freq_power_pooling <- function(alpha,
         pooled_standard_error_2 <- 1 / (1 / source_data$standard_error ^ 2 + 1 / target_treatment_effect_standard_error ^
                                           2)
 
-        pooled_variance <- pooled_standard_error_2 * (
-          target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
-        )
+        pooled_sample_size <- target_data$sample_size_per_arm + source_data$equivalent_source_sample_size_per_arm
 
-        effect_size <- (pooled_treatment_effect - theta_0) / sqrt(pooled_variance)
+        pooled_variance <- pooled_standard_error_2 * pooled_sample_size
 
         if (frequentist_test == 't-test'){
           if (null_space == "left"){
@@ -292,8 +290,8 @@ compute_freq_power_pooling <- function(alpha,
             mean.x = pooled_treatment_effect,
             mu = theta_0,
             alternative = alternative,
-            s.x = target_data$sample$standard_deviation,
-            n.x = target_data$sample$sample_size_per_arm,
+            s.x = sqrt(pooled_variance),
+            n.x = pooled_sample_size
           )
         } else {
           stop("Only implemented for a t-test.")
