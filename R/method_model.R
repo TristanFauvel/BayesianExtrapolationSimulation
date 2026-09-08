@@ -412,12 +412,6 @@ Model <- R6::R6Class(
         } else {
           return(percentile_97.5 < theta_0)
         }
-      } else if (!is.null(self$posterior_summary)) {
-        if (null_space == "left") {
-          return(self$posterior_summary["cri95L"] > theta_0)
-        } else {
-          return(self$posterior_summary["cri95U"] < theta_0)
-        }
       } else {
         if (null_space == "left") {
           return(1 - self$posterior_cdf(theta_0) > critical_value)
@@ -1449,7 +1443,6 @@ ConjugateGaussian <- R6::R6Class(
         theta_0 = theta_0,
         confidence_level = confidence_level,
         null_space = null_space,
-        decision_rule = "posterior_cdf",
         posterior_parameters = self$vectorised_posterior_parameters(prior_variance)
       )
     },
@@ -1838,7 +1831,6 @@ Model_RBesT <- R6::R6Class(
         theta_0 = theta_0,
         confidence_level = confidence_level,
         null_space = null_space,
-        decision_rule = "credible_interval",
         posterior_parameters = self$vectorised_posterior_parameters(posterior),
         posterior = posterior
       )

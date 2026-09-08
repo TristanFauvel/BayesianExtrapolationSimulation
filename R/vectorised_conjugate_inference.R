@@ -18,10 +18,6 @@
 #' @param theta_0 Null hypothesis value.
 #' @param confidence_level Credible interval level.
 #' @param null_space Either `"left"` or `"right"`.
-#' @param decision_rule `"credible_interval"` to decide from the 95% credible
-#'   interval, as the RBesT-backed models do, or `"posterior_cdf"` to compare
-#'   the posterior tail probability against `critical_value`, as the plain
-#'   conjugate models do.
 #' @param posterior_parameters Optional data frame of per-replicate posterior
 #'   parameters to report.
 #' @param posterior Optional output from [normal_mixture_posterior()] when the
@@ -36,7 +32,6 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
                                                  to_return,
                                                  critical_value, theta_0,
                                                  confidence_level, null_space,
-                                                 decision_rule,
                                                  posterior_parameters = NULL,
                                                  posterior = NULL,
                                                  mcmc = FALSE) {
@@ -66,15 +61,12 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
 
   test_decisions <- if (requested("test_decision")) {
     as.numeric(vectorised_test_decision(
-      lower = credible_intervals[, 1],
-      upper = credible_intervals[, 2],
       posterior_weights = posterior$weights,
       posterior_means = posterior$means,
       posterior_sds = posterior$sds,
       critical_value = critical_value,
       theta_0 = theta_0,
-      null_space = null_space,
-      decision_rule = decision_rule
+      null_space = null_space
     ))
   } else {
     NULL
@@ -139,37 +131,21 @@ vectorised_normal_mixture_simulation <- function(weights, means, sds,
 
 #' Test decision for every replicate at once
 #'
-#' @description Reproduces the two decision rules already in use.
-#' [Model_RBesT] populates a posterior summary, so `Model$test_decision()` takes
-#' the credible interval branch and ignores `critical_value`; [ConjugateGaussian]
-#' leaves that summary empty and takes the posterior CDF branch, which honours
-#' it. The fast path keeps each family on its own rule rather than unifying
-#' them.
+#' @description Compares the posterior probability of the alternative
+#' hypothesis with `critical_value`, matching [Model$test_decision()].
 #'
-#' @param lower Lower credible interval bounds.
-#' @param upper Upper credible interval bounds.
 #' @param posterior_weights `n_replicates x n_components` posterior weights.
 #' @param posterior_means `n_replicates x n_components` posterior means.
 #' @param posterior_sds `n_replicates x n_components` posterior standard
 #'   deviations.
-#' @param critical_value Critical value for the posterior CDF rule.
+#' @param critical_value Critical posterior probability.
 #' @param theta_0 Null hypothesis value.
 #' @param null_space Either `"left"` or `"right"`.
-#' @param decision_rule `"credible_interval"` or `"posterior_cdf"`.
 #' @return Logical vector of decisions.
 #' @keywords internal
-vectorised_test_decision <- function(lower, upper,
-                                     posterior_weights, posterior_means,
+vectorised_test_decision <- function(posterior_weights, posterior_means,
                                      posterior_sds,
-                                     critical_value, theta_0, null_space,
-                                     decision_rule) {
-  if (decision_rule == "credible_interval") {
-    if (null_space == "left") {
-      return(lower > theta_0)
-    }
-    return(upper < theta_0)
-  }
-
+                                     critical_value, theta_0, null_space) {
   cdf_at_theta_0 <- rowSums(
     posterior_weights * stats::pnorm(theta_0, posterior_means, posterior_sds)
   )

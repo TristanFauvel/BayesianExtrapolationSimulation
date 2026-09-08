@@ -375,7 +375,6 @@ Gaussian_NPP <- R6::R6Class(
         theta_0 = theta_0,
         confidence_level = confidence_level,
         null_space = null_space,
-        decision_rule = "posterior_cdf",
         posterior_parameters = npp_power_parameter_summary(
           posterior$weights, prior$power_parameter
         ),
@@ -891,11 +890,6 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
                                               critical_value, theta_0,
                                               confidence_level, null_space) {
       if ("test_decision" %in% to_return) {
-        # MCMCModel sets mcmc = TRUE, so Model$test_decision() decides this
-        # model from the 2.5 and 97.5 percentiles and refuses a critical value
-        # those percentiles do not correspond to. The fast path decides from
-        # the same interval, so it has to refuse the same values rather than
-        # silently deciding at confidence_level instead.
         stopifnot(
           "Only the 97.5 and 2.5 percentiles are computed, so you can only consider " = critical_value == (1 + confidence_level) / 2
         )
@@ -928,7 +922,6 @@ GaussianCommensuratePowerPrior <- R6::R6Class(
         theta_0 = theta_0,
         confidence_level = confidence_level,
         null_space = null_space,
-        decision_rule = "credible_interval",
         posterior_parameters = posterior_parameters,
         posterior = posterior,
         # This model samples when it is not on the fast path, so zero-filled

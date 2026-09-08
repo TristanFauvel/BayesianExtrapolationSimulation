@@ -135,7 +135,6 @@ TestThenPool <- R6::R6Class(
         theta_0 = theta_0,
         confidence_level = confidence_level,
         null_space = null_space,
-        decision_rule = "posterior_cdf",
         posterior_parameters = data.frame(pool = pool)
       )
     },
