@@ -1,3 +1,125 @@
+#' Quadrature resolution demanded by a binomial arm
+#'
+#' The narrowest feature of a binomial likelihood in the rate is its standard
+#' error, except when every subject or no subject responded, where the
+#' likelihood is monotone and its scale is set by the sample size instead. An
+#' empty arm constrains nothing.
+#'
+#' @param n Arm size.
+#' @param successes Number of responders in the arm.
+#' @return The scale to resolve, or `Inf` for an empty arm.
+#' @keywords internal
+binomial_quadrature_scale <- function(n, successes) {
+  if (n <= 0) {
+    return(Inf)
+  }
+  rate <- successes / n
+  return(max(sqrt(rate * (1 - rate) / n), 1 / (n + 1)))
+}
+
+#' Posterior component weights of a truncated normal mixture under a two-arm
+#' binomial likelihood
+#'
+#' The robust mixture prior for a binary endpoint puts a normal mixture on the
+#' treatment effect, each component truncated to the range the control rate
+#' leaves it, and observes two binomial arms:
+#' \deqn{p_c \sim U(0, 1), \quad
+#'       \theta \mid p_c, k \sim N(\mu_k, \sigma_k^2) \text{ on } (-p_c, 1-p_c),}
+#' \deqn{y_c \sim Bin(n_c, p_c), \quad y_t \sim Bin(n_t, p_c + \theta).}
+#' This returns \eqn{P(k \mid y_c, y_t)}, the probability that the treatment
+#' effect came from each component, which is the posterior counterpart of the
+#' prior weight `w`.
+#'
+#' The truncation ties the two integrals together, so unlike the normal case
+#' there is no closed form and no separable marginal likelihood: the component
+#' marginal likelihood is the double integral
+#' \deqn{\int_0^1 Bin(y_c \mid n_c, p_c)
+#'       \frac{\int_0^1 Bin(y_t \mid n_t, p_t) N(p_t - p_c \mid \mu_k, \sigma_k^2) dp_t}
+#'            {\Phi(1 - p_c \mid \mu_k, \sigma_k^2) - \Phi(-p_c \mid \mu_k, \sigma_k^2)}
+#'       dp_c,}
+#' where substituting the treatment rate \eqn{p_t = p_c + \theta} for the
+#' treatment effect has put the inner integral on \eqn{(0, 1)} whatever the
+#' control rate is. Both integrals are taken by Simpson's rule on the same grid,
+#' which makes the inner one a discrete convolution: the normal density is
+#' evaluated once per grid offset rather than once per pair of nodes.
+#'
+#' Evaluating the prior density at the observed treatment effect estimate would
+#' be neither of the two integrals, and is not a component probability.
+#'
+#' @param weights Prior component weights of the mixture, summing to one.
+#' @param means Component means.
+#' @param sds Component standard deviations.
+#' @param n_control Size of the control arm.
+#' @param n_successes_control Number of responders in the control arm.
+#' @param n_treatment Size of the treatment arm.
+#' @param n_successes_treatment Number of responders in the treatment arm.
+#' @return The posterior component probabilities, in the order the components
+#'   were given. `NA` for every component when the data underflow the marginal
+#'   likelihood of all of them, which leaves the weights undefined rather than
+#'   zero.
+#' @keywords internal
+truncated_normal_mixture_binomial_weights <- function(weights, means, sds,
+                                                      n_control,
+                                                      n_successes_control,
+                                                      n_treatment,
+                                                      n_successes_treatment) {
+  if (length(weights) != length(means) || length(weights) != length(sds)) {
+    stop("The mixture components must be given as parallel vectors.",
+         call. = FALSE)
+  }
+
+  # Fine enough to resolve the narrowest thing on the grid, which is either a
+  # mixture component - for the robust mixture prior, the informative one - or
+  # one of the two binomial likelihoods.
+  scales <- c(
+    sds,
+    binomial_quadrature_scale(n_control, n_successes_control),
+    binomial_quadrature_scale(n_treatment, n_successes_treatment)
+  )
+  n_nodes <- min(max(2001, ceiling(40 / min(scales))), 8001)
+  if (n_nodes %% 2 == 0) {
+    n_nodes <- n_nodes + 1
+  }
+
+  nodes <- seq(0, 1, length.out = n_nodes)
+  spacing <- nodes[2] - nodes[1]
+  simpson_weights <- c(1, rep(c(4, 2), length.out = n_nodes - 2), 1)
+
+  control_likelihood <- stats::dbinom(n_successes_control, n_control, nodes)
+  treatment_likelihood <- stats::dbinom(n_successes_treatment, n_treatment, nodes)
+  weighted_treatment <- simpson_weights * treatment_likelihood
+
+  # Node j sits at offset (j - i) * spacing from node i, so the whole matrix of
+  # normal densities is read off a single vector of offsets.
+  offsets <- seq(-1, 1, length.out = 2 * n_nodes - 1)
+
+  marginal_likelihoods <- vapply(seq_along(weights), function(k) {
+    kernel <- stats::dnorm(offsets, means[k], sds[k])
+    inner <- vapply(seq_len(n_nodes), function(i) {
+      sum(weighted_treatment * kernel[(n_nodes - i + 1):(2 * n_nodes - i)])
+    }, numeric(1)) * spacing / 3
+
+    normalisers <- stats::pnorm(1 - nodes, means[k], sds[k]) -
+      stats::pnorm(-nodes, means[k], sds[k])
+
+    # Where the component has underflowed to no mass at all the inner integral
+    # has underflowed with it, so the node contributes nothing rather than a
+    # ratio of two zeros.
+    integrand <- control_likelihood * inner / normalisers
+    integrand[normalisers <= 0] <- 0
+
+    sum(simpson_weights * integrand) * spacing / 3
+  }, numeric(1))
+
+  unnormalised <- weights * marginal_likelihoods
+  total <- sum(unnormalised)
+  if (!is.finite(total) || total <= 0) {
+    return(rep(NA_real_, length(weights)))
+  }
+
+  return(unnormalised / total)
+}
+
 #' Calculate the variance of a mixture distribution
 #'
 #' This function computes the variance of a mixture of two distributions.
@@ -886,13 +1008,16 @@ TruncatedGaussianRMP <- R6::R6Class(
       real log_vague_normalizing_constant = log(vague_normalizing_constant);
       real log_info_normalizing_constant = log(info_normalizing_constant);
 
-      // robust mixture prior
+      // Robust mixture prior. w is the weight of the informative component,
+      // which is the convention the configurations, the vignettes and the
+      // Gaussian implementations all use, so it is the first branch of the
+      // mixture: log_mix(w, a, b) weights a by w and b by 1 - w.
 
       control_rate ~ uniform(0, 1);
 
       target += log_mix(w,
-                normal_lpdf(target_treatment_effect | vague_mean, vague_sd) - log_vague_normalizing_constant,
-                normal_lpdf(target_treatment_effect | info_mean, info_sd) - log_info_normalizing_constant);
+                normal_lpdf(target_treatment_effect | info_mean, info_sd) - log_info_normalizing_constant,
+                normal_lpdf(target_treatment_effect | vague_mean, vague_sd) - log_vague_normalizing_constant);
 
       n_successes_control ~ binomial(n_control, control_rate);
       n_successes_treatment ~ binomial(n_treatment, treatment_rate);
@@ -900,6 +1025,7 @@ TruncatedGaussianRMP <- R6::R6Class(
     "
 
       model_name <- "truncated_gaussian_rmp"
+      self$stan_model_code <- stan_model_code
       self$stan_model <- compile_stan_model(model_name, stan_model_code)
 
       self$w <- unlist(prior$method_parameters$prior_weight)
@@ -1047,31 +1173,34 @@ TruncatedGaussianRMP <- R6::R6Class(
 
     #' @description Inference
     #'
+    #' The reported prior weight is the posterior probability that the treatment
+    #' effect came from the informative component, which is what the models with
+    #' a normal summary measure report. It is taken over the same counts and the
+    #' same truncated mixture the Stan program was given, so the two describe one
+    #' model rather than an approximation of it: the prior density at the
+    #' observed estimate is not a component probability, and unlike the normal
+    #' case the truncation leaves no closed form to fall back on.
+    #'
     #' @param target_data Target data object
     #' @return Indicator whether inference succeeded or not
     inference = function(target_data) {
       fit_success <- super$inference(target_data)
 
-      lower <- -1 # Lower truncation point
-      upper <- 1 # Upper truncation point
+      data_list <- self$prepare_data(target_data)
 
-      prior_predictive_proba_vague <- truncnorm::dtruncnorm(
-        x = target_data$sample$treatment_effect_estimate,
-        a = lower,
-        b = upper,
-        mean = self$vague_prior_mean,
-        sd = sqrt(self$vague_prior_variance)
-      )
-
-      prior_predictive_proba_info <- truncnorm::dtruncnorm(
-        x = target_data$sample$treatment_effect_estimate,
-        a = lower,
-        b = upper,
-        mean = self$info_prior_mean,
-        sd = sqrt(self$info_prior_variance)
-      )
-
-      self$posterior_parameters$prior_weight <- self$w * prior_predictive_proba_vague / (self$w * prior_predictive_proba_vague + (1 - self$w) * prior_predictive_proba_info)
+      self$posterior_parameters$prior_weight <-
+        truncated_normal_mixture_binomial_weights(
+          weights = c(self$w, 1 - self$w),
+          means = c(self$info_prior_mean, self$vague_prior_mean),
+          sds = c(
+            sqrt(self$info_prior_variance),
+            sqrt(self$vague_prior_variance)
+          ),
+          n_control = data_list$n_control,
+          n_successes_control = data_list$n_successes_control,
+          n_treatment = data_list$n_treatment,
+          n_successes_treatment = data_list$n_successes_treatment
+        )[1]
 
       return(fit_success)
     },
