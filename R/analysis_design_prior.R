@@ -202,9 +202,12 @@ UnitInformationDesignPrior <- R6::R6Class(
         separate_model$inference(target_data)
 
         #  Convert the posterior to a mixture distribution and compute the prior ESS
-        separate_model$posterior_to_RBesT(target_data, simulation_config)
-
-        mixture_approximation <-  separate_model$RBesT_posterior
+        # The shape parameters are rescaled below, so this is the fit on the
+        # response rate scale rather than the one on the treatment effect scale.
+        mixture_approximation <- separate_model$posterior_beta_mixture(
+          target_data = target_data,
+          simulation_config = simulation_config
+        )
         ESS <- RBesT::ess(mixture_approximation, method = "moment")
 
         # Extract the weights, a and b parameters
