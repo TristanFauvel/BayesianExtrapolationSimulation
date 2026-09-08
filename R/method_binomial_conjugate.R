@@ -38,6 +38,12 @@ BinomialConjugate <- R6::R6Class(
     n_quadrature_nodes = 1024L,
     quadrature_control_rates = NULL,
 
+    # The posterior shape parameters are the observed counts incremented by one,
+    # and everything reported follows from them by quadrature. Nothing here is
+    # sampled, so two replicates that observed the same counts report the same
+    # results exactly, and one may stand in for the other.
+    deterministic_inference = TRUE,
+
     #' @description Initialize the BinomialConjugate object
     #' @param prior The prior object
     #' @param mcmc_config Unused, kept so that the model factory can build every
