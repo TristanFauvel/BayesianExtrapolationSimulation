@@ -65,17 +65,3 @@ test_that("test-then-pool declines the vectorised path unless both branches are 
   model$pooling <- structure(list(), class = c("BinomialPooling", "MCMCModel"))
   expect_null(do.call(model$vectorised_replicate_inference, arguments))
 })
-
-test_that("the elastic prior does not inherit the fixed-prior fast path", {
-  # It rescales self$prior_var inside empirical_bayes_update(), once per
-  # replicate and cumulatively, so a fast path reading the stored value would
-  # silently use the wrong prior.
-  for (generator in list(GaussianElasticPriorLogistic, GaussianElasticPriorStep)) {
-    # Both inherit ConjugateGaussian directly and override neither hook, so
-    # they pick up the declining default rather than StaticBorrowingGaussian's
-    # fixed prior.
-    expect_identical(generator$inherit, quote(ConjugateGaussian))
-    expect_null(generator$public_methods$vectorised_prior_variance)
-    expect_null(generator$public_methods$vectorised_replicate_inference)
-  }
-})

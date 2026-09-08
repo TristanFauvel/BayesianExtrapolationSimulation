@@ -167,14 +167,6 @@ Model <- R6::R6Class(
         } else if (case_study_config$summary_measure_likelihood == "binomial") {
           model <- GaussianCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config)
         }
-      } else if (method == "GaussianElasticPriorStep") {
-        if (case_study_config$summary_measure_likelihood == "normal") {
-          model <- GaussianElasticPriorStep$new(prior = prior)
-        }
-      } else if (method == "GaussianElasticPriorLogistic") {
-        if (case_study_config$summary_measure_likelihood == "normal") {
-          model <- GaussianElasticPriorLogistic$new(prior = prior)
-        }
       } else {
         stop("Method not implemented for this endpoint")
       }
@@ -1456,13 +1448,9 @@ ConjugateGaussian <- R6::R6Class(
 
     #' @description Prior variance for each replicate
     #'
-    #' Declines the vectorised path by default. Opting in is left to subclasses
-    #' because a subclass that re-derives its prior from each replicate, as the
-    #' elastic prior does when it rescales `prior_var` inside
-    #' `empirical_bayes_update()`, would otherwise inherit a fast path that
-    #' silently reads a stale value. Subclasses with a genuinely fixed prior
-    #' return it, and empirical Bayes subclasses return one variance per
-    #' replicate.
+    #' Declines the vectorised path by default. Subclasses with a genuinely
+    #' fixed prior return it, and empirical Bayes subclasses return one
+    #' variance per replicate.
     #'
     #' @param target_data Target study data.
     #' @param samples Data frame of generated replicates.

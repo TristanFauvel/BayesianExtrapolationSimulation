@@ -40,7 +40,6 @@ methods <- c(
   "test_then_pool_equivalence",
   "test_then_pool_difference",
   "p_value_based_PP",
-  "ElasticPrior",
   "commensurate_power_prior"
 )
 
