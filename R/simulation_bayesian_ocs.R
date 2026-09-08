@@ -138,6 +138,26 @@ bayesian_ocs_scenario_simulation <- function(scenario,
   return(combined_results)
 }
 
+#' Names of the Bayesian operating characteristics estimated by Monte Carlo
+#'
+#' @description Mirrors the values returned by
+#'   `Model$estimate_bayesian_operating_characteristics()`, so that scenarios
+#'   whose operating characteristics cannot be estimated can still be reported
+#'   with the same columns.
+#' @return A character vector of metric names.
+#' @noRd
+bayesian_ocs_metric_names <- function() {
+  c(
+    "average_tie",
+    "average_power",
+    "prior_proba_no_benefit",
+    "prepost_proba_FP",
+    "prepost_proba_TP",
+    "upper_bound_proba_FP",
+    "prior_proba_success"
+  )
+}
+
 #' Simulation Bayesian OCs
 #'
 #' @description This function estimates the Bayesian operating characteristics for the model in the scenario considered.
@@ -172,38 +192,48 @@ estimate_bayesian_ocs <- function(scenario,
                                   simulation_config,
                                   target_to_source_std_ratio,
                                   mcmc_config = NULL) {
-  design_prior <- DesignPrior$new()
+  if (design_prior_type == "analysis_prior" && isTRUE(model$empirical_bayes)) {
+    # The analysis prior of an empirical Bayes method is only defined once the
+    # target data have been observed, so it cannot be used as a design prior.
+    # Report the combination as missing, as the deterministic analysis in
+    # `compute_bayesian_ocs()` does, rather than aborting the whole run.
+    metric_names <- bayesian_ocs_metric_names()
+    bayesian_ocs <- stats::setNames(as.list(rep(NA_real_, length(metric_names))), metric_names)
+    computation_state$computation_time <- 0
+  } else {
+    design_prior <- DesignPrior$new()
 
-  design_prior <- design_prior$create(
-    design_prior_type = design_prior_type,
-    model = model,
-    source_data = source_data,
-    case_study_config = case_study_config,
-    simulation_config = simulation_config,
-    mcmc_config = mcmc_config,
-    case_study = scenario$case_study[[1]]
-  )
-  start_time <- Sys.time()
+    design_prior <- design_prior$create(
+      design_prior_type = design_prior_type,
+      model = model,
+      source_data = source_data,
+      case_study_config = case_study_config,
+      simulation_config = simulation_config,
+      mcmc_config = mcmc_config,
+      case_study = scenario$case_study[[1]]
+    )
+    start_time <- Sys.time()
 
-  bayesian_ocs <- model$estimate_bayesian_operating_characteristics(
-    design_prior = design_prior,
-    theta_0 = theta_0,
-    source_data = source_data,
-    n_replicates = n_replicates,
-    critical_value = critical_value,
-    confidence_level = simulation_config$confidence_level,
-    null_space = case_study_config$null_space,
-    n_samples_design_prior = simulation_config$n_samples_design_prior,
-    target_sample_size_per_arm = target_sample_size_per_arm,
-    case_study_config = case_study_config,
-    target_to_source_std_ratio = target_to_source_std_ratio,
-    simulation_config = simulation_config,
-    case_study = scenario$case_study[[1]],
-    method = scenario$method[[1]],
-    n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation
-  )
-  end_time <- Sys.time()
-  computation_state$computation_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
+    bayesian_ocs <- model$estimate_bayesian_operating_characteristics(
+      design_prior = design_prior,
+      theta_0 = theta_0,
+      source_data = source_data,
+      n_replicates = n_replicates,
+      critical_value = critical_value,
+      confidence_level = simulation_config$confidence_level,
+      null_space = case_study_config$null_space,
+      n_samples_design_prior = simulation_config$n_samples_design_prior,
+      target_sample_size_per_arm = target_sample_size_per_arm,
+      case_study_config = case_study_config,
+      target_to_source_std_ratio = target_to_source_std_ratio,
+      simulation_config = simulation_config,
+      case_study = scenario$case_study[[1]],
+      method = scenario$method[[1]],
+      n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation
+    )
+    end_time <- Sys.time()
+    computation_state$computation_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
+  }
 
   results_bayesian_ocs <- cbind(scenario,
                                 design_prior = design_prior_type,
