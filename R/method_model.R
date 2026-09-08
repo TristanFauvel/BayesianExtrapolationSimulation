@@ -728,25 +728,33 @@ Model <- R6::R6Class(
             }
 
             if (requested("mcmc_diagnostics") && self$mcmc) {
-              # If the target ESS is not reached, start the iteration again, increasing the chain length, unless it is already at the maximal value allowed, which is 3x the required ESS.
-              # If the target ESS is reached by a large factor, decrease the chain length and proceed to the next iteration.
-              factor <- self$mcmc_ess / self$mcmc_config$target_ess
-              if (1.1 < factor) {
-                # The target MCMC ESS is exceeded by more than 10%
-                # Decrease the chain lengths for the next replicates
-                self$mcmc_config$chain_length <- as.integer(1.1 * self$mcmc_config$chain_length / factor)
-              } else if (factor < 1) {
-                # The target MCMC ESS is not reached
-                # Increase the chain lengths and start the iteration again
-                new_length <- as.integer(1.1 * self$mcmc_config$chain_length / factor)
+              # A longer chain is the only lever this loop has, so it is tried
+              # whenever any diagnostic - not only ESS - has failed, unless the
+              # chain is already at the maximal length allowed. If every
+              # diagnostic passes and the target ESS is reached by a large
+              # factor, the chain length is decreased instead for the next
+              # replicates.
+              ess_factor <- self$mcmc_ess / self$mcmc_config$target_ess
+              divergence_rate <- self$n_divergences /
+                (self$mcmc_config$num_chains * self$mcmc_config$chain_length)
+              diagnostics_failed <- ess_factor < 1 ||
+                self$rhat > self$mcmc_config$rhat_threshold ||
+                divergence_rate > self$mcmc_config$max_divergence_rate
+
+              if (diagnostics_failed) {
+                new_length <- as.integer(1.1 * self$mcmc_config$chain_length / min(ess_factor, 1))
                 if (new_length > self$mcmc_config$max_chain_length) {
                   new_length <- self$mcmc_config$max_chain_length
                   retry <- FALSE
                 } else {
                   retry <- TRUE
+                  print(paste0("Restart iteration ", r))
                 }
                 self$mcmc_config$chain_length <- new_length
-                print(paste0("Restart iteration ", r))
+              } else if (1.1 < ess_factor) {
+                # The target MCMC ESS is exceeded by more than 10%
+                # Decrease the chain lengths for the next replicates
+                self$mcmc_config$chain_length <- as.integer(1.1 * self$mcmc_config$chain_length / ess_factor)
               }
 
               mcmc_ess[r] <- self$mcmc_ess
@@ -896,6 +904,25 @@ Model <- R6::R6Class(
       mcmc_ess_values <- results$mcmc_ess
       n_divergences_values <- results$n_divergences
 
+      # A fit that failed an MCMC diagnostic (large rhat, too many divergent
+      # transitions, or an ESS that is still short after the replicate loop
+      # exhausted its retries) has a posterior that cannot be trusted, so it is
+      # dropped here rather than left to quietly bias every reported average.
+      successful <- fit_success == "Success"
+      n_total_replicates <- length(fit_success)
+      n_successful_replicates <- sum(successful)
+      n_failed_replicates <- n_total_replicates - n_successful_replicates
+
+      test_decisions <- test_decisions[successful]
+      posterior_means <- posterior_means[successful]
+      posterior_medians <- posterior_medians[successful]
+      credible_intervals <- credible_intervals[successful, , drop = FALSE]
+      ess_moments <- ess_moments[successful]
+      ess_precisions <- ess_precisions[successful]
+      rhat_values <- rhat_values[successful]
+      mcmc_ess_values <- mcmc_ess_values[successful]
+      n_divergences_values <- n_divergences_values[successful]
+
       # Determine whether the true value of the target treatment effect lies within the credible interval (to compute the coverage)
       estimate_in_CrI <- (
         credible_intervals[, 1] <= target_treatment_effect &
@@ -904,7 +931,11 @@ Model <- R6::R6Class(
 
       coverage <- mean(estimate_in_CrI)
 
-      conf_int_coverage <- binom.test(sum(estimate_in_CrI), length(estimate_in_CrI), conf.level = confidence_level)$conf.int
+      conf_int_coverage <- if (n_successful_replicates > 0) {
+        binom.test(sum(estimate_in_CrI), length(estimate_in_CrI), conf.level = confidence_level)$conf.int
+      } else {
+        c(NA, NA)
+      }
 
       errors <- (posterior_means - target_treatment_effect)
       squared_errors <- errors ^ 2
@@ -937,29 +968,40 @@ Model <- R6::R6Class(
       credible_interval <- colMeans(credible_intervals)
 
       proba_success <- mean(test_decisions)
-      conf_int_proba_success <- binom.test(sum(test_decisions), length(test_decisions), conf.level = confidence_level)$conf.int
-      mcse_proba_success <- sqrt(proba_success * (1 - proba_success) / n_replicates)
+      conf_int_proba_success <- if (n_successful_replicates > 0) {
+        binom.test(sum(test_decisions), length(test_decisions), conf.level = confidence_level)$conf.int
+      } else {
+        c(NA, NA)
+      }
+      mcse_proba_success <- sqrt(proba_success * (1 - proba_success) / n_successful_replicates)
 
       ess_moment <- mean(ess_moments)
 
       ess_precision <- mean(ess_precisions)
 
+      # The ELIR reads a mixture fitted to prior draws, not the target fit, so
+      # it is unaffected by whether the target fit's diagnostics passed.
       results$ess_elir <- na.omit(results$ess_elir)
       ess_elir  <- mean(results$ess_elir)
 
 
-      if (all(fit_success == "Success")) {
+      if (n_failed_replicates == 0) {
         warning <- NA
       } else {
         # Find the first element that is not "Success"
-        warning <- fit_success[fit_success != "Success"][1]
+        first_failure <- fit_success[fit_success != "Success"][1]
+        warning <- paste0(
+          n_failed_replicates, " of ", n_total_replicates,
+          " replicates failed MCMC diagnostics and were excluded from the ",
+          "reported operating characteristics (first: ", first_failure, ")"
+        )
       }
 
       rhat <- mean(rhat_values)
       mcmc_ess <- mean(mcmc_ess_values)
       n_divergences <- mean(n_divergences_values)
 
-      if (n_replicates >= 1000){
+      if (n_successful_replicates >= 1000){
         conf_int_precision <-  Hmisc::smean.cl.normal(half_widths, conf.int = confidence_level)[2:3]
         conf_int_ess_moment <- Hmisc::smean.cl.normal(ess_moments, conf.int = confidence_level)[2:3]
         conf_int_ess_precision <- Hmisc::smean.cl.normal(ess_precisions, conf.int = confidence_level)[2:3]
