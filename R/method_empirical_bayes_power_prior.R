@@ -569,7 +569,15 @@ PDCCPP <- R6::R6Class(
         target_data_sampling_variance = target_data_sampling_variance,
         source_data_sampling_variance = source_data_sampling_variance,
         tolerance = self$parameters$tolerance,
-        theta_0 = self$parameters$theta_0
+        # hypothesis_space_transformation() has already translated the
+        # estimates so that the boundary of the null hypothesis space sits
+        # at 0. theta_0 here is the mean of the target estimate's sampling
+        # distribution under the null, expressed on that same translated
+        # scale, so it is 0 rather than the original boundary. Passing the
+        # original integrated the type I error at a point the calibrated
+        # decision rule is not centred on, which every case study hides by
+        # setting theta_0 = 0.
+        theta_0 = 0
       )
 
       calibration_parameter <- as.numeric(calibration[1, 2])
