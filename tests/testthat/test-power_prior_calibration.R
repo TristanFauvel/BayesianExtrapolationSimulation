@@ -141,9 +141,12 @@ test_that("findCalibrationParameter returns the value that attains the desired t
   expect_equal(attained, desired_tie, tolerance = 1e-3)
 })
 
-test_that("findCalibrationParameter caps the calibration parameter when borrowing is already safe", {
-  # A source estimate far below theta_0 makes full borrowing conservative, so
-  # the search short-circuits and returns the cap rather than searching.
+test_that("findCalibrationParameter falls back to a cut-off of 1 below the reference's precondition", {
+  # Nikolakopoulos et al (2018) require the source estimate to exceed
+  # min_prior_mean, equivalently maxZ_1_m_c2 > 0, and their script fails below
+  # it. A source estimate this far below theta_0 breaks that precondition, so
+  # there is no calibrated answer to give and we fall back to the cut-off
+  # Gaussian_Gravestock_EBPP fixes. See test-pdccpp_admissible_cutoff.R.
   calibration <- findCalibrationParameter(
     source_sample_size_per_arm = 200,
     target_sample_size_per_arm = 50,
@@ -158,10 +161,13 @@ test_that("findCalibrationParameter caps the calibration parameter when borrowin
   calibration_parameter <- as.numeric(calibration[1, 2])
   maximum <- as.numeric(calibration[3, 2])
 
-  # The cap is returned as-is. It is not clamped to [0, 1] here: with a source
-  # estimate this far below theta_0 the cap is large and negative, and it is
-  # PDCCPP$power_parameter_estimation that rejects out-of-range values.
-  expect_equal(calibration_parameter, min(maximum, 1))
+  expect_equal(calibration_parameter, 1)
+
+  # The value it used to return instead. Inside the reference's domain this is
+  # the cut-off at which the type I error reaches that of full borrowing, and
+  # returning it means "borrow fully". A source estimate this far below theta_0
+  # puts it far below zero, where it means the opposite: discount everything.
+  expect_lt(maximum, 0)
 })
 
 test_that("findCalibrationParameter is deterministic and does not consume the random stream", {

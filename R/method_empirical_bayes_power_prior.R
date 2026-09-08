@@ -72,9 +72,27 @@ findCalibrationParameter <- function(n_iter = 1e6,
     )
   }
 
-  upper_limit <- min(maxZ_1_m_c2, 1)
+  # Nikolakopoulos et al (2018) require the source estimate to exceed
+  # min_prior_mean -- "prior mean has to be larger than this for calculations to
+  # hold" -- and separately that it exceed the full-borrowing critical value, so
+  # that power exceeds 50%. Those two are the same inequality rearranged, and
+  # both are exactly maxZ_1_m_c2 > 0. The reference script produces NaN and
+  # fails below it, so it defines no behaviour there.
+  #
+  # hypothesis_space_transformation() can put us below it, because a right null
+  # space negates the source estimate. maxZ_1_m_c2 was then negative, and it
+  # bounds the search and is returned outright when full borrowing is already
+  # safe: the bisection interval was inverted, and a negative cut-off -- one
+  # that discounts every estimate rather than none -- reached
+  # attained_type_I_error(), which rejects it. Below the precondition the source
+  # estimate sits under the full-borrowing critical value, so borrowing is
+  # protective rather than anti-conservative and nothing needs discounting on
+  # its account; we fall back to the cut-off Gaussian_Gravestock_EBPP fixes.
+  widest_cutoff <- if (maxZ_1_m_c2 > 0) maxZ_1_m_c2 else 1
+
+  upper_limit <- min(widest_cutoff, 1)
   lower_limit <- 0
-  Z_1_m_c2 <- min(maxZ_1_m_c2, 1) # Z_1-c/2 : as defined in the manuscript, calibration parameter for type I error control
+  Z_1_m_c2 <- min(widest_cutoff, 1) # Z_1-c/2 : as defined in the manuscript, calibration parameter for type I error control
   # Type I error of full borrowing: equation (5) of Nikolakopoulos et al (2018),
   #   Phi((sigma * sqrt(n0 + n1) * z_{1-eta} + n0 * mu_0) / (sqrt(n1) * sigma)).
   # Named because the search below compares against it in two places, and the
@@ -87,7 +105,11 @@ findCalibrationParameter <- function(n_iter = 1e6,
   t1 <- ex.t1 <- full_borrowing_type_I_error
   t2 <- 0
   if (t1 < desired_tie) {
-    Z_1_m_c2 <- maxZ_1_m_c2
+    # Full borrowing already attains the desired error, so borrow fully: the
+    # cut-off at which the type I error reaches that of full borrowing. The
+    # reference returns it uncapped, and it can exceed one predictive standard
+    # deviation.
+    Z_1_m_c2 <- widest_cutoff
   } else {
     while ((abs(t1 - t2) > tolerance) &
            (abs(upper_limit - lower_limit) > tolerance)) {
@@ -583,8 +605,15 @@ PDCCPP <- R6::R6Class(
       calibration_parameter <- as.numeric(calibration[1, 2])
       assertions::assert_number(calibration_parameter)
 
-      if (calibration_parameter > 1 || calibration_parameter < 0) {
-        stop("Calibration parameter must be in [0,1].")
+      # The calibration parameter is z_{1-c/2}, a number of predictive standard
+      # deviations, not a probability: only positivity is required of it, and
+      # the borrowing weight below is undefined without that. The upper bound of
+      # 1 that used to stand here rejected the answer Nikolakopoulos et al (2018)
+      # return whenever full borrowing is already safe and the cut-off at which
+      # the type I error reaches it is wider than one predictive standard
+      # deviation.
+      if (!is.finite(calibration_parameter) || calibration_parameter <= 0) {
+        stop("Calibration parameter must be positive.")
       }
       # Same prior sample size the calibration used, so that the cut-off is
       # measured against the same predictive standard deviation.
