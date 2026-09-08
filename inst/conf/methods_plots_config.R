@@ -40,11 +40,6 @@ methods_labels <<- list(
     short_name = "EB_PP",
     label = "EBPP"
   ),
-  elastic_prior = list(
-    full_name = "Elastic prior",
-    short_name = "EP",
-    label = "Elastic Prior"
-  ),
   p_value_based_PP = list(
     full_name = "p-value-based Power Prior",
     short_name = "pPP",

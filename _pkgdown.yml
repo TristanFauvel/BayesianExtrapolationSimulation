@@ -79,8 +79,6 @@ reference:
   - Gaussian_NPP
   - BinomialCPP
   - GaussianCommensuratePowerPrior
-  - GaussianElasticPriorLogistic
-  - GaussianElasticPriorStep
   - GaussianRMP_RBesT
   - Model_RBesT
   - PoolGaussian_RBesT
