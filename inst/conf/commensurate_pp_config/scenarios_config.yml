@@ -7,7 +7,7 @@ sample_size_factors:
     - 4
 target_to_source_std_ratio_range:
     - 1
-parallelization: False
+parallelization: TRUE
 case_studies:
     - belimumab
     - botox

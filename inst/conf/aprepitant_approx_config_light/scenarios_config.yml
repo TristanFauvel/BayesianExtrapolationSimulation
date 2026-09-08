@@ -6,7 +6,7 @@ target_to_source_std_ratio_range:
     - 1
 sample_size_factors:
         - 4
-parallelization: True
+parallelization: TRUE
 case_studies:
     - aprepitant
 methods:

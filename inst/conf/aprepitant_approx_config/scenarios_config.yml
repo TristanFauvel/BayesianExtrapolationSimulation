@@ -11,7 +11,7 @@ sample_size_factors:
         - 2
         - 4
         - 6
-parallelization: True
+parallelization: TRUE
 case_studies:
     - aprepitant
 methods:

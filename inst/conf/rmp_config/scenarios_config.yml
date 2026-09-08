@@ -12,7 +12,7 @@ sample_size_factors:
 target_to_source_std_ratio_range:
     - 1
     - 2
-parallelization: True
+parallelization: TRUE
 case_studies:
     #- belimumab
     #- botox

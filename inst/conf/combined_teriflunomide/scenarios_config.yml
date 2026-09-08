@@ -1,6 +1,6 @@
 n_replicates: 10000
 ndrift: 30
-parallelization: FALSE
+parallelization: TRUE
 denominator_change_factor:
     - 0.5
     - 1
