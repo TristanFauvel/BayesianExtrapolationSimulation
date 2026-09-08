@@ -274,6 +274,24 @@ TestThenPool <- R6::R6Class(
       self$RBesT_prior_normix <- self$RBesT_prior
     },
 
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' The posterior is the one of the component the test selected, so the
+    #' effective sample sizes are that component's. Delegating rather than
+    #' inheriting also keeps whichever fast route the component has: the
+    #' binomial branch holds two conjugate models, which report both quantities
+    #' in closed form.
+    #'
+    #' @param target_data Target study data
+    #' @param ... Passed on to the selected component.
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, ...) {
+      if (self$pool) {
+        return(self$pooling$posterior_ess(target_data = target_data, ...))
+      }
+      return(self$separate$posterior_ess(target_data = target_data, ...))
+    },
+
     #' @description Convert the posterior distribution to RBesT format
     #' @param target_data Target study data
     #' @param simulation_config Simulation configuration

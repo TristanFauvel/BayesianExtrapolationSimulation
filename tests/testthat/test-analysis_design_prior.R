@@ -90,3 +90,33 @@ test_that("SourcePosteriorDesignPrior samples its binomial risk difference", {
   expect_equal(mean(samples), expected_mean, tolerance = 0.02)
   expect_equal(design_prior$cdf(1), 1, tolerance = 1e-6)
 })
+
+
+test_that("UnitInformationDesignPrior carries one patient's worth of information", {
+  # The binomial branch rescales the shape parameters of a Beta mixture fitted
+  # to the source posterior by that mixture's own effective sample size, so the
+  # result has to describe a single patient per arm. This pins the construction
+  # end to end, including that it is handed a fit on the response rate scale.
+  case_study_config <- yaml::read_yaml(
+    system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
+  )
+  mcmc_config <- yaml::read_yaml(
+    system.file("conf/combined_aprepitant/mcmc_config.yml", package = "RBExT")
+  )
+
+  set.seed(123)
+  design_prior <- UnitInformationDesignPrior$new(
+    source_data = ObservedSourceData$new(case_study_config),
+    case_study_config = case_study_config,
+    case_study = "aprepitant",
+    simulation_config = list(n_samples_mixture_approx = 1000),
+    mcmc_config = mcmc_config
+  )
+
+  expect_s3_class(design_prior$RBesT_model, "betaMix")
+  expect_equal(
+    as.numeric(RBesT::ess(design_prior$RBesT_model, method = "moment")),
+    1,
+    tolerance = 0.05
+  )
+})

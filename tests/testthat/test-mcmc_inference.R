@@ -278,3 +278,62 @@ test_that("a divergence rate outside the unit interval is rejected", {
                "max_divergence_rate")
   expect_no_error(StubMCMCModel$new(prior = list(), mcmc_config = bad(0)))
 })
+
+
+ess_stub_target_data <- function() {
+  list(
+    summary_measure_likelihood = "binomial",
+    sample_size_per_arm = 40,
+    sample = list(standard_deviation = 0.5)
+  )
+}
+
+
+test_that("posterior_ess takes the moment ESS from the posterior draw summary", {
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls)
+  target_data <- ess_stub_target_data()
+  model$inference(target_data = target_data)
+  expected <- summarise_posterior_draws(posterior_draws_fixture())
+
+  ess <- model$posterior_ess(
+    target_data = target_data,
+    simulation_config = list(n_samples_mixture_approx = 1000)
+  )
+
+  expect_equal(ess$moment, 0.5^2 / expected$sd^2 - 40)
+})
+
+
+test_that("posterior_ess takes the precision ESS from the posterior draw summary", {
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls)
+  target_data <- ess_stub_target_data()
+  model$inference(target_data = target_data)
+  expected <- summarise_posterior_draws(posterior_draws_fixture())
+  implied_sd <- ((expected$q97.5 - expected$q2.5) / 2) / stats::qnorm(0.975)
+
+  ess <- model$posterior_ess(
+    target_data = target_data,
+    simulation_config = list(n_samples_mixture_approx = 1000)
+  )
+
+  expect_equal(ess$precision, 0.5^2 / implied_sd^2 - 40)
+})
+
+
+test_that("posterior_ess does not resample the posterior it already has draws from", {
+  calls <- new.env(parent = emptyenv())
+  model <- fitted_stub_model(calls)
+  target_data <- ess_stub_target_data()
+  model$inference(target_data = target_data)
+
+  set.seed(1)
+  before <- .Random.seed
+  model$posterior_ess(
+    target_data = target_data,
+    simulation_config = list(n_samples_mixture_approx = 1000)
+  )
+
+  expect_identical(.Random.seed, before)
+})

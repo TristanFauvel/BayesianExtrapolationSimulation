@@ -30,6 +30,8 @@ Model <- R6::R6Class(
   "Model",
   public = list(
     empirical_bayes = FALSE,
+    deterministic_inference = FALSE,
+    prior_elir_unit_information = NULL,
     analytic_ocs = NULL,
     posterior_parameters = NULL,
     post_mean = NULL,
@@ -210,6 +212,61 @@ Model <- R6::R6Class(
     #'   [Model$simulation_for_given_treatment_effect()].
     vectorised_replicate_inference = function(...) {
       NULL
+    },
+
+    #' @description Scenario identity under which replicate analyses may be shared
+    #'
+    #' Two replicates may share an analysis only when everything the analysis
+    #' reads, apart from the observed data, is the same. That is what this
+    #' identifies. The drift is deliberately absent: it moves the sampling
+    #' distribution of the data rather than the posterior any particular data
+    #' set implies, so scenarios differing only in drift share this scope and
+    #' meet in the cache.
+    #'
+    #' Returning `NULL` means "do not cache", which is the default. Opting in is
+    #' left to subclasses because it is only sound for a model whose reported
+    #' results are a deterministic function of the data: a model that samples,
+    #' as the Stan backed ones and the empirical Bayes prior refits do, would
+    #' otherwise have one replicate's Monte Carlo error stand in for another's.
+    #'
+    #' @param target_data Target study data.
+    #' @param critical_value Critical value for hypothesis testing.
+    #' @param theta_0 Null hypothesis value.
+    #' @param confidence_level Confidence level for the credible interval.
+    #' @param null_space The null space for hypothesis testing.
+    #' @param n_samples_quantiles_estimation Number of samples used for quantiles.
+    #' @param simulation_config Configuration of simulation study.
+    #' @return A scope string, or `NULL` to analyse every replicate afresh.
+    inference_cache_scope = function(target_data,
+                                     critical_value,
+                                     theta_0,
+                                     confidence_level,
+                                     null_space,
+                                     n_samples_quantiles_estimation,
+                                     simulation_config) {
+      if (!isTRUE(self$deterministic_inference) || isTRUE(self$empirical_bayes)) {
+        # An empirical Bayes prior is derived from the replicate's own data by
+        # the inference a cache hit skips, so its ELIR would be read off a prior
+        # belonging to whichever replicate was analysed instead. The interlock
+        # is here rather than left to each subclass so that opting a model in
+        # cannot reach that case by accident.
+        return(NULL)
+      }
+
+      rlang::hash(inference_cache_identity(list(
+        model = class(self)[1],
+        prior = self$prior,
+        summary_measure_likelihood = target_data$summary_measure_likelihood,
+        sample_size_per_arm = target_data$sample_size_per_arm,
+        sample_size_control = target_data$sample_size_control,
+        sample_size_treatment = target_data$sample_size_treatment,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        n_samples_quantiles_estimation = n_samples_quantiles_estimation,
+        n_samples_mixture_approx = simulation_config$n_samples_mixture_approx
+      )))
     },
 
     #' @description Check the validity of the data
@@ -551,122 +608,186 @@ Model <- R6::R6Class(
         return(vectorised_results)
       }
 
+      # Replicates that generated the same data have the same analysis, and so
+      # do replicates of scenarios that differ only in their drift. The scope is
+      # what decides which of them are allowed to meet.
+      cache_scope <- self$inference_cache_scope(
+        target_data = target_data,
+        critical_value = critical_value,
+        theta_0 = theta_0,
+        confidence_level = confidence_level,
+        null_space = null_space,
+        n_samples_quantiles_estimation = n_samples_quantiles_estimation,
+        simulation_config = simulation_config
+      )
+
+      # The two mirror each other: whatever the loop wrote for one replicate is
+      # what a later replicate with the same data reads back.
+      collect_replicate <- function(r) {
+        list(
+          fit_success = if (requested("fit_success")) fit_success[r] else NULL,
+          posterior_mean = if (requested("posterior_mean")) posterior_means[r] else NULL,
+          posterior_median = if (requested("posterior_median")) posterior_medians[r] else NULL,
+          credible_interval = if (requested("credible_interval")) credible_intervals[r, ] else NULL,
+          test_decision = if (requested("test_decision")) test_decisions[r] else NULL,
+          posterior_parameters = if (requested("posterior_parameters")) posterior_parameters_list[[r]] else NULL,
+          ess_moment = if (requested("ess_moment")) ess_moments[r] else NULL,
+          ess_precision = if (requested("ess_precision")) ess_precisions[r] else NULL,
+          mcmc_ess = if (requested("mcmc_diagnostics")) mcmc_ess[r] else NULL,
+          rhat = if (requested("mcmc_diagnostics")) rhat[r] else NULL,
+          n_divergences = if (requested("mcmc_diagnostics")) n_divergences[r] else NULL
+        )
+      }
+
+      restore_replicate <- function(r, cached) {
+        if (requested("fit_success")) fit_success[r] <<- cached$fit_success
+        if (requested("posterior_mean")) posterior_means[r] <<- cached$posterior_mean
+        if (requested("posterior_median")) posterior_medians[r] <<- cached$posterior_median
+        if (requested("credible_interval")) credible_intervals[r, ] <<- cached$credible_interval
+        if (requested("test_decision")) test_decisions[r] <<- cached$test_decision
+        # Assigning NULL into a list element would drop it and shorten the list,
+        # so an absent set of parameters is left as the NULL it already is.
+        if (requested("posterior_parameters") && !is.null(cached$posterior_parameters)) {
+          posterior_parameters_list[[r]] <<- cached$posterior_parameters
+        }
+        if (requested("ess_moment")) ess_moments[r] <<- cached$ess_moment
+        if (requested("ess_precision")) ess_precisions[r] <<- cached$ess_precision
+        if (requested("mcmc_diagnostics")) {
+          mcmc_ess[r] <<- cached$mcmc_ess
+          rhat[r] <<- cached$rhat
+          n_divergences[r] <<- cached$n_divergences
+        }
+        invisible(NULL)
+      }
+
       for (r in 1:nrow(target_data_samples)) {
-        retry <- TRUE # Indicator as to whether to restart the iteration or not
-        while (retry) {
-          retry <- FALSE
-          start_time <- Sys.time()
-          # drop = FALSE keeps a single-column sample a data frame, so that
-          # downstream `$` access keeps working.
-          target_data$sample <- target_data_samples[r, , drop = FALSE]
+        # drop = FALSE keeps a single-column sample a data frame, so that
+        # downstream `$` access keeps working.
+        target_data$sample <- target_data_samples[r, , drop = FALSE]
 
-          # Fit the model
-          inference_status <- self$inference(target_data = target_data)
+        cache_key <- inference_cache_key(cache_scope, target_data$sample)
+        cached_replicate <- inference_cache_get(cache_key)
 
-          if (requested("fit_success")) {
-            fit_success[r] <- inference_status
-          }
+        if (is.null(cached_replicate)) {
+          retry <- TRUE # Indicator as to whether to restart the iteration or not
+          while (retry) {
+            retry <- FALSE
+            start_time <- Sys.time()
 
-          assertions::assert_number(self$post_mean)
+            # Fit the model
+            inference_status <- self$inference(target_data = target_data)
 
-          if (requested("posterior_mean")) {
-            posterior_means[r] <- self$post_mean
-          }
-
-          if (requested("posterior_median")) {
-            if (is.null(self$post_median)) {
-              posterior_medians[r] <- self$posterior_median(n_samples_quantiles_estimation)
-            } else {
-              posterior_medians[r] <- self$post_median
-            }
-          }
-
-          if (requested("credible_interval")) {
-            credible_intervals[r, ] <- self$credible_interval(level = confidence_level)
-          }
-
-          if (requested("test_decision")) {
-            test_decisions[r] <- self$test_decision(
-              critical_value = critical_value,
-              theta_0 = theta_0,
-              null_space = null_space,
-              confidence_level = confidence_level
-            )
-          }
-
-          if (requested("posterior_parameters") && !is.null(self$posterior_parameters)) {
-            posterior_parameters_list[[r]] <- data.frame(self$posterior_parameters)
-          }
-
-          if (requested("ess_moment") || requested("ess_precision")) {
-
-            self$posterior_to_RBesT(target_data = target_data, simulation_config = simulation_config)
-            if (requested("ess_moment")) {
-              ess_moments[r] <- prior_moment_ess(rbest_model = self$RBesT_posterior_normix,
-                                                 target_data = target_data)
+            if (requested("fit_success")) {
+              fit_success[r] <- inference_status
             }
 
-            if (requested("ess_precision")) {
-              ess_precisions[r] <- prior_precision_ess(rbest_model = self$RBesT_posterior_normix,
-                                                       target_data = target_data)
-            }
-          }
+            assertions::assert_number(self$post_mean)
 
-          if (requested("ess_elir")) {
-            if (r == 1 || self$empirical_bayes == TRUE){
-              # Only Empirical Bayes Methods have a prior that varies from on replicate to another
-              self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
+            if (requested("posterior_mean")) {
+              posterior_means[r] <- self$post_mean
             }
 
-            target_standard_deviation = target_data$sample$standard_deviation
-
-            RBesT::sigma(self$RBesT_prior) <- target_standard_deviation
-            RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation
-
-            ess_elir[r] <- prior_ess_elir(rbest_model = self$RBesT_prior_normix,
-                                          target_data = target_data)
-          }
-
-          if (requested("mcmc_diagnostics") && self$mcmc) {
-            # If the target ESS is not reached, start the iteration again, increasing the chain length, unless it is already at the maximal value allowed, which is 3x the required ESS.
-            # If the target ESS is reached by a large factor, decrease the chain length and proceed to the next iteration.
-            factor <- self$mcmc_ess / self$mcmc_config$target_ess
-            if (1.1 < factor) {
-              # The target MCMC ESS is exceeded by more than 10%
-              # Decrease the chain lengths for the next replicates
-              self$mcmc_config$chain_length <- as.integer(1.1 * self$mcmc_config$chain_length / factor)
-            } else if (factor < 1) {
-              # The target MCMC ESS is not reached
-              # Increase the chain lengths and start the iteration again
-              new_length <- as.integer(1.1 * self$mcmc_config$chain_length / factor)
-              if (new_length > self$mcmc_config$max_chain_length) {
-                new_length <- self$mcmc_config$max_chain_length
-                retry <- FALSE
+            if (requested("posterior_median")) {
+              if (is.null(self$post_median)) {
+                posterior_medians[r] <- self$posterior_median(n_samples_quantiles_estimation)
               } else {
-                retry <- TRUE
+                posterior_medians[r] <- self$post_median
               }
-              self$mcmc_config$chain_length <- new_length
-              print(paste0("Restart iteration ", r))
             }
 
-            mcmc_ess[r] <- self$mcmc_ess
-            rhat[r] <- self$rhat
-            n_divergences[r] <- self$n_divergences
+            if (requested("credible_interval")) {
+              credible_intervals[r, ] <- self$credible_interval(level = confidence_level)
+            }
+
+            if (requested("test_decision")) {
+              test_decisions[r] <- self$test_decision(
+                critical_value = critical_value,
+                theta_0 = theta_0,
+                null_space = null_space,
+                confidence_level = confidence_level
+              )
+            }
+
+            if (requested("posterior_parameters") && !is.null(self$posterior_parameters)) {
+              posterior_parameters_list[[r]] <- data.frame(self$posterior_parameters)
+            }
+
+            if (requested("ess_moment") || requested("ess_precision")) {
+              posterior_ess <- self$posterior_ess(
+                target_data = target_data,
+                simulation_config = simulation_config
+              )
+
+              if (requested("ess_moment")) {
+                ess_moments[r] <- posterior_ess$moment
+              }
+
+              if (requested("ess_precision")) {
+                ess_precisions[r] <- posterior_ess$precision
+              }
+            }
+
+            if (requested("mcmc_diagnostics") && self$mcmc) {
+              # If the target ESS is not reached, start the iteration again, increasing the chain length, unless it is already at the maximal value allowed, which is 3x the required ESS.
+              # If the target ESS is reached by a large factor, decrease the chain length and proceed to the next iteration.
+              factor <- self$mcmc_ess / self$mcmc_config$target_ess
+              if (1.1 < factor) {
+                # The target MCMC ESS is exceeded by more than 10%
+                # Decrease the chain lengths for the next replicates
+                self$mcmc_config$chain_length <- as.integer(1.1 * self$mcmc_config$chain_length / factor)
+              } else if (factor < 1) {
+                # The target MCMC ESS is not reached
+                # Increase the chain lengths and start the iteration again
+                new_length <- as.integer(1.1 * self$mcmc_config$chain_length / factor)
+                if (new_length > self$mcmc_config$max_chain_length) {
+                  new_length <- self$mcmc_config$max_chain_length
+                  retry <- FALSE
+                } else {
+                  retry <- TRUE
+                }
+                self$mcmc_config$chain_length <- new_length
+                print(paste0("Restart iteration ", r))
+              }
+
+              mcmc_ess[r] <- self$mcmc_ess
+              rhat[r] <- self$rhat
+              n_divergences[r] <- self$n_divergences
+            }
+
+            end_time <- Sys.time()
+            time_taken <- difftime(end_time, start_time, units = "s")
+
+            if (verbose == 1) {
+              print(paste0("Duration of iteration ", r, " is ", time_taken, " seconds."))
+            }
+
+            # Avoid scanning the draws directory after every replicate. Files cannot
+            # become eligible for age-based cleanup more often than once per minute.
+            if (!is.null(next_stan_cleanup) && Sys.time() >= next_stan_cleanup) {
+              cleanup_stan_draws()
+              next_stan_cleanup <- Sys.time() + 60
+            }
           }
 
-          end_time <- Sys.time()
-          time_taken <- difftime(end_time, start_time, units = "s")
+          # Stored after the retry loop has settled, so that what is kept is the
+          # fit the replicate actually reported.
+          inference_cache_set(cache_key, collect_replicate(r))
+        } else {
+          restore_replicate(r, cached_replicate)
+        }
 
-          if (verbose == 1) {
-            print(paste0("Duration of iteration ", r, " is ", time_taken, " seconds."))
-          }
-
-          # Avoid scanning the draws directory after every replicate. Files cannot
-          # become eligible for age-based cleanup more often than once per minute.
-          if (!is.null(next_stan_cleanup) && Sys.time() >= next_stan_cleanup) {
-            cleanup_stan_draws()
-            next_stan_cleanup <- Sys.time() + 60
-          }
+        # The ELIR reads a mixture fitted to draws from the prior, so unlike
+        # everything above it is not a function of the observed data alone: which
+        # fit it happens to read carries about ten times the Monte Carlo error of
+        # the replicate to replicate variation it is meant to show. It is
+        # therefore evaluated for every replicate and never served from the
+        # cache, which keeps the reported column identical either way and costs
+        # a small fraction of what the cache saves.
+        if (requested("ess_elir")) {
+          ess_elir[r] <- self$prior_elir_ess(
+            target_data = target_data,
+            simulation_config = simulation_config
+          )
         }
       }
 
@@ -1059,45 +1180,97 @@ Model <- R6::R6Class(
         )
       }
 
-      prior_samples <- self$sample_prior(n_samples = n_samples_mixture_approx) # Samples to be fitted by a mixture distribution
-
-      if (self$summary_measure_likelihood == "normal") {
-        self$RBesT_prior_normix <- RBesT::automixfit(
-          prior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-        prior_mixture_approximation <- self$RBesT_prior_normix
-      } else if (self$summary_measure_likelihood == "binomial") {
-        transformed_samples <- (prior_samples + 1) / 2 # Transformed samples in the [0, 1] range
-        prior_mixture_approximation <- RBesT::automixfit(
-          transformed_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("beta")
-        )
-
-        self$RBesT_prior_normix <- RBesT::automixfit(
-          prior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-      } else {
+      if (!(self$summary_measure_likelihood %in% c("normal", "binomial"))) {
         stop("Distribution not supported")
       }
-      # if (!(is.null(target_standard_deviation))) {
-      #   RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation # Set the reference scale
-      #   RBesT::sigma(prior_mixture_approximation) <- target_standard_deviation # Set the reference scale
-      # }
-      self$RBesT_prior <- prior_mixture_approximation
+
+      prior_samples <- self$sample_prior(n_samples = n_samples_mixture_approx) # Samples to be fitted by a mixture distribution
+
+      # The prior is read on the treatment effect scale, whichever endpoint it
+      # describes: the ELIR effective sample size compares its curvature against
+      # a reference scale in those units. A Beta mixture would live on the rate
+      # scale instead, so only the normal one is fitted here.
+      self$RBesT_prior_normix <- RBesT::automixfit(
+        prior_samples,
+        Nc = self$n_components_mixture_approx,
+        k = self$aic_penalty_parameter_mixture_approx,
+        thresh = -Inf,
+        verbose = FALSE,
+        type = c("norm")
+      )
+
+      self$RBesT_prior <- self$RBesT_prior_normix
+    },
+
+    #' @description ELIR effective sample size of the current prior
+    #'
+    #' The default route approximates the prior by a mixture fitted to samples
+    #' drawn from it, and refits between replicates only when the prior is data
+    #' dependent. Subclasses whose prior has a closed form override this.
+    #'
+    #' @param target_data Target study data, whose sampling standard deviation
+    #'   is the reference scale.
+    #' @param simulation_config Configuration of simulation study
+    #' @return The ELIR effective sample size.
+    prior_elir_ess = function(target_data, simulation_config) {
+      # Only empirical Bayes methods have a prior that varies from one replicate
+      # to another, so otherwise the mixture fitted for the first replicate
+      # still describes the prior.
+      if (self$empirical_bayes || is.null(self$RBesT_prior_normix)) {
+        self$prior_to_RBesT(simulation_config$n_samples_mixture_approx)
+        self$prior_elir_unit_information <- NULL
+      }
+
+      target_standard_deviation <- target_data$sample$standard_deviation
+
+      RBesT::sigma(self$RBesT_prior) <- target_standard_deviation
+      RBesT::sigma(self$RBesT_prior_normix) <- target_standard_deviation
+
+      # The ELIR is the reference variance times an expectation taken under the
+      # prior, and that expectation does not involve the reference scale. Taking
+      # the integral once and rescaling it is exact to the last bit, and the
+      # integral is the whole per replicate cost of this quantity.
+      if (is.null(self$prior_elir_unit_information)) {
+        unit_scale_mixture <- self$RBesT_prior_normix
+        RBesT::sigma(unit_scale_mixture) <- 1
+
+        self$prior_elir_unit_information <- prior_ess_elir(
+          rbest_model = unit_scale_mixture,
+          target_data = target_data
+        )
+      }
+
+      return(self$prior_elir_unit_information * target_standard_deviation^2)
+    },
+
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' Returns the moment-based and precision-based effective sample sizes the
+    #' simulation reports per replicate. The default route approximates the
+    #' posterior by a mixture fitted to samples drawn from it, which is the only
+    #' option when neither the posterior summary nor draws from it are
+    #' available. Subclasses that know their posterior standard deviation and
+    #' credible interval override this and evaluate the definitions directly.
+    #'
+    #' @param target_data Target study data
+    #' @param simulation_config Configuration of simulation study
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, simulation_config) {
+      self$posterior_to_RBesT(
+        target_data = target_data,
+        simulation_config = simulation_config
+      )
+
+      return(list(
+        moment = prior_moment_ess(
+          rbest_model = self$RBesT_posterior_normix,
+          target_data = target_data
+        ),
+        precision = prior_precision_ess(
+          rbest_model = self$RBesT_posterior_normix,
+          target_data = target_data
+        )
+      ))
     },
 
     #' @description Convert the posterior distribution to RBesT format
@@ -1114,51 +1287,75 @@ Model <- R6::R6Class(
         )
       }
 
-      posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx) # Samples to be fitted by a mixture
-
-      if (self$summary_measure_likelihood == "normal") {
-        posterior_mixture_approximation <- RBesT::automixfit(
-          posterior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-
-        RBesT::sigma(posterior_mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
-
-        self$RBesT_posterior_normix <- posterior_mixture_approximation
-
-      } else if (self$summary_measure_likelihood == "binomial") {
-        transformed_samples <- (posterior_samples + 1) / 2 # Transformed samples in the [0, 1] range
-        # The posterior approximation with a mixture of Beta distributions is based on the non-transformed samples.
-        posterior_mixture_approximation <- RBesT::automixfit(
-          transformed_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("beta")
-        )
-
-        RBesT::sigma(posterior_mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
-
-        # The posterior approximation with a mixture of Gaussians is based on the non-transformed samples.
-        self$RBesT_posterior_normix <- RBesT::automixfit(
-          posterior_samples,
-          Nc = self$n_components_mixture_approx,
-          k = self$aic_penalty_parameter_mixture_approx,
-          thresh = -Inf,
-          verbose = FALSE,
-          type = c("norm")
-        )
-
-        RBesT::sigma(self$RBesT_posterior_normix) <- target_data$sample$standard_deviation # Set the reference scale
-      } else {
+      if (!(self$summary_measure_likelihood %in% c("normal", "binomial"))) {
         stop("Distribution not supported")
       }
+
+      posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx) # Samples to be fitted by a mixture
+
+      # As for the prior, the posterior is read on the treatment effect scale.
+      # The Beta mixture a binary endpoint also admits is fitted by
+      # posterior_beta_mixture(), for the one caller that works on the rate
+      # scale, rather than on every replicate for no reader.
+      posterior_mixture_approximation <- RBesT::automixfit(
+        posterior_samples,
+        Nc = self$n_components_mixture_approx,
+        k = self$aic_penalty_parameter_mixture_approx,
+        thresh = -Inf,
+        verbose = FALSE,
+        type = c("norm")
+      )
+
+      RBesT::sigma(posterior_mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
+
+      self$RBesT_posterior_normix <- posterior_mixture_approximation
       self$RBesT_posterior <- posterior_mixture_approximation
+    },
+
+    #' @description Beta mixture approximation to the posterior response rate
+    #'
+    #' The unit information design prior rescales the shape parameters of a Beta
+    #' mixture, so it needs the fit on the [0, 1] rate scale rather than the one
+    #' on the treatment effect scale that `posterior_to_RBesT()` produces. It is
+    #' built here on request because that construction runs once per case study,
+    #' whereas `posterior_to_RBesT()` runs once per replicate.
+    #'
+    #' @param target_data Target study data
+    #' @param simulation_config Configuration of simulation study
+    #' @return A Beta mixture approximation to the posterior.
+    posterior_beta_mixture = function(target_data, simulation_config) {
+      if (self$summary_measure_likelihood != "binomial") {
+        stop(
+          "posterior_beta_mixture() describes a response rate, so it is only ",
+          "defined for a binomial summary measure likelihood, not ",
+          self$summary_measure_likelihood,
+          "."
+        )
+      }
+
+      if (is.null(simulation_config)) {
+        stop(
+          "posterior_beta_mixture() needs simulation_config$n_samples_mixture_approx ",
+          "to sample the posterior for the mixture approximation, but ",
+          "simulation_config was not provided."
+        )
+      }
+
+      posterior_samples <- self$sample_posterior(simulation_config$n_samples_mixture_approx)
+      transformed_samples <- (posterior_samples + 1) / 2 # Transformed samples in the [0, 1] range
+
+      mixture_approximation <- RBesT::automixfit(
+        transformed_samples,
+        Nc = self$n_components_mixture_approx,
+        k = self$aic_penalty_parameter_mixture_approx,
+        thresh = -Inf,
+        verbose = FALSE,
+        type = c("beta")
+      )
+
+      RBesT::sigma(mixture_approximation) <- target_data$sample$standard_deviation # Set the reference scale
+
+      return(mixture_approximation)
     },
 
     #' @description
@@ -2123,6 +2320,31 @@ MCMCModel <- R6::R6Class(
       self$credible_interval_97.5 <- self$treatment_effect_summary$q97.5
       self$credible_interval_2.5 <- self$treatment_effect_summary$q2.5
       return(ci)
+    },
+
+    #' @description Effective sample sizes of the current posterior
+    #'
+    #' The single summary pass over the draws already produced the posterior
+    #' standard deviation and the credible interval bounds, so both effective
+    #' sample sizes read straight off it. The inherited route would resample the
+    #' draws and fit a mixture to the resample, which costs a mixture fit per
+    #' replicate and adds a second layer of Monte Carlo error on top of the one
+    #' the sampler already carries.
+    #'
+    #' @param target_data Target study data
+    #' @param ... Unused, kept so that the simulation can call every model the
+    #'   same way.
+    #' @return A list with the `moment` and `precision` effective sample sizes.
+    posterior_ess = function(target_data, ...) {
+      interval <- self$credible_interval(level = 0.95)
+
+      return(normal_reference_ess(
+        reference_scale = target_data$sample$standard_deviation,
+        posterior_sd = sqrt(self$post_var),
+        lower = interval[[1]],
+        upper = interval[[2]],
+        sample_size_per_arm = target_data$sample_size_per_arm
+      ))
     },
 
     #' @description Get the posterior median

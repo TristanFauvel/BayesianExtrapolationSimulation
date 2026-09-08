@@ -950,6 +950,41 @@ TruncatedGaussianRMP <- R6::R6Class(
         }
       }
     },
+    #' @description ELIR effective sample size of the current prior
+    #'
+    #' The prior is a two-component normal mixture, each component truncated to
+    #' the interval the treatment effect is supported on, so the ELIR integral
+    #' is evaluated on it directly. The inherited route would instead draw from
+    #' the prior and fit an untruncated mixture to the draws, once per replicate
+    #' because the vague component is set by the observed target standard error.
+    #' That fit both costs a mixture fit per replicate and overstates the local
+    #' information, since it smooths away the truncation.
+    #'
+    #' @param target_data Target study data, whose sampling standard deviation
+    #'   is the reference scale.
+    #' @param ... Unused, kept so that the simulation can call every model the
+    #'   same way.
+    #' @return The ELIR effective sample size.
+    prior_elir_ess = function(target_data, ...) {
+      if (is.null(self$vague_prior_variance)) {
+        stop(
+          "The vague prior variance must be defined. If empirical_bayes == TRUE, the prior can only be fully specified after the data has been observed."
+        )
+      }
+
+      return(truncated_normal_mixture_elir(
+        weights = c(1 - self$w, self$w),
+        means = c(self$vague_prior_mean, self$info_prior_mean),
+        sds = c(
+          sqrt(self$vague_prior_variance),
+          sqrt(self$info_prior_variance)
+        ),
+        lower = -1,
+        upper = 1,
+        sigma = target_data$sample$standard_deviation
+      ))
+    },
+
     #' @description Prepare the data for use with Stan
     #'
     #' @param target_data The target data for inference

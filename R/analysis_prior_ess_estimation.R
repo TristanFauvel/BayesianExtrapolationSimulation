@@ -116,3 +116,116 @@ prior_ess_elir <- function(rbest_model, target_data) {
     }
   })
 }
+
+
+#' Effective sample sizes of a posterior summarised against a normal reference
+#'
+#' @description Both effective sample sizes reported per replicate compare the
+#' posterior against a normal reference of known scale. The moment version uses
+#' the posterior variance directly; the precision version uses the variance a
+#' normal distribution would need in order to have the same 95% credible
+#' interval width. Both are expressed relative to the target study, by
+#' subtracting its per-arm sample size.
+#'
+#' Models whose posterior summary is available exactly, or already computed,
+#' evaluate these definitions directly rather than fitting a mixture to samples
+#' drawn from the posterior.
+#'
+#' @param reference_scale Reference scale, i.e. the sampling standard deviation
+#'   of the target study.
+#' @param posterior_sd Standard deviation of the posterior treatment effect.
+#' @param lower Lower bound of the 95% credible interval.
+#' @param upper Upper bound of the 95% credible interval.
+#' @param sample_size_per_arm Per-arm sample size of the target study.
+#' @return A list with the `moment` and `precision` effective sample sizes.
+#' @export
+normal_reference_ess <- function(reference_scale,
+                                 posterior_sd,
+                                 lower,
+                                 upper,
+                                 sample_size_per_arm) {
+  implied_sd <- ((upper - lower) / 2) / stats::qnorm(0.975)
+
+  return(list(
+    moment = reference_scale^2 / posterior_sd^2 - sample_size_per_arm,
+    precision = reference_scale^2 / implied_sd^2 - sample_size_per_arm
+  ))
+}
+
+
+#' Expected local information ratio ESS of a truncated normal mixture
+#'
+#' @description The ELIR effective sample size of a prior \eqn{\pi} against a
+#' normal likelihood of known scale \eqn{\sigma} is
+#' \deqn{\sigma^2 \, E_\pi[-(\log \pi)''(\theta)],}
+#' which is what [RBesT::ess()] evaluates for an untruncated normal mixture.
+#'
+#' A normal mixture truncated to an interval has no representation as an
+#' untruncated mixture, so the alternative is to fit one to a sample drawn from
+#' it. That costs a mixture fit per replicate and leaves both Monte Carlo noise
+#' and an upward bias in the result. This function integrates the definition
+#' directly instead.
+#'
+#' Each component is truncated and renormalised on its own, matching how the
+#' robust mixture prior is drawn from. Inside the interval the truncation is a
+#' constant factor on the density, so it does not contribute to the second
+#' derivative of the log density; it enters only through the normalisers and the
+#' domain of integration.
+#'
+#' @param weights Component weights of the mixture, summing to one.
+#' @param means Component means.
+#' @param sds Component standard deviations.
+#' @param lower Lower truncation point.
+#' @param upper Upper truncation point.
+#' @param sigma Reference scale of the normal likelihood.
+#' @return The ELIR effective sample size.
+#' @export
+truncated_normal_mixture_elir <- function(weights, means, sds, lower, upper,
+                                          sigma) {
+  assertions::assert_number(lower)
+  assertions::assert_number(upper)
+  if (lower >= upper) {
+    stop("The truncation interval must be non-empty.", call. = FALSE)
+  }
+
+  normalisers <- stats::pnorm(upper, means, sds) -
+    stats::pnorm(lower, means, sds)
+
+  # Simpson's rule on a grid fine enough to resolve the narrowest component,
+  # which for the robust mixture prior is the informative one and can be orders
+  # of magnitude narrower than the truncation interval.
+  n_nodes <- max(2001, ceiling(40 * (upper - lower) / min(sds)))
+  n_nodes <- min(n_nodes, 400001)
+  if (n_nodes %% 2 == 0) {
+    n_nodes <- n_nodes + 1
+  }
+
+  # The endpoints are stepped away from: a component whose truncation point sits
+  # far into its tail contributes no density there, and the log density is not
+  # defined where the density underflows to zero.
+  margin <- (upper - lower) * 1e-9
+  nodes <- seq(lower + margin, upper - margin, length.out = n_nodes)
+  spacing <- nodes[2] - nodes[1]
+
+  component <- outer(nodes, seq_along(weights), function(theta, k) {
+    weights[k] * stats::dnorm(theta, means[k], sds[k]) / normalisers[k]
+  })
+  standardised <- outer(nodes, seq_along(weights), function(theta, k) {
+    (theta - means[k]) / sds[k]^2
+  })
+  precision <- matrix(rep(1 / sds^2, each = n_nodes), nrow = n_nodes)
+
+  density <- rowSums(component)
+  first_derivative <- rowSums(component * -standardised)
+  second_derivative <- rowSums(component * (standardised^2 - precision))
+
+  # -(log f)'' = (f'/f)^2 - f''/f, multiplied by the density it is integrated
+  # against, so one factor of the density cancels and the integrand stays finite
+  # wherever the density underflows to zero.
+  integrand <- first_derivative^2 / density - second_derivative
+  integrand[density == 0] <- 0
+
+  simpson_weights <- c(1, rep(c(4, 2), length.out = n_nodes - 2), 1)
+
+  return(sigma^2 * sum(simpson_weights * integrand) * spacing / 3)
+}

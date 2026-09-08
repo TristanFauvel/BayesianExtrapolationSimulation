@@ -251,6 +251,11 @@ simulation_frequentist_ocs <- function(env,
       scenarios_config$case_studies <- case_study
       scenarios_config$methods <- method
 
+      # Scenarios of one case study and method are what share analyses, so the
+      # cache is emptied here rather than growing for the whole run. The keys
+      # already keep other scenarios apart; this bounds the memory it holds.
+      inference_cache_reset()
+
       cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
 
       if (nrow(cases) == 0) {
