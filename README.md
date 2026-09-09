@@ -1,5 +1,10 @@
 # R Bayesian Extrapolation Tool
 
+[![R Package Build](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](DESCRIPTION)
+[![R >= 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
+
 A collection of R tools to :
 
 - Study frequentist and Bayesian operating characteristics of clinical trial designs leveraging Bayesian partial extrapolation (also known as borrowing).
