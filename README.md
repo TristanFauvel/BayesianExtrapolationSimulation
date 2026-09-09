@@ -1,6 +1,7 @@
 # R Bayesian Extrapolation Tool
 
 [![R Package Build](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml)
+[![pkgdown](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BayesianExtrapolationSimulation/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](DESCRIPTION)
 [![R >= 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
@@ -51,7 +52,9 @@ Source data are defined based on the case study configuration. Target data depen
 
 ## Access documentation
 
-To access documentation :
+The full documentation website is available at [tristanfauvel.github.io/BayesianExtrapolationSimulation](https://tristanfauvel.github.io/BayesianExtrapolationSimulation/).
+
+To access it locally instead :
 browseURL("docs/index.html")
 
 ## Methods and configurations requiring MCMC inference
