@@ -53,6 +53,7 @@ Imports:
     statmod,
     tinytex
 License: GPL-3 | file LICENSE
+Additional_repositories: https://stan-dev.r-universe.dev/
 LazyData: true
 Biarch: true
 NeedsCompilation: yes
