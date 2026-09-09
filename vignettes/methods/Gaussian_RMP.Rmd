@@ -37,7 +37,7 @@ Load the simulation configuration and the Belimumab case study configuration fro
 
 ```{r load_config}
 set.seed(42)
-simulation_config <- yaml::yaml.load_file(system.file("conf/full/simulation_config.yml", package = "RBExT"))
+simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
 
 case_study = "belimumab"
 case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "RBExT"))
@@ -268,7 +268,7 @@ for (i in seq_along(treatment_effect_values)) {
 
   target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
-  results <- separate_model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision"), verbose = 0, method = method, case_study = case_study)
+  results <- separate_model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision", "posterior_mean", "posterior_median", "credible_interval"), verbose = 0, method = method, case_study = case_study, n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation)
 
   separate_test_decisions[i, ] <- results$test_decisions
   separate_posterior_means[i, ] <- results$posterior_means
@@ -292,7 +292,7 @@ for (i in seq_along(treatment_effect_values)) {
   target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
   # target_data$sampling_approximation <- TRUE
-  results <- model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision"), verbose = 0,  method = method, case_study = case_study)
+  results <- model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision", "posterior_mean", "posterior_median", "credible_interval"), verbose = 0,  method = method, case_study = case_study, n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation)
 
   test_decisions[i, ] <- results$test_decisions
   posterior_means[i, ] <- results$posterior_means

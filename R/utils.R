@@ -423,6 +423,14 @@ concatenate_simulation_logs <- function(results_dir) {
 }
 
 
+#' Format simulation output as a printable table
+#'
+#' @param output A simulation output list (as returned by e.g.
+#'   `Model$estimate_frequentist_operating_characteristics()`).
+#'
+#' @return A data frame with one row per metric, suitable for printing.
+#'
+#' @export
 format_simulation_output_table <- function(output) {
   # Extract the data
   data <- list(
@@ -517,6 +525,14 @@ format_parameters_to_json <- function(json_parameters, escape = FALSE) {
 }
 
 
+#' Format a case study configuration as a printable table
+#'
+#' @param case_study_config Case study configuration list.
+#'
+#' @return A data frame with one row per configuration field, suitable for
+#'   printing (used by the data-generation vignettes to describe a case study).
+#'
+#' @export
 format_case_study_config <- function(case_study_config) {
   if (case_study_config$endpoint == "continuous" ||
       case_study_config$endpoint == "recurrent_event") {
@@ -969,6 +985,16 @@ save_state <- function(iteration, scenario, worker_id = NULL, env) {
   save(scenario, file = file)
 }
 
+#' Print a function's source code
+#'
+#' @description Used by the vignettes to display the implementation of key
+#'   functions inline, next to their explanation.
+#'
+#' @param function_obj The function to print the source of.
+#'
+#' @return `NULL`, invisibly; prints the function's source code as a side effect.
+#'
+#' @export
 read_function_code <- function(function_obj){
   function_name <- substitute(function_obj)
 

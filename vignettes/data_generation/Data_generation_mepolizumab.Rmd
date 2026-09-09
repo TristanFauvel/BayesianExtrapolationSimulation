@@ -78,6 +78,7 @@ read_function_code(rate_from_drift_logRR)
 
 ```{r}
 control_drift <- 0
+treatment_drift <- drift + control_drift
 
 target_data$control_rate <- rate_from_drift_logRR(control_drift, source_data$control_rate)
 target_data$treatment_rate <- rate_from_drift_logRR(treatment_drift, source_data$treatment_rate)

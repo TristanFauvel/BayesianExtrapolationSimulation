@@ -37,7 +37,7 @@ Load the simulation configuration and the Belimumab case study configuration fro
 
 ```{r load_config}
 set.seed(42)
-config_path <- system.file("conf/full/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 config_path <- system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
@@ -78,20 +78,29 @@ So that everything is equivalent to the case where the sampling std is $\sigma_T
 method <- "PDCCPP"
 method_parameters <- list(
   initial_prior = "noninformative", # This corresponds to the fact that the posterior for the adults data is derived from an uninformative prior (for consistency with other methods). May be removed in future releases.
-  empirical_bayes = FALSE # Corresponds to whether some parameters of the prior are based on observed data.
+  empirical_bayes = FALSE, # Corresponds to whether some parameters of the prior are based on observed data.
+  desired_tie = 0.065,
+  significance_level = 0.05,
+  tolerance = 0.0001,
+  n_iter = 1e6
 )
 ```
 
 Now, we define the model we want to use for inferring the treatment effect in the target study.  
 
 ```{r}
+env <- "full"
+config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
+
 model <- Model$new()
 
 model <- model$create(
   case_study_config = case_study_config,
   method = method,
   method_parameters = method_parameters,
-  source_data = source_data
+  source_data = source_data,
+  mcmc_config = mcmc_config
 )
 ``` 
 
@@ -175,14 +184,11 @@ $$C_S =  \frac{1}{\sqrt{\nu_S^2 + \sigma^2_T/N_T}}\exp\left(-\frac{1}{2}\frac{(\
  
 
 ```{r}
-read_function_code(posterior_weight)
-```
-```{r}
-read_function_code(posterior_pdf)
+read_function_code(model$posterior_pdf)
 ```
 
 ```{r}
-read_function_code(posterior_cdf)
+read_function_code(model$posterior_cdf)
 ```
 
 
@@ -221,7 +227,7 @@ ggplot2::ggplot(df, ggplot2::aes(x = x)) +
 Being able to sample from the posterior is crucial for estimating quantiles, we use the following:. 
 
 ```{r}
-read_function_code(sample_posterior)
+read_function_code(model$sample_posterior)
 ```
 
 Illustration of this sampling approach:

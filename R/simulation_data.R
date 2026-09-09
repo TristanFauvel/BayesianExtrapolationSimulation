@@ -66,13 +66,14 @@ generate_binary_data_from_rate <- function(rate, sample_size) {
 #' @return The success rate in the corresponding arm of the target study
 #'
 #' @keywords internal
+#' @export
 rate_from_drift_logOR <- function(arm_drift, source_rate) {
   source_odds <- source_rate / (1 - source_rate)
 
   exp_arm_drift <- exp(arm_drift)
   p_target <- exp_arm_drift / (exp_arm_drift + 1 / source_odds)
 
-  if (exp_arm_drift == Inf &
+  if (exp_arm_drift == Inf &&
       source_odds != 0) {
     # A situation that can occurs for very large drifts
     p_target <- 1
@@ -89,6 +90,7 @@ rate_from_drift_logOR <- function(arm_drift, source_rate) {
 #'
 #' @return The rate in the corresponding arm of the target study
 #' @keywords internal
+#' @export
 rate_from_drift_logRR <- function(arm_drift, source_rate) {
   return(source_rate * exp(arm_drift))
 }

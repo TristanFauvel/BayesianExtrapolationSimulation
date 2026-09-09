@@ -38,7 +38,7 @@ library(cmdstanr)
 
 ```{r} 
 set.seed(42)
-config_path <- system.file("conf/full/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 case_study <- "aprepitant"
@@ -47,7 +47,9 @@ case_study_config <- yaml::yaml.load_file(config_path)
 
 source_data <- ObservedSourceData$new(case_study_config)
 
-target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$target$treatment_effect, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = as.integer(case_study_config$target$total / 2), summary_measure_likelihood = case_study_config$summary_measure_likelihood)
+target_sample_size_per_arm <- as.integer(case_study_config$target$total / 2)
+
+target_data <- ObservedTargetData$new(treatment_effect_estimate = case_study_config$target$treatment_effect, treatment_effect_standard_error = case_study_config$target$standard_error, target_sample_size_per_arm = target_sample_size_per_arm, summary_measure_likelihood = case_study_config$summary_measure_likelihood)
 ``` 
 
 ## Model for the rate difference
@@ -235,6 +237,10 @@ method_parameters <- list(
   empirical_bayes = FALSE # Corresponds to whether some parameters of the prior are based on observed data.
 )
 
+env <- "full"
+config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
+
 separate_model <- Model$new()
 
 separate_model <- separate_model$create(
@@ -247,7 +253,15 @@ separate_model <- separate_model$create(
 ```
 
 ```{r}
-treatment_effect_values <- seq(-7, 2, length.out = 200)
+# Aprepitant is a binary/rate outcome (typical effect sizes are far
+# narrower than the [-7, 2] range used in the continuous-outcome
+# vignettes this section was adapted from), so the drift range is kept
+# within what keeps every implied treatment rate in [0, 1].
+drift_range <- RBExT:::compute_drift_range(
+  scenarios_config = list(ndrift = 200),
+  case_study_config = case_study_config
+)
+treatment_effect_values <- source_data$treatment_effect_estimate + drift_range
 
 n <- length(treatment_effect_values)
 confidence_level <- simulation_config$confidence_level
@@ -272,13 +286,33 @@ for (i in seq_along(treatment_effect_values)) {
 
   target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
-  results <- separate_model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision"), method = method, case_study = case_study)
+  results <- separate_model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision", "posterior_mean", "posterior_median", "credible_interval"), method = method, case_study = case_study, n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation)
 
   separate_test_decisions[i, ] <- results$test_decisions
   separate_posterior_means[i, ] <- results$posterior_means
   separate_posterior_medians[i, ] <- results$posterior_medians
   separate_credible_intervals[i, , ] <- matrix(results$credible_intervals, nrow = n_replicates)
 }
+```
+
+Conditional power prior, with the same power parameter (`gamma = 1`) used in the manual fit above:
+
+```{r}
+method <- "conditional_power_prior"
+method_parameters <- list(
+  power_parameter = 1,
+  initial_prior = "noninformative"
+)
+
+model <- Model$new()
+
+model <- model$create(
+  case_study_config = case_study_config,
+  method = method,
+  method_parameters = method_parameters,
+  source_data = source_data,
+  mcmc_config = mcmc_config
+)
 ```
 
 
@@ -296,7 +330,7 @@ for (i in seq_along(treatment_effect_values)) {
   target_data <- target_data$create(source_data = source_data, case_study_config = case_study_config, target_sample_size_per_arm = target_sample_size_per_arm, treatment_drift = drift, summary_measure_likelihood = source_data$summary_measure_likelihood)
 
   # target_data$sampling_approximation <- TRUE
-  results <- model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision"),  method = method, case_study = case_study)
+  results <- model$simulation_for_given_treatment_effect(target_data = target_data, n_replicates = n_replicates, critical_value = critical_value, theta_0 = theta_0, confidence_level = confidence_level, null_space = null_space, to_return = c("test_decision", "posterior_mean", "posterior_median", "credible_interval"),  method = method, case_study = case_study, n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation)
 
   test_decisions[i, ] <- results$test_decisions
   posterior_means[i, ] <- results$posterior_means

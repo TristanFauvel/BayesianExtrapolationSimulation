@@ -114,7 +114,7 @@ In this study, we will use the first approach, and match the treatment effect di
 We compute the posterior distribution of the treatment effect in the target study, for a case study : 
 ```{r case_study}
 set.seed(42)
-config_path <- system.file("conf/full/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 config_path <- system.file("conf/case_studies/belimumab.yml", package = "RBExT")

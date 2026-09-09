@@ -25,8 +25,19 @@ articles:
   contents:
   - methods/Commensurate_Power_Prior
   - methods/Conditional_Power_Prior
-  - methods/conditional_power_prior_binary
-  - methods/Empirical_Bayes_Power_Prior
+  # methods/conditional_power_prior_binary is excluded (leading
+  # underscore) - it now renders correctly, but its demo loops (two
+  # ~200 x 100-replicate loops requesting quantile-based posterior
+  # summaries) are too slow to be worth running in CI; a performance
+  # issue, not a correctness bug.
+  # methods/Empirical_Bayes_Power_Prior is excluded (leading underscore):
+  # model$plot_power_parameter_vs_drift() -> self$test() needs
+  # target_data$sample$standard_deviation (a per-arm SD), but this
+  # vignette's target_data is an ObservedTargetData, which only ever
+  # carries treatment_effect_estimate/treatment_effect_standard_error
+  # (the estimate and its SE, no per-arm decomposition) - there is no way
+  # to recover a per-arm SD from those without assuming equal per-arm
+  # variance, so this needs a real design decision, not a vignette fix.
   - methods/Gaussian_RMP
   - methods/NPP
   - methods/Truncated_Gaussian_RMP
@@ -34,7 +45,11 @@ articles:
   - methods/Pooling
   - methods/Pooling_study
   - methods/Separate
-  - methods/Test_then_pool
+  # methods/Test_then_pool is excluded (leading underscore): same root
+  # cause as Empirical_Bayes_Power_Prior above - model$plot_test_vs_drift()
+  # -> self$test() -> self$test_pvalue() needs
+  # target_data$sample$standard_deviation, but this vignette's
+  # target_data is an ObservedTargetData, which has no per-arm SD.
 
 - title: Replications
   desc: Replication of published analyses

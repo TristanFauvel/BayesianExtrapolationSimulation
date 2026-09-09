@@ -52,6 +52,16 @@ read_function_code(rate_from_drift_logOR)
 control_drift <- 0
 treatment_drift <- drift + control_drift
 
+target_data <- BinaryTargetData$new(
+  source_data = source_data,
+  sampling_approximation = case_study_config$sampling_approximation,
+  target_sample_size_per_arm = target_sample_size_per_arm,
+  control_drift = control_drift,
+  treatment_drift = treatment_drift,
+  summary_measure_likelihood = case_study_config$summary_measure_likelihood
+)
+
+# Recompute the rates via the log odds ratio drift, for illustration.
 target_data$control_rate <- rate_from_drift_logOR(control_drift, source_data$control_rate)
 target_data$treatment_rate <- rate_from_drift_logOR(treatment_drift, source_data$treatment_rate)
 ```
