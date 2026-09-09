@@ -3,7 +3,7 @@ ndrift: 0
 denominator_change_factor:
     - 1
 sample_size_factors:
-    -4
+    - 4
 target_to_source_std_ratio_range:
     - 1
 parallelization: TRUE
