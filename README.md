@@ -45,6 +45,23 @@ library(RBExT)
 
 - To create the results tables, run tables.R
 
+### Browser-based interface
+
+Instead of hand-editing config files and running the scripts above, you can configure, run, and analyze a simulation study from a browser. From an R session with your working directory set to the repository root (the same requirement as running `main.R` above):
+
+```r
+devtools::load_all() # if you haven't installed RBExT (the usual case for development - see inst/scripts/main.R)
+run_rbext_app()
+```
+
+If you installed RBExT from a release tarball instead (see Installation above), use `library(RBExT)` in place of `devtools::load_all()`.
+
+This opens a local Shiny app with three tabs:
+
+- **Configure**: pick an existing case study or build a new one, choose methods and their parameter grids, and set scenario/MCMC settings. Saving writes a new environment under `user_configs/` (gitignored) without touching the package's own `inst/conf/`.
+- **Run**: launch a saved environment as a background process, with a live progress bar, log tail, and a cancel button.
+- **Analyze**: browse any `results/<env>/` directory - including ones produced by `main.R`/HPC runs, not just ones launched from the app - filter it, render interactive plots, and browse/export the data as a table.
+
 ## Design logic
 
 There are three main objects in the simulation framework: source data, target data, and models.

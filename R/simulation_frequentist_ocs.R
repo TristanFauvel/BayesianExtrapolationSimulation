@@ -7,6 +7,10 @@
 #' @param freq_filename File name for the frequentist OCs
 #' @param config_dir Configuration files directory
 #' @param case_studies_config_dir Case studies configurations directory
+#' @param frequentist_metrics List of frequentist metrics, as defined by
+#'   sourcing `metrics_config.R`.
+#' @param inference_metrics List of inference metrics, as defined by sourcing
+#'   `metrics_config.R`.
 #' @return The results of the simulation.
 #' @export
 frequentist_ocs_scenario_simulation <- function(scenario,
@@ -14,7 +18,9 @@ frequentist_ocs_scenario_simulation <- function(scenario,
                                                 scenarios_config,
                                                 freq_filename,
                                                 config_dir,
-                                                case_studies_config_dir) {
+                                                case_studies_config_dir,
+                                                frequentist_metrics,
+                                                inference_metrics) {
   set.seed(simulation_config$seed)
 
   target_sample_size_per_arm <- scenario$target_sample_size_per_arm[[1]]
@@ -217,6 +223,10 @@ frequentist_ocs_scenario_simulation <- function(scenario,
 #' @param analysis_config Analysis configuration
 #' @param config_dir Configuration directory
 #' @param case_studies_config_dir Case studies configuration directory
+#' @param frequentist_metrics List of frequentist metrics, as defined by
+#'   sourcing `metrics_config.R`.
+#' @param inference_metrics List of inference metrics, as defined by sourcing
+#'   `metrics_config.R`.
 #' @return None
 #' @export
 #' @importFrom foreach %dopar%
@@ -226,7 +236,9 @@ simulation_frequentist_ocs <- function(env,
                                        analysis_config,
                                        config_dir,
                                        case_studies_config_dir,
-                                       logging_file_path){
+                                       logging_file_path,
+                                       frequentist_metrics,
+                                       inference_metrics){
   case_studies <- scenarios_config$case_studies
   methods <- scenarios_config$methods
 
@@ -235,9 +247,15 @@ simulation_frequentist_ocs <- function(env,
   }
 
   # Create scenarios and create a summary table
-  cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
+  cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config, case_studies_config_dir = case_studies_config_dir)
 
   scenarios_table_ranges(cases, paste0("./results/", env))
+
+  # `cases` still covers every case study and method here, so its row count is
+  # the whole run. The loops below narrow it to one block at a time; the
+  # tracker keeps a run-wide total across them, which is what the Shiny app's
+  # Run tab reads to draw its progress bar.
+  run_progress <- run_progress_tracker(env, total = nrow(cases))
 
   results_dir <- paste0("./results/", env, "/", "frequentist")
 
@@ -256,7 +274,7 @@ simulation_frequentist_ocs <- function(env,
       # already keep other scenarios apart; this bounds the memory it holds.
       inference_cache_reset()
 
-      cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
+      cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config, case_studies_config_dir = case_studies_config_dir)
 
       if (nrow(cases) == 0) {
         stop("No simulation results")
@@ -281,8 +299,13 @@ simulation_frequentist_ocs <- function(env,
       pb <- progress::progress_bar$new(format = "Progress : [:bar] :elapsed | eta: :eta",
                                        total = nrow(cases),
                                        width = 60)
+      run_progress$starting(case_study, method)
+      # foreach calls this with the number of tasks finished so far in this
+      # block, the sequential loop below with its own index - the same count
+      # either way, which is what the tracker expects.
       progress <- function(n) {
         pb$tick()
+        run_progress$tick(n)
       }
       opts <- list(progress = progress)
 
@@ -311,7 +334,7 @@ simulation_frequentist_ocs <- function(env,
       if (!method_runs_in_parallel(scenarios_config$parallelization, method)) {
         # Loop through cases
 
-        for (i in 1:nrow(cases)) {
+        for (i in seq_len(nrow(cases))) {
           scenario <- cases[i, ]
 
           tryCatch({
@@ -321,7 +344,9 @@ simulation_frequentist_ocs <- function(env,
               scenarios_config = scenarios_config,
               freq_filename = freq_filename,
               config_dir = config_dir,
-              case_studies_config_dir = case_studies_config_dir
+              case_studies_config_dir = case_studies_config_dir,
+              frequentist_metrics = frequentist_metrics,
+              inference_metrics = inference_metrics
             )
             progress(i)
           }, error = function(e) {
@@ -344,20 +369,23 @@ simulation_frequentist_ocs <- function(env,
         # Set a range of ports for cluster
         options(clusterPort = c(11000, 11999))
 
-        # Register parallel backend
+        # Register parallel backend. It has to be one that calls the
+        # `opts` progress callback built above as each scenario comes back -
+        # see register_parallel_backend().
         cl <- parallel::makeCluster(ncores)
-        doParallel::registerDoParallel(cl)
-
-        # Define the list of libraries to load
-        required_libraries <- c("RBExT")
+        register_parallel_backend(cl)
 
         # Export the library paths to each worker
         paths <- .libPaths()
+        # RBExT may not be an installed package at all (e.g. the Shiny app's
+        # dev-mode background process only ever `devtools::load_all()`s it),
+        # so each worker needs the same source path to fall back to.
+        pkg_root <- find.package("RBExT")
         parallel::clusterExport(
           cl,
           varlist = c(
             "paths",
-            "required_libraries",
+            "pkg_root",
             "frequentist_metrics",
             "inference_metrics",
             "simulation_config",
@@ -368,15 +396,21 @@ simulation_frequentist_ocs <- function(env,
           envir = environment()
         )
 
-        # Evaluate the expression to load libraries in each worker
+        # Evaluate the expression to load RBExT in each worker: library() for
+        # an installed package (the common case), falling back to
+        # devtools::load_all() when it is only loaded from source.
         parallel::clusterEvalQ(cl, {
           .libPaths(paths)
-          sapply(required_libraries, library, character.only = TRUE)
+          if (!requireNamespace("RBExT", quietly = TRUE)) {
+            devtools::load_all(pkg_root, quiet = TRUE)
+          } else {
+            library(RBExT)
+          }
         })
 
         # Parallel computation over cases
         results <- foreach::foreach(
-          i = 1:nrow(cases),
+          i = seq_len(nrow(cases)),
           .combine = "rbind",
           .options.snow = opts
         ) %dopar% {
@@ -391,7 +425,9 @@ simulation_frequentist_ocs <- function(env,
               scenarios_config = scenarios_config,
               freq_filename = freq_filename,
               config_dir = config_dir,
-              case_studies_config_dir = case_studies_config_dir
+              case_studies_config_dir = case_studies_config_dir,
+              frequentist_metrics = frequentist_metrics,
+              inference_metrics = inference_metrics
             )
             ParallelLogger::logInfo(paste("Iteration", i, " completed by worker", worker_id))
             result  # Return the result (assuming it’s a data frame)

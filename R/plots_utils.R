@@ -369,7 +369,8 @@ export_plots <- function(plt,
                          file_path,
                          fig_width_in,
                          fig_height_in,
-                         type = "pdf", forest_plot = FALSE, adjust_theme = TRUE) {
+                         type = "pdf", forest_plot = FALSE, adjust_theme = TRUE,
+                         bg = NULL) {
 
   if (!(forest_plot) && adjust_theme == TRUE){
     plt <- plt + theme_bw() + theme(
@@ -394,7 +395,8 @@ export_plots <- function(plt,
       device = cairo_pdf,
       width = fig_width_in,
       height = fig_height_in,
-      dpi = dpi
+      dpi = dpi,
+      bg = bg
     )
   } else {
     ggplot2::ggsave(
@@ -402,7 +404,8 @@ export_plots <- function(plt,
       plot = plt,
       width = fig_width_in,
       height = fig_height_in,
-      dpi = dpi
+      dpi = dpi,
+      bg = bg
     )
   }
 

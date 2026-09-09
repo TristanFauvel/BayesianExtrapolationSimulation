@@ -58,7 +58,8 @@ test_that("run_simulation_env dispatches to the frequentist pipeline when comput
         delete_old_results = TRUE
       ),
       analysis_config = list(),
-      frequentist_metrics = list()
+      frequentist_metrics = list(),
+      inference_metrics = list()
     ),
     simulation_frequentist_ocs = function(...) {
       calls$freq <- calls$freq + 1L
@@ -108,7 +109,8 @@ test_that("run_simulation_env dispatches to the Bayesian pipeline when compute_b
         delete_old_results = FALSE
       ),
       analysis_config = list(),
-      frequentist_metrics = list()
+      frequentist_metrics = list(),
+      inference_metrics = list()
     ),
     simulation_bayesian_ocs = function(...) {
       calls$bayesian <- calls$bayesian + 1L

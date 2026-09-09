@@ -1,105 +1,150 @@
 ## Configure tab: build a case study and/or a full simulation environment
 ## (scenarios_config.yml / mcmc_config.yml / methods_config.R), saved under
 ## user_configs/ - see helpers.R for the save/read functions.
+##
+## The five sections are numbered because they are a sequence: each one feeds
+## the next, and the last one writes the environment to disk.
 
 mod_configure_ui <- function(id) {
   ns <- shiny::NS(id)
-  shiny::tagList(
-    shiny::h4("1. Case study"),
-    shiny::p("Pick from the existing case studies, or define a new one (binary or continuous endpoints only)."),
-    shiny::wellPanel(
-      shiny::radioButtons(ns("case_study_mode"), NULL, choices = c("Use existing" = "existing", "Create new" = "new"), inline = TRUE),
+  rbext_page(
+    shiny::tags$h1("Configure simulation", class = "visually-hidden"),
+    shiny::p(
+      class = "rbext-lede",
+      "Define the trials to simulate, the borrowing methods to compare and the ",
+      "grid of scenarios to run them over. Saving writes an environment under ",
+      "user_configs/, ready to launch from the Run tab."
+    ),
+
+    rbext_step(
+      1, "Case study",
+      note = "Pick one of the case studies already available, or add your own. New case studies can use a binary or continuous endpoint.",
+      shiny::radioButtons(
+        ns("case_study_mode"), "Case study source",
+        choices = c("Use existing" = "existing", "Create new" = "new"),
+        inline = TRUE
+      ),
       shiny::conditionalPanel(
         "input.case_study_mode == 'new'", ns = ns,
-        shiny::fluidRow(
-          shiny::column(4, shiny::textInput(ns("cs_name"), "Name (lowercase, no spaces)")),
-          shiny::column(4, shiny::textInput(ns("cs_control_arm"), "Control arm name", value = "Placebo")),
-          shiny::column(4, shiny::selectInput(ns("cs_endpoint"), "Endpoint", choices = c("binary", "continuous")))
+        rbext_fields(
+          rbext_name_input(ns("cs_name"), "Name"),
+          shiny::textInput(ns("cs_control_arm"), "Control arm name", value = "Placebo"),
+          shiny::selectInput(ns("cs_endpoint"), "Endpoint", choices = c(
+            "Binary" = "binary", "Continuous" = "continuous"
+          ))
         ),
-        shiny::fluidRow(
-          shiny::column(4, shiny::selectInput(ns("cs_null_space"), "Null space", choices = c("left", "right"))),
-          shiny::column(4, shiny::numericInput(ns("cs_theta_0"), "theta_0 (null hypothesis boundary)", value = 0))
+        rbext_fields(
+          shiny::selectInput(ns("cs_null_space"), "Null hypothesis direction", choices = c(
+            "Effect at or below boundary" = "left",
+            "Effect at or above boundary" = "right"
+          )),
+          shiny::numericInput(ns("cs_theta_0"), "Null hypothesis boundary (θ₀)", value = 0)
         ),
-        shiny::h5("Target study"),
-        shiny::fluidRow(
-          shiny::column(3, shiny::numericInput(ns("cs_target_control_n"), "Control n", value = 50, min = 1)),
-          shiny::column(3, shiny::numericInput(ns("cs_target_treatment_n"), "Treatment n", value = 50, min = 1)),
-          shiny::conditionalPanel(
-            "input.cs_endpoint == 'binary'", ns = ns,
-            shiny::column(3, shiny::numericInput(ns("cs_target_control_resp"), "Control responses", value = 20, min = 0)),
-            shiny::column(3, shiny::numericInput(ns("cs_target_treatment_resp"), "Treatment responses", value = 30, min = 0))
-          ),
-          shiny::conditionalPanel(
-            "input.cs_endpoint == 'continuous'", ns = ns,
-            shiny::column(3, shiny::numericInput(ns("cs_target_effect"), "Treatment effect", value = 0.1)),
-            shiny::column(3, shiny::numericInput(ns("cs_target_se"), "Standard error", value = 0.1, min = 0))
+
+        rbext_subhead("Target study"),
+        rbext_fields(
+          shiny::numericInput(ns("cs_target_control_n"), "Control sample size", value = 50, min = 1, step = 1),
+          shiny::numericInput(ns("cs_target_treatment_n"), "Treatment sample size", value = 50, min = 1, step = 1)
+        ),
+        shiny::conditionalPanel(
+          "input.cs_endpoint == 'binary'", ns = ns,
+          rbext_fields(
+            shiny::numericInput(ns("cs_target_control_resp"), "Control responses", value = 20, min = 0, max = 50, step = 1),
+            shiny::numericInput(ns("cs_target_treatment_resp"), "Treatment responses", value = 30, min = 0, max = 50, step = 1)
           )
         ),
-        shiny::h5("Source study"),
-        shiny::fluidRow(
-          shiny::column(3, shiny::numericInput(ns("cs_source_control_n"), "Control n", value = 200, min = 1)),
-          shiny::column(3, shiny::numericInput(ns("cs_source_treatment_n"), "Treatment n", value = 200, min = 1)),
-          shiny::conditionalPanel(
-            "input.cs_endpoint == 'binary'", ns = ns,
-            shiny::column(3, shiny::numericInput(ns("cs_source_control_resp"), "Control responses", value = 80, min = 0)),
-            shiny::column(3, shiny::numericInput(ns("cs_source_treatment_resp"), "Treatment responses", value = 110, min = 0))
-          ),
-          shiny::conditionalPanel(
-            "input.cs_endpoint == 'continuous'", ns = ns,
-            shiny::column(3, shiny::numericInput(ns("cs_source_effect"), "Treatment effect", value = 0.1)),
-            shiny::column(3, shiny::numericInput(ns("cs_source_se"), "Standard error", value = 0.07, min = 0))
+        shiny::conditionalPanel(
+          "input.cs_endpoint == 'continuous'", ns = ns,
+          rbext_fields(
+            shiny::numericInput(ns("cs_target_effect"), "Treatment effect", value = 0.1),
+            shiny::numericInput(ns("cs_target_se"), "Standard error", value = 0.1, min = 1e-12)
           )
         ),
-        shiny::actionButton(ns("save_case_study"), "Save case study", class = "btn-primary"),
-        shiny::textOutput(ns("case_study_status"))
+
+        rbext_subhead("Source study"),
+        rbext_fields(
+          shiny::numericInput(ns("cs_source_control_n"), "Control sample size", value = 200, min = 1, step = 1),
+          shiny::numericInput(ns("cs_source_treatment_n"), "Treatment sample size", value = 200, min = 1, step = 1)
+        ),
+        shiny::conditionalPanel(
+          "input.cs_endpoint == 'binary'", ns = ns,
+          rbext_fields(
+            shiny::numericInput(ns("cs_source_control_resp"), "Control responses", value = 80, min = 0, max = 200, step = 1),
+            shiny::numericInput(ns("cs_source_treatment_resp"), "Treatment responses", value = 110, min = 0, max = 200, step = 1)
+          )
+        ),
+        shiny::conditionalPanel(
+          "input.cs_endpoint == 'continuous'", ns = ns,
+          rbext_fields(
+            shiny::numericInput(ns("cs_source_effect"), "Treatment effect", value = 0.1),
+            shiny::numericInput(ns("cs_source_se"), "Standard error", value = 0.07, min = 1e-12)
+          )
+        ),
+
+        shiny::div(
+          class = "rbext-actions",
+          rbext_action_button(ns("save_case_study"), "Save case study", class = "btn-primary")
+        ),
+        shiny::uiOutput(ns("case_study_status"))
       )
     ),
 
-    shiny::h4("2. Case studies & methods for this environment"),
-    shiny::fluidRow(
-      shiny::column(
-        6,
-        shiny::uiOutput(ns("case_studies_picker"))
-      ),
-      shiny::column(
-        6,
+    rbext_step(
+      2, "Case studies and methods to compare",
+      note = "Everything selected here is run against every scenario in the grid below.",
+      rbext_split(
+        shiny::uiOutput(ns("case_studies_picker")),
         shiny::checkboxGroupInput(ns("methods"), "Methods to compare", choices = NULL)
+      ),
+      shiny::uiOutput(ns("method_params_ui"))
+    ),
+
+    rbext_step(
+      3, "Scenario grid",
+      note = "The simulation runs every combination of these settings, for each case study and method.",
+      rbext_fields(
+        shiny::numericInput(ns("n_replicates"), "Monte Carlo replicates", value = 1000, min = 1, step = 1),
+        shiny::numericInput(ns("ndrift"), "Number of drift points", value = 15, min = 1, step = 1),
+        shiny::textInput(ns("sample_size_factors"), "Sample size factors", value = "1, 2, 4"),
+        shiny::textInput(ns("denominator_change_factor"), "Denominator change factor", value = "1"),
+        shiny::textInput(ns("target_to_source_std_ratio_range"), "Target/source SD ratio range", value = "1")
+      ),
+      shiny::p(class = "rbext-note", "Enter multiple factor or ratio values separated by commas."),
+      shiny::uiOutput(ns("workload_preview")),
+      shiny::checkboxInput(ns("parallelization"), "Run scenarios in parallel", value = FALSE)
+    ),
+
+    rbext_step(
+      4, "MCMC settings",
+      note = "Used only by the methods that need sampling: RMP, NPP, commensurate power prior and friends.",
+      rbext_fields(
+        shiny::numericInput(ns("num_chains"), "MCMC chains", value = 4, min = 1, step = 1),
+        shiny::numericInput(ns("chain_length"), "Iterations per chain", value = 2000, min = 1, step = 1),
+        shiny::numericInput(ns("tune"), "Warm-up iterations", value = 1000, min = 0, step = 1),
+        shiny::numericInput(ns("target_ess"), "Target effective sample size", value = 2000, min = 1, step = 1),
+        shiny::numericInput(ns("rhat_threshold"), "Rhat threshold", value = 1.1, min = 1)
       )
     ),
-    shiny::uiOutput(ns("method_params_ui")),
 
-    shiny::h4("3. Scenario settings"),
-    shiny::fluidRow(
-      shiny::column(3, shiny::numericInput(ns("n_replicates"), "Monte Carlo replicates", value = 1000, min = 1)),
-      shiny::column(3, shiny::numericInput(ns("ndrift"), "Number of drift points", value = 15, min = 1)),
-      shiny::column(3, shiny::textInput(ns("sample_size_factors"), "Sample size factors", value = "1, 2, 4")),
-      shiny::column(3, shiny::checkboxInput(ns("parallelization"), "Run in parallel", value = FALSE))
-    ),
-    shiny::fluidRow(
-      shiny::column(3, shiny::textInput(ns("denominator_change_factor"), "Denominator change factor", value = "1")),
-      shiny::column(3, shiny::textInput(ns("target_to_source_std_ratio_range"), "Target/source SD ratio range", value = "1"))
-    ),
-
-    shiny::h4("4. MCMC settings"),
-    shiny::p("Only used by methods that need MCMC sampling (RMP, NPP, commensurate power prior, ...)."),
-    shiny::fluidRow(
-      shiny::column(2, shiny::numericInput(ns("num_chains"), "Chains", value = 4, min = 1)),
-      shiny::column(2, shiny::numericInput(ns("chain_length"), "Chain length", value = 2000, min = 1)),
-      shiny::column(2, shiny::numericInput(ns("tune"), "Tune", value = 1000, min = 0)),
-      shiny::column(2, shiny::numericInput(ns("target_ess"), "Target ESS", value = 2000, min = 1)),
-      shiny::column(2, shiny::numericInput(ns("rhat_threshold"), "Rhat threshold", value = 1.1, min = 1))
-    ),
-
-    shiny::h4("5. Save"),
-    shiny::fluidRow(
-      shiny::column(4, shiny::textInput(ns("env_name"), "Environment name (lowercase, no spaces)")),
-      shiny::column(4, shiny::actionButton(ns("save_env"), "Save environment", class = "btn-primary", style = "margin-top: 25px;"))
-    ),
-    shiny::textOutput(ns("env_status"))
+    rbext_step(
+      5, "Save the environment",
+      note = "Saved environments live in user_configs/ and appear in the Run tab.",
+      rbext_fields(
+        rbext_name_input(ns("env_name"), "Environment name")
+      ),
+      shiny::div(
+        class = "rbext-actions",
+        rbext_action_button(ns("save_env"), "Save environment", class = "btn-primary")
+      ),
+      shiny::uiOutput(ns("env_status"))
+    )
   )
 }
 
-mod_configure_server <- function(id) {
+## on_env_saved: called (with no arguments) whenever an environment is
+## saved, so the Run tab can refresh its environment picker without a
+## manual "Refresh the list" button.
+mod_configure_server <- function(id, on_env_saved = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
     methods_template <- read_methods_template()
@@ -113,15 +158,78 @@ mod_configure_server <- function(id) {
       cs <- case_studies_rv()
       choices <- cs$name
       names(choices) <- paste0(cs$name, " (", cs$source, ")")
-      shiny::checkboxGroupInput(ns("case_studies"), "Case studies to include", choices = choices)
+      shiny::checkboxGroupInput(
+        ns("case_studies"), "Case studies to include", choices = choices,
+        selected = intersect(input$case_studies %||% character(), choices)
+      )
     })
 
     shiny::observe({
-      shiny::updateCheckboxGroupInput(session, "methods", choices = names(methods_template))
+      methods <- names(methods_template)
+      shiny::updateCheckboxGroupInput(
+        session, "methods", choices = rbext_method_choices(methods),
+        selected = intersect(input$methods %||% character(), methods)
+      )
     })
 
-    shiny::observeEvent(input$save_case_study, {
+    shiny::observe({
+      shiny::updateNumericInput(session, "cs_target_control_resp", max = input$cs_target_control_n)
+      shiny::updateNumericInput(session, "cs_target_treatment_resp", max = input$cs_target_treatment_n)
+      shiny::updateNumericInput(session, "cs_source_control_resp", max = input$cs_source_control_n)
+      shiny::updateNumericInput(session, "cs_source_treatment_resp", max = input$cs_source_treatment_n)
+    })
+
+    validate_case_study_form <- function() {
+      rbext_validate_name(input$cs_name, "case study")
+      if (is.null(input$cs_control_arm) || !nzchar(trimws(input$cs_control_arm))) {
+        stop("Control arm name cannot be empty.", call. = FALSE)
+      }
+      sample_sizes <- c(
+        "Target control sample size" = input$cs_target_control_n,
+        "Target treatment sample size" = input$cs_target_treatment_n,
+        "Source control sample size" = input$cs_source_control_n,
+        "Source treatment sample size" = input$cs_source_treatment_n
+      )
+      invisible(Map(function(value, label) {
+        rbext_validate_number(value, label, min = 1, whole = TRUE)
+      }, sample_sizes, names(sample_sizes)))
+      rbext_validate_number(input$cs_theta_0, "Null hypothesis boundary")
+
+      if (identical(input$cs_endpoint, "binary")) {
+        response_specs <- list(
+          list(input$cs_target_control_resp, "Target control responses", input$cs_target_control_n),
+          list(input$cs_target_treatment_resp, "Target treatment responses", input$cs_target_treatment_n),
+          list(input$cs_source_control_resp, "Source control responses", input$cs_source_control_n),
+          list(input$cs_source_treatment_resp, "Source treatment responses", input$cs_source_treatment_n)
+        )
+        invisible(lapply(response_specs, function(spec) {
+          rbext_validate_number(spec[[1]], spec[[2]], min = 0, max = spec[[3]], whole = TRUE)
+        }))
+      } else {
+        rbext_validate_number(input$cs_target_effect, "Target treatment effect")
+        rbext_validate_number(input$cs_source_effect, "Source treatment effect")
+        rbext_validate_number(input$cs_target_se, "Target standard error", min = 0, strict_min = TRUE)
+        rbext_validate_number(input$cs_source_se, "Source standard error", min = 0, strict_min = TRUE)
+      }
+      invisible(TRUE)
+    }
+
+    save_case_study <- function(overwrite = FALSE) {
       status <- tryCatch({
+        validate_case_study_form()
+        existing <- case_study_path(input$cs_name)
+        if (!overwrite && nzchar(existing) && file.exists(existing)) {
+          shiny::showModal(shiny::modalDialog(
+            title = "Replace case study?",
+            sprintf("A case study named '%s' already exists. Saving will replace it with these values.", input$cs_name),
+            footer = shiny::tagList(
+              shiny::modalButton("Keep existing"),
+              rbext_action_button(ns("confirm_case_study_overwrite"), "Replace case study", class = "btn-danger")
+            ),
+            easyClose = FALSE
+          ))
+          return(NULL)
+        }
         if (input$cs_endpoint == "binary") {
           build_and_save_case_study(
             name = input$cs_name, control_arm_name = input$cs_control_arm,
@@ -142,9 +250,21 @@ mod_configure_server <- function(id) {
           )
         }
         case_studies_rv(refresh_case_study_choices())
-        paste("Saved case study:", input$cs_name)
-      }, error = function(e) paste("Error:", conditionMessage(e)))
-      output$case_study_status <- shiny::renderText(status)
+        selected <- unique(c(input$case_studies %||% character(), input$cs_name))
+        session$onFlushed(function() {
+          shiny::updateCheckboxGroupInput(session, "case_studies", selected = selected)
+        }, once = TRUE)
+        list(ok = TRUE, message = sprintf("Saved and selected '%s' for this environment.", input$cs_name))
+      }, error = function(e) list(ok = FALSE, message = conditionMessage(e)))
+      if (is.null(status)) return(invisible(NULL))
+      output$case_study_status <- shiny::renderUI(rbext_status(status$message, ok = status$ok))
+      invisible(NULL)
+    }
+
+    shiny::observeEvent(input$save_case_study, save_case_study())
+    shiny::observeEvent(input$confirm_case_study_overwrite, {
+      shiny::removeModal()
+      save_case_study(overwrite = TRUE)
     })
 
     ## ---- Per-method parameter range editors --------------------------------
@@ -152,17 +272,53 @@ mod_configure_server <- function(id) {
     format_range <- function(range) {
       paste(vapply(range, function(x) paste(x, collapse = ","), character(1)), collapse = "; ")
     }
-    parse_range <- function(text, original_first_value) {
+    parse_range <- function(text, original_first_value, label, parameter_type = NULL,
+                            parameter_id = NULL) {
+      parameter_id <- parameter_id %||% ""
       parts <- trimws(strsplit(text, "[;,]")[[1]])
       parts <- parts[parts != ""]
+      if (length(parts) == 0) {
+        stop(sprintf("%s needs at least one value.", label), call. = FALSE)
+      }
       as_one <- function(p) {
         if (is.logical(original_first_value)) {
-          return(as.logical(p))
+          normalized <- toupper(p)
+          if (!(normalized %in% c("TRUE", "FALSE"))) {
+            stop(sprintf("%s accepts only TRUE or FALSE.", label), call. = FALSE)
+          }
+          return(identical(normalized, "TRUE"))
         }
-        num <- suppressWarnings(as.numeric(p))
-        if (!is.na(num)) num else p
+        if (is.numeric(original_first_value)) {
+          num <- suppressWarnings(as.numeric(p))
+          if (is.na(num) || !is.finite(num)) {
+            stop(sprintf("Every %s value must be numeric.", tolower(label)), call. = FALSE)
+          }
+          return(num)
+        }
+        p
       }
-      lapply(parts, as_one)
+      values <- lapply(parts, as_one)
+      numeric_values <- unlist(values)
+      probability_parameters <- c(
+        "prior_weight", "power_parameter", "power_parameter_mean",
+        "desired_tie", "significance_level"
+      )
+      if (is.numeric(original_first_value) && parameter_id %in% probability_parameters &&
+          any(numeric_values < 0 | numeric_values > 1)) {
+        stop(sprintf("Every %s value must be between 0 and 1.", tolower(label)), call. = FALSE)
+      }
+      positive_parameters <- c(
+        "power_parameter_std", "shape_parameter", "equivalence_margin",
+        "tolerance", "n_iter"
+      )
+      if (is.numeric(original_first_value) && parameter_id %in% positive_parameters &&
+          any(numeric_values <= 0)) {
+        stop(sprintf("Every %s value must be greater than zero.", tolower(label)), call. = FALSE)
+      }
+      if (identical(parameter_type, "integer") && any(numeric_values != floor(numeric_values))) {
+        stop(sprintf("Every %s value must be a whole number.", tolower(label)), call. = FALSE)
+      }
+      values
     }
 
     output$method_params_ui <- shiny::renderUI({
@@ -178,16 +334,25 @@ mod_configure_server <- function(id) {
           if (identical(pname, "heterogeneity_prior")) {
             shiny::helpText(sprintf("%s: using the default set of priors (not editable here).", p$parameter_name %||% pname))
           } else {
-            shiny::textInput(
-              input_id,
-              label = sprintf("%s (%s)", p$parameter_name %||% pname, pname),
-              value = format_range(p$range)
+            shiny::tagList(
+              shiny::textInput(
+                input_id,
+                label = p$parameter_name %||% pname,
+                value = format_range(p$range)
+              ),
+              shiny::helpText("Separate multiple values with commas.")
             )
           }
         })
-        shiny::wellPanel(shiny::h5(method), rows)
+        bslib::card(
+          bslib::card_header(rbext_method_label(method)),
+          bslib::card_body(rows)
+        )
       })
-      shiny::tagList(shiny::h5("Parameter ranges to test"), panels)
+      shiny::tagList(
+        rbext_subhead("Parameter ranges to test"),
+        shiny::div(class = "rbext-card-grid", panels)
+      )
     })
 
     build_methods_dict_selected <- function() {
@@ -202,8 +367,14 @@ mod_configure_server <- function(id) {
           }
           input_id <- paste0("range_", method, "_", pname)
           text <- input[[input_id]]
-          if (!is.null(text) && nzchar(text)) {
-            new_params[[pname]]$range <- parse_range(text, params[[pname]]$range[[1]])
+          if (!is.null(text)) {
+            new_params[[pname]]$range <- parse_range(
+              text,
+              params[[pname]]$range[[1]],
+              params[[pname]]$parameter_name %||% pname,
+              params[[pname]]$type,
+              pname
+            )
           }
         }
         out[[method]] <- new_params
@@ -213,32 +384,46 @@ mod_configure_server <- function(id) {
 
     ## ---- Save environment ---------------------------------------------------
 
-    shiny::observeEvent(input$save_env, {
-      status <- tryCatch({
-        if (is.null(input$env_name) || !nzchar(input$env_name)) {
-          stop("Give the environment a name.")
-        }
-        if (is.null(input$case_studies) || length(input$case_studies) == 0) {
-          stop("Select at least one case study.")
-        }
-        if (is.null(input$methods) || length(input$methods) == 0) {
-          stop("Select at least one method.")
-        }
+    build_environment_form <- function(require_name = TRUE) {
+      if (require_name) {
+        rbext_validate_name(input$env_name, "environment")
+      }
+      if (is.null(input$case_studies) || length(input$case_studies) == 0) {
+        stop("Select at least one case study in step 2.", call. = FALSE)
+      }
+      if (is.null(input$methods) || length(input$methods) == 0) {
+        stop("Select at least one method in step 2.", call. = FALSE)
+      }
 
-        parse_num_list <- function(text) as.numeric(trimws(strsplit(text, ",")[[1]]))
+      rbext_validate_number(input$n_replicates, "Monte Carlo replicates", min = 1, whole = TRUE)
+      rbext_validate_number(input$ndrift, "Number of drift points", min = 1, whole = TRUE)
+      rbext_validate_number(input$num_chains, "MCMC chains", min = 1, whole = TRUE)
+      rbext_validate_number(input$chain_length, "Iterations per chain", min = 1, whole = TRUE)
+      rbext_validate_number(input$tune, "Warm-up iterations", min = 0, whole = TRUE)
+      rbext_validate_number(input$target_ess, "Target effective sample size", min = 1, whole = TRUE)
+      rbext_validate_number(input$rhat_threshold, "Rhat threshold", min = 1)
 
-        scenarios_config <- list(
+      sample_sizes <- rbext_parse_number_list(input$sample_size_factors, "Sample size factors")
+      denominator_changes <- rbext_parse_number_list(
+        input$denominator_change_factor, "Denominator change factor"
+      )
+      std_ratios <- rbext_parse_number_list(
+        input$target_to_source_std_ratio_range, "Target/source SD ratio range"
+      )
+      methods <- build_methods_dict_selected()
+
+      list(
+        scenarios = list(
           n_replicates = input$n_replicates,
           ndrift = input$ndrift,
-          denominator_change_factor = as.list(parse_num_list(input$denominator_change_factor)),
-          sample_size_factors = as.list(parse_num_list(input$sample_size_factors)),
-          target_to_source_std_ratio_range = as.list(parse_num_list(input$target_to_source_std_ratio_range)),
+          denominator_change_factor = as.list(denominator_changes),
+          sample_size_factors = as.list(sample_sizes),
+          target_to_source_std_ratio_range = as.list(std_ratios),
           parallelization = isTRUE(input$parallelization),
           case_studies = as.list(input$case_studies),
           methods = as.list(input$methods)
-        )
-
-        mcmc_config <- list(
+        ),
+        mcmc = list(
           num_chains = input$num_chains,
           parallel_chains = input$num_chains,
           tune = input$tune,
@@ -248,12 +433,68 @@ mod_configure_server <- function(id) {
           target_ess = input$target_ess,
           rhat_threshold = input$rhat_threshold,
           max_divergence_rate = 0.01
+        ),
+        methods = methods,
+        parsed = list(
+          sample_sizes = sample_sizes,
+          denominator_changes = denominator_changes,
+          std_ratios = std_ratios
         )
+      )
+    }
 
-        save_environment(input$env_name, scenarios_config, mcmc_config, build_methods_dict_selected())
-        paste("Saved environment:", input$env_name, "- go to the Run tab to launch it.")
-      }, error = function(e) paste("Error:", conditionMessage(e)))
-      output$env_status <- shiny::renderText(status)
+    output$workload_preview <- shiny::renderUI({
+      if (length(input$case_studies %||% character()) == 0 ||
+          length(input$methods %||% character()) == 0) {
+        return(shiny::p(class = "rbext-note", "Select case studies and methods to preview the workload."))
+      }
+      tryCatch({
+        values <- build_environment_form(require_name = FALSE)
+        workload <- estimate_configured_workload(
+          input$case_studies, values$methods, input$ndrift,
+          values$parsed$sample_sizes, values$parsed$denominator_changes,
+          values$parsed$std_ratios, input$n_replicates
+        )
+        shiny::div(
+          class = "rbext-workload", role = "status", `aria-live` = "polite",
+          shiny::strong(sprintf("About %s scenarios", format(workload$scenarios, big.mark = ","))),
+          shiny::span(sprintf(" · %s Monte Carlo evaluations", format(workload$evaluations, big.mark = ",")))
+        )
+      }, error = function(e) rbext_status(conditionMessage(e), ok = FALSE))
+    })
+
+    save_environment_form <- function(overwrite = FALSE) {
+      status <- tryCatch({
+        values <- build_environment_form()
+        existing <- input$env_name %in% list_environments()$name
+        if (!overwrite && existing) {
+          shiny::showModal(shiny::modalDialog(
+            title = "Replace environment?",
+            sprintf("An environment named '%s' already exists. Saving will replace its configuration.", input$env_name),
+            footer = shiny::tagList(
+              shiny::modalButton("Keep existing"),
+              rbext_action_button(ns("confirm_env_overwrite"), "Replace environment", class = "btn-danger")
+            ),
+            easyClose = FALSE
+          ))
+          return(NULL)
+        }
+
+        save_environment(input$env_name, values$scenarios, values$mcmc, values$methods)
+        if (!is.null(on_env_saved)) {
+          on_env_saved()
+        }
+        list(ok = TRUE, message = sprintf("Saved '%s'. Launch it from the Run tab.", input$env_name))
+      }, error = function(e) list(ok = FALSE, message = conditionMessage(e)))
+      if (is.null(status)) return(invisible(NULL))
+      output$env_status <- shiny::renderUI(rbext_status(status$message, ok = status$ok))
+      invisible(NULL)
+    }
+
+    shiny::observeEvent(input$save_env, save_environment_form())
+    shiny::observeEvent(input$confirm_env_overwrite, {
+      shiny::removeModal()
+      save_environment_form(overwrite = TRUE)
     })
 
     invisible(NULL)

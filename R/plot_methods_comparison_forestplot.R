@@ -1,3 +1,72 @@
+#' Forest-plot colours for a Shiny colour scheme
+#'
+#' @description The forest plots are the only charts the app renders as static
+#' images (they are multi-panel gtables, so they cannot go through
+#' rbext_plotly() like every other chart) and therefore cannot inherit the
+#' page's stylesheet. These helpers take one of rbext_palette()'s schemes and
+#' recolour a subplot for it. `palette = NULL` is the publication figure,
+#' unchanged.
+#'
+#' @param palette A colour scheme from rbext_palette(), or NULL.
+#'
+#' @return A ggplot2 theme, or NULL when there is no palette.
+#' @keywords internal
+forest_palette_theme <- function(palette) {
+  if (is.null(palette)) {
+    return(NULL)
+  }
+  theme(
+    text = element_text(colour = palette$ink),
+    axis.text = element_text(colour = palette$ink),
+    axis.title = element_text(colour = palette$ink),
+    plot.title = element_text(colour = palette$ink),
+    legend.text = element_text(colour = palette$ink),
+    legend.title = element_text(colour = palette$ink),
+    legend.background = element_blank(),
+    legend.key = element_blank(),
+    axis.ticks = element_line(colour = palette$ink_muted),
+    panel.background = element_rect(fill = palette$surface, colour = NA),
+    panel.border = element_rect(fill = NA, colour = palette$hairline),
+    panel.grid.major = element_line(colour = palette$hairline, linetype = "solid",
+                                    linewidth = 0.15),
+    strip.background = element_rect(fill = palette$hairline, colour = NA),
+    strip.text = element_text(colour = palette$ink),
+    plot.background = element_blank()
+  )
+}
+
+#' The colours of the forest plots' reference lines, defaulting to the literal
+#' values the publication figures use so that `palette = NULL` output is
+#' untouched.
+#'
+#' @param palette A colour scheme from rbext_palette(), or NULL.
+#'
+#' @return A list with `target`, `source` and `ink` colours.
+#' @keywords internal
+forest_reference_colours <- function(palette) {
+  if (is.null(palette)) {
+    return(list(target = "black", source = "red", ink = "black"))
+  }
+  list(target = palette$ref_target, source = palette$ref_source, ink = palette$ink)
+}
+
+#' A point/pointrange layer carrying the palette's ink. Without a palette the
+#' colour argument is omitted altogether, leaving ggplot2's default.
+#'
+#' @param geom The ggplot2 layer constructor to call.
+#' @param palette A colour scheme from rbext_palette(), or NULL.
+#' @param ... Further arguments for `geom`.
+#'
+#' @return A ggplot2 layer.
+#' @keywords internal
+forest_ink_layer <- function(geom, palette, ...) {
+  args <- list(...)
+  if (!is.null(palette)) {
+    args$colour <- palette$ink
+  }
+  do.call(geom, args)
+}
+
 #' Create a forest plot
 #'
 #' @description This function creates a forest plot using the provided data.
@@ -9,6 +78,8 @@
 #' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
 #' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
+#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#'   dark mode, or NULL for the publication figure.
 #'
 #' @return A ggplot2::ggplot( object representing the forest plot.
 #' @keywords internal
@@ -21,7 +92,9 @@ forest_subplot <- function(data,
                            x_metric_label,
                            methods_labels,
                            legend = FALSE,
-                           sort_by = FALSE) {
+                           sort_by = FALSE,
+                           palette = NULL) {
+  refs <- forest_reference_colours(palette)
   if (sort_by == "methods_parameters"){
     # Make sure that the data are sorted according to the parameters values
     for (method in unique(data$method)) {
@@ -42,7 +115,7 @@ forest_subplot <- function(data,
 
 
   # Process the row of a results dataframe to create a Method + Parameters label
-  labels <- sapply(1:nrow(data), function(i) {
+  labels <- sapply(seq_len(nrow(data)), function(i) {
     process_method_parameters_label(data[i, ], methods_labels)
   })
 
@@ -57,7 +130,7 @@ forest_subplot <- function(data,
       xmax = !!x_metric_uncertainty_upper
     )
   ) +
-    geom_pointrange(size = 0.001) +
+    forest_ink_layer(geom_pointrange, palette, size = 0.001) +
     ggplot2::labs(title = title, x = x_metric_label) +
     theme(
       axis.title.y = element_blank(),
@@ -72,6 +145,7 @@ forest_subplot <- function(data,
       plot.title = element_text(hjust = 0.5),
       plot.background = element_blank()
     ) +
+    forest_palette_theme(palette) +
     scale_y_continuous(breaks = data$rows, labels = labels) # LaTeX labels
     # scale_x_continuous(
     #   breaks = pretty(data[[x_metric_name]], n = 5), # Set 10 evenly spaced breaks
@@ -88,16 +162,16 @@ forest_subplot <- function(data,
       plt <- plt + geom_vline(aes(xintercept = theta_0, color = "theta_0"), linetype = "dotted") +
         scale_color_manual(
           name = "",
-          values = c("theta_0" = "black"),
+          values = c("theta_0" = refs$ink),
           labels = expression(theta[0])
         )
     } else {
-      plt <- plt + geom_vline(xintercept = theta_0, linetype = "dotted")
+      plt <- plt + geom_vline(xintercept = theta_0, linetype = "dotted", color = refs$ink)
     }
   } else if (x_metric_name == "ess_moment" ||
              x_metric_name == "ess_precision" ||
              x_metric_name == "ess_elir") {
-    if (is.null(data$equivalent_source_sample_size_per_arm) |
+    if (is.null(data$equivalent_source_sample_size_per_arm) ||
         any(is.na(data$equivalent_source_sample_size_per_arm))) {
       equivalent_source_sample_size_per_arm <- 2 * data$source_sample_size_control * data$source_sample_size_treatment / (data$source_sample_size_control + data$source_sample_size_treatment)
     } else {
@@ -119,11 +193,11 @@ forest_subplot <- function(data,
         scale_color_manual(
           name = "",
           values = c(
-            "Target sample size per arm" = "black",
-            "Source sample size per arm" = "red"
+            "Target sample size per arm" = refs$target,
+            "Source sample size per arm" = refs$source
           ),
           labels = c(
-            "Target sample size per arm" = expression(N[T]/2),
+            "Target sample size per arm" = expression(N[T]/2), # nolint: T_and_F_symbol_linter.
             "Source sample size per arm" = expression(N[S]/2)
           )
         )
@@ -132,12 +206,12 @@ forest_subplot <- function(data,
         geom_vline(
           xintercept = target_sample_size_per_arm,
           linetype = "dotted",
-          "color" = "black"
+          "color" = refs$target
         ) +
         geom_vline(
           xintercept = source_sample_size_per_arm,
           linetype = "dotted",
-          "color" = "red"
+          "color" = refs$source
         )
     }
   }
@@ -180,6 +254,8 @@ forest_subplot <- function(data,
 #' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
 #' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
+#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#'   dark mode, or NULL for the publication figure.
 #'
 #' @return A ggplot2::ggplot( object representing the forest plot.
 #' @keywords internal
@@ -190,7 +266,8 @@ forest_subplot_no_uncertainty <- function(data,
                                           x_metric_label,
                                           methods_labels,
                                           legend = FALSE,
-                                          sort_by = FALSE) {
+                                          sort_by = FALSE,
+                                          palette = NULL) {
 
   if (sort_by == "methods_parameters"){
     # Make sure that the data are sorted according to the parameters values
@@ -210,14 +287,14 @@ forest_subplot_no_uncertainty <- function(data,
     data <- data[order(data[[x_metric_name_str]]), ]
   }
 
-  labels <- sapply(1:nrow(data), function(i) {
+  labels <- sapply(seq_len(nrow(data)), function(i) {
     process_method_parameters_label(data[i, ], methods_labels)
   })
 
   data$rows <- seq(1, nrow(data))
 
   plt <- ggplot2::ggplot(data, ggplot2::aes(y = rows, x = !!x_metric_name)) +
-    ggplot2::geom_point(size = 0.001) + # Scatter plot
+    forest_ink_layer(ggplot2::geom_point, palette, size = 0.001) + # Scatter plot
     ggplot2::labs(title = title, x = x_metric_label) +
     theme_bw() +
     theme(
@@ -234,6 +311,7 @@ forest_subplot_no_uncertainty <- function(data,
       # Center the title
       # plot.background = element_blank()
     ) +
+    forest_palette_theme(palette) +
     scale_y_continuous(breaks = data$rows, labels = labels) # LaTeX labels
 
   if (!ylabel) {
@@ -251,7 +329,8 @@ forest_combined_plot <- function(data,
                                  x_metric_label,
                                  methods_labels,
                                  legend = TRUE,
-                                 sorting_by = "value") {
+                                 sorting_by = "value",
+                                 palette = NULL) {
 
   # Sort data based on the specified sorting method
   if (sorting_by == "methods_parameters") {
@@ -268,7 +347,7 @@ forest_combined_plot <- function(data,
   }
 
   # Generate labels for the y-axis
-  labels <- sapply(1:nrow(data), function(i) {
+  labels <- sapply(seq_len(nrow(data)), function(i) {
     process_method_parameters_label(data[i, ], methods_labels)
   })
   data$rows <- seq(1, nrow(data))
@@ -303,6 +382,7 @@ forest_combined_plot <- function(data,
       plot.title = element_text(hjust = 0.5)
       # plot.background = element_blank()
     ) +
+    forest_palette_theme(palette) +
     scale_y_continuous(breaks = data$rows, labels = labels) +
     scale_color_manual(values = c(
       "No effect" = "blue",
@@ -340,9 +420,11 @@ forest_combined_plot <- function(data,
 #' @param selected_case_study The selected case study.
 #' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
+#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#'   dark mode, or NULL for the publication figure.
 #'
 #' @return None
-forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
+forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL) {
   selected_case_study <- unique(results_freq_df$case_study)
   selected_target_sample_size_per_arm <- unique(results_freq_df$target_sample_size_per_arm)
 
@@ -381,9 +463,9 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
     selected_target_sample_size_per_arm
   )
 
-  case_study = unique(results_freq_df$case_study)
-  target_to_source_std_ratio = unique(results_freq_df$target_to_source_std_ratio)
-  source_denominator_change_factor = unique(results_freq_df$source_denominator_change_factor)
+  case_study <- unique(results_freq_df$case_study)
+  target_to_source_std_ratio <- unique(results_freq_df$target_to_source_std_ratio)
+  source_denominator_change_factor <- unique(results_freq_df$source_denominator_change_factor)
 
   filename <- format_filename(
     filename = filename,
@@ -392,10 +474,16 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
     source_denominator_change_factor = source_denominator_change_factor
   )
 
+  if (!is.null(palette)) {
+    filename <- paste0(filename, "_dark")
+  }
+
   file_path <- file.path(directory, filename)
 
-  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE){
-    return()
+  if (file.exists(paste0(file_path, ".png")) &&
+      (!is.null(palette) || file.exists(paste0(file_path, ".pdf"))) &&
+      remake_figures == FALSE){
+    return(invisible(paste0(file_path, ".png")))
   }
 
   if (x_metric %in% names(bayesian_metrics)) {
@@ -514,7 +602,8 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
       x_metric_label_no_effect,
       methods_labels = methods_labels,
       legend = FALSE,
-      sort_by = FALSE
+      sort_by = FALSE,
+      palette = palette
     )
     plot_partially_consistent_effect <- forest_subplot(
       partially_consistent_effect_data,
@@ -526,7 +615,8 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
       x_metric_label_partially_consistent,
       methods_labels = methods_labels,
       legend = FALSE,
-      sort_by = FALSE
+      sort_by = FALSE,
+      palette = palette
     )
     plot_consistent_effect <- forest_subplot(
       consistent_effect_data,
@@ -538,7 +628,8 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
       x_metric_label_consistent,
       methods_labels = methods_labels,
       legend = TRUE,
-      sort_by = FALSE
+      sort_by = FALSE,
+      palette = palette
     )
 
     # Convert to grobs
@@ -546,22 +637,34 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
     grob_partially_consistent_effect <- ggplotGrob(plot_partially_consistent_effect)
     grob_consistent_effect <- ggplotGrob(plot_consistent_effect)
 
-    grid.newpage()
-
     # Note that adding the Tikz export to the export_plots function does not work.
     if (plots_to_latex == TRUE) {
+      # grid.arrange() (unlike arrangeGrob()) also draws to the current
+      # graphics device as a side effect - that's exactly what's wanted here,
+      # to capture the drawing into the open tikz() device below.
+      grid::grid.newpage()
       tikzDevice::tikz(file = paste0(file_path, ".tex"), width = 5.92)
-    }
-
-    plt <- gridExtra::grid.arrange(
-      grob_no_effect,
-      grob_partially_consistent_effect,
-      grob_consistent_effect,
-      ncol = 3,
-      widths = c(0.44, 0.25, 0.31)
-    )
-    if (plots_to_latex == TRUE) {
+      plt <- gridExtra::grid.arrange(
+        grob_no_effect,
+        grob_partially_consistent_effect,
+        grob_consistent_effect,
+        ncol = 3,
+        widths = c(0.44, 0.25, 0.31)
+      )
       dev.off()
+    } else {
+      # arrangeGrob() only builds the combined grob, with no drawing side
+      # effect - unlike grid.arrange(), it doesn't require (or open) a
+      # graphics device, which matters when this runs headless (e.g. from
+      # the Shiny app), where the implicitly-opened default device can't
+      # render the plot theme's font and grid.arrange() would error.
+      plt <- gridExtra::arrangeGrob(
+        grob_no_effect,
+        grob_partially_consistent_effect,
+        grob_consistent_effect,
+        ncol = 3,
+        widths = c(0.44, 0.25, 0.31)
+      )
     }
   } else {
     # Combine data from all three cases into one data frame
@@ -578,15 +681,20 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
       x_metric_uncertainty_upper = "upper_bound",
       x_metric_label = "Posterior Mean",
       methods_labels = methods_labels,
-      legend = TRUE
+      legend = TRUE,
+      palette = palette
     )
   }
   plot_size <- set_size(textwidth)
   fig_width_in <- plot_size[1]
   fig_height_in <- plot_size[2]
 
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", forest_plot = TRUE)
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", forest_plot = TRUE)
+  if (is.null(palette)) {
+    export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", forest_plot = TRUE)
+  }
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", forest_plot = TRUE,
+               bg = palette$surface)
+  invisible(paste0(file_path, ".png"))
 }
 
 
@@ -598,9 +706,11 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE) {
 #' @param selected_case_study The selected case study.
 #' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
+#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#'   dark mode, or NULL for the publication figure.
 #'
 #' @return None
-forest_plot_bayesian <- function(results_bayes_df, x_metric) {
+forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
   selected_case_study <- unique(results_bayes_df$case_study)
   selected_target_sample_size_per_arm <- unique(results_bayes_df$target_sample_size_per_arm)
 
@@ -633,10 +743,16 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric) {
     selected_target_sample_size_per_arm
   )
 
+  if (!is.null(palette)) {
+    filename <- paste0(filename, "_dark")
+  }
+
   file_path <- file.path(directory, filename)
 
-  if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE){
-    return()
+  if (file.exists(paste0(file_path, ".png")) &&
+      (!is.null(palette) || file.exists(paste0(file_path, ".pdf"))) &&
+      remake_figures == FALSE){
+    return(invisible(paste0(file_path, ".png")))
   }
 
   round_decimal <- 4
@@ -664,7 +780,8 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric) {
     x_metric_name,
     x_metric_label,
     methods_labels = methods_labels,
-    legend = FALSE
+    legend = FALSE,
+    palette = palette
   )
   plot_analysis_design_prior <- forest_subplot_no_uncertainty(
     analysis_design_prior_data,
@@ -673,7 +790,8 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric) {
     x_metric_name,
     x_metric_label,
     methods_labels = methods_labels,
-    legend = FALSE
+    legend = FALSE,
+    palette = palette
   )
   plot_source_posterior_design_prior <- forest_subplot_no_uncertainty(
     source_posterior_design_prior_data,
@@ -682,7 +800,8 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric) {
     x_metric_name,
     x_metric_label,
     methods_labels = methods_labels,
-    legend = FALSE
+    legend = FALSE,
+    palette = palette
   )
 
   # Convert to grobs
@@ -690,8 +809,12 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric) {
   grob_analysis_design_prior <- ggplotGrob(plot_analysis_design_prior)
   grob_source_posterior_design_prior <- ggplotGrob(plot_source_posterior_design_prior)
 
-  grid.newpage()
-  plt <- gridExtra::grid.arrange(
+  # arrangeGrob() (unlike grid.arrange()) only builds the combined grob, with
+  # no drawing side effect, so it doesn't require (or open) a graphics
+  # device - which matters when this runs headless (e.g. from the Shiny
+  # app), where the implicitly-opened default device can't render the plot
+  # theme's font and grid.arrange() would error.
+  plt <- gridExtra::arrangeGrob(
     grob_ui_design_prior,
     grob_analysis_design_prior,
     grob_source_posterior_design_prior,
@@ -703,8 +826,12 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric) {
   fig_width_in <- plot.size[1]
   fig_height_in <- plot.size[2]
 
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", forest_plot = TRUE)
-  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", forest_plot = TRUE)
+  if (is.null(palette)) {
+    export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf", forest_plot = TRUE)
+  }
+  export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png", forest_plot = TRUE,
+               bg = palette$surface)
+  invisible(paste0(file_path, ".png"))
 }
 
 
@@ -731,7 +858,7 @@ forest_plot_methods_comparison <- function(results_metrics_df, metrics) {
       results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
 
       target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
-      target_sample_sizes <- target_sample_sizes[!target_sample_sizes %in% NA]
+      target_sample_sizes <- target_sample_sizes[!is.na(target_sample_sizes)]
       for (target_sample_size_per_arm in target_sample_sizes) {
         results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size_per_arm,]
 
@@ -780,7 +907,7 @@ forest_plot_methods_comparison_bayesian <- function(results_metrics_df, metrics)
       results_metrics_df1 <- results_metrics_df[results_metrics_df$case_study == case_study,]
 
       target_sample_sizes <- unique(results_metrics_df1$target_sample_size_per_arm)
-      target_sample_sizes <- target_sample_sizes[!target_sample_sizes %in% NA]
+      target_sample_sizes <- target_sample_sizes[!is.na(target_sample_sizes)]
       for (target_sample_size_per_arm in target_sample_sizes) {
         results_metrics_df2 <- results_metrics_df1[results_metrics_df1$target_sample_size_per_arm == target_sample_size_per_arm,]
 

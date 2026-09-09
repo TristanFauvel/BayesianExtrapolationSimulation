@@ -143,9 +143,11 @@ combine_parameters <- function(method) {
 #'
 #' @param config_dir The directory containing the configuration files.
 #' @param scenarios_config The simulation configuration file.
+#' @param case_studies_config_dir Directory containing the case study YAML
+#'   files.
 #'
 #' @return A list of simulation scenarios.
-simulation_scenarios <- function(config_dir, scenarios_config) {
+simulation_scenarios <- function(config_dir, scenarios_config, case_studies_config_dir) {
   source(paste0(config_dir, "methods_config.R"))
   case_studies <- scenarios_config$case_studies
 
@@ -236,7 +238,7 @@ simulation_scenarios <- function(config_dir, scenarios_config) {
     total_target_sample_sizes <- (source_data$sample_size_control + source_data$sample_size_treatment) / scenarios_config$sample_size_factors
     current_scenario_configurations <- list()
 
-    for (i in 1:nrow(drift_combinations)) {
+    for (i in seq_len(nrow(drift_combinations))) {
       drift <- drift_combinations[i, "drift"]
       control_drift <- drift_combinations[i, "control_drift"]
       source_denominator <- drift_combinations[i, "source_denominator"]
@@ -323,7 +325,7 @@ scenarios_table_ranges <- function(cases_df, results_path) {
 "
     )
 
-    for (i in 1:nrow(df)) {
+    for (i in seq_len(nrow(df))) {
       # Concatenate ranges
       drift_range <- paste0("[",
                             df$Drift_range_lower[i],

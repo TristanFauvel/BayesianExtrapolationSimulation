@@ -3,9 +3,13 @@
 *.pyc
 *.sif
 *.svg
+# ...except the Shiny app's own static assets, which it serves from www/
+!inst/shiny_app/www/*.svg
 
 # ignore R data files
 *.rds
+# ...except committed test fixtures
+!tests/testthat/fixtures/*.rds
 .RData
 .Rapp.history
 .Rhistory

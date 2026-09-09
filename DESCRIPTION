@@ -36,6 +36,7 @@ Imports:
     stringr,
     assertions,  
     Bolstad2,
+    grid,
     gridExtra,
     binom, 
     rlang,
@@ -66,14 +67,15 @@ UseLTO: true
 URL: https://github.com/quinten-health-os/BayesianExtrapolationSimulation, https://quinten-health-os.github.io/BayesianExtrapolationSimulation/
 BugReports: https://github.com/quinten-health-os/BayesianExtrapolationSimulation/issues
 Suggests:
-    rmarkdown, 
+    rmarkdown,
     testthat (>= 3.2.0),
     scales,
     tools,
-    broom, 
+    broom,
     glue,
     ragg,
-    tikzDevice
+    tikzDevice,
+    devtools
 VignetteBuilder: knitr
 SystemRequirements: GNU make, pandoc (>= 1.12.3), pngquant, C++17
 Encoding: UTF-8

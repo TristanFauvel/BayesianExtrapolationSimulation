@@ -10,7 +10,9 @@ frequentist_ocs_scenario_simulation(
   scenarios_config,
   freq_filename,
   config_dir,
-  case_studies_config_dir
+  case_studies_config_dir,
+  frequentist_metrics,
+  inference_metrics
 )
 }
 \arguments{
@@ -23,6 +25,12 @@ frequentist_ocs_scenario_simulation(
 \item{config_dir}{Configuration files directory}
 
 \item{case_studies_config_dir}{Case studies configurations directory}
+
+\item{frequentist_metrics}{List of frequentist metrics, as defined by
+sourcing \code{metrics_config.R}.}
+
+\item{inference_metrics}{List of inference metrics, as defined by sourcing
+\code{metrics_config.R}.}
 }
 \value{
 The results of the simulation.

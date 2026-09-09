@@ -1,11 +1,15 @@
 ^.*\.Rproj$
 ^.*\.sif$
 ^Meta$
+^\.RData$
+^\.Rhistory$
 ^\.Rprofile$
 ^\.Rproj\.user$
+^\.claude$
 ^\.git$
 ^\.github$
 ^_pkgdown\.yml$
+^docs$
 ^figures$
 ^inst/stan$
 ^logs$
@@ -15,4 +19,5 @@
 ^results$
 ^tables$
 ^tests$
+^user_configs$
 ^\.pre-commit-config\.yaml$

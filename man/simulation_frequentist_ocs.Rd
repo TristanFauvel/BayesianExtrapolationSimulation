@@ -11,7 +11,9 @@ simulation_frequentist_ocs(
   analysis_config,
   config_dir,
   case_studies_config_dir,
-  logging_file_path
+  logging_file_path,
+  frequentist_metrics,
+  inference_metrics
 )
 }
 \arguments{
@@ -24,6 +26,12 @@ simulation_frequentist_ocs(
 \item{config_dir}{Configuration directory}
 
 \item{case_studies_config_dir}{Case studies configuration directory}
+
+\item{frequentist_metrics}{List of frequentist metrics, as defined by
+sourcing \code{metrics_config.R}.}
+
+\item{inference_metrics}{List of inference metrics, as defined by sourcing
+\code{metrics_config.R}.}
 }
 \value{
 None

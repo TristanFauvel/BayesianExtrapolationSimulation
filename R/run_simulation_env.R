@@ -19,6 +19,8 @@
 #'   `analysis_config.yml`).
 #' @param frequentist_metrics List of frequentist metrics, as defined by
 #'   sourcing `metrics_config.R`.
+#' @param inference_metrics List of inference metrics, as defined by sourcing
+#'   `metrics_config.R`.
 #' @param results_dir Directory the results are written to. Defaults to
 #'   `./results/<env>/`.
 #' @param check_results_completeness Reserved for a future completeness
@@ -34,6 +36,7 @@ run_simulation_env <- function(env,
                                simulation_config,
                                analysis_config,
                                frequentist_metrics,
+                               inference_metrics,
                                results_dir = paste0("./results/", env, "/"),
                                check_results_completeness = TRUE) {
   # Set up the log file location
@@ -94,7 +97,9 @@ run_simulation_env <- function(env,
     analysis_config = analysis_config,
     config_dir = config_dir,
     case_studies_config_dir = case_studies_config_dir,
-    logging_file_path = LOGGING_FILE_PATH)
+    logging_file_path = LOGGING_FILE_PATH,
+    frequentist_metrics = frequentist_metrics,
+    inference_metrics = inference_metrics)
 
     # Concatenate case_study/method results into a single file for the environment.
     concatenate_simulation_results(results_dir = results_dir, ocs_filename = ocs_filename)
@@ -117,7 +122,8 @@ run_simulation_env <- function(env,
     # The analysis is performed on the results concatenated at the level of the environment.
     simulation_analysis(env, analysis_config, config_dir, frequentist_metrics,
                         to_compute = analysis_to_compute,
-                        case_studies_config_dir = case_studies_config_dir)
+                        case_studies_config_dir = case_studies_config_dir,
+                        parallelization = scenarios_config$parallelization)
   }
 
   if (simulation_config$compute_bayesian_ocs_mc == TRUE) {

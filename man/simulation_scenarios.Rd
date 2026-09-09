@@ -4,12 +4,15 @@
 \alias{simulation_scenarios}
 \title{Generate simulation scenarios based on the configuration directory.}
 \usage{
-simulation_scenarios(config_dir, scenarios_config)
+simulation_scenarios(config_dir, scenarios_config, case_studies_config_dir)
 }
 \arguments{
 \item{config_dir}{The directory containing the configuration files.}
 
 \item{scenarios_config}{The simulation configuration file.}
+
+\item{case_studies_config_dir}{Directory containing the case study YAML
+files.}
 }
 \value{
 A list of simulation scenarios.

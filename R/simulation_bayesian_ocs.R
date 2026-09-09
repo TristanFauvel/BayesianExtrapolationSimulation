@@ -287,7 +287,7 @@ simulation_bayesian_ocs <- function(env,
       scenarios_config$case_studies <- case_study
       scenarios_config$methods <- method
 
-      cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config)
+      cases <- simulation_scenarios(config_dir = config_dir, scenarios_config = scenarios_config, case_studies_config_dir = case_studies_config_dir)
 
       if (nrow(cases) == 0) {
         stop("No simulation results")
@@ -349,7 +349,7 @@ simulation_bayesian_ocs <- function(env,
 
       if (!method_runs_in_parallel(scenarios_config$parallelization, method)) {
         # Loop through cases
-        for (i in 1:nrow(cases)) {
+        for (i in seq_len(nrow(cases))) {
           scenario <- cases[i, ]
           results <- bayesian_ocs_scenario_simulation(
             scenario = scenario,
@@ -372,20 +372,23 @@ simulation_bayesian_ocs <- function(env,
         # Set a range of ports for cluster
         options(clusterPort = c(11000, 11999))
 
-        # Register parallel backend
+        # Register parallel backend, one that calls the `opts` progress
+        # callback built above as each scenario comes back - see
+        # register_parallel_backend().
         cl <- parallel::makeCluster(ncores)
-        doParallel::registerDoParallel(cl)
-
-        # Define the list of libraries to load
-        required_libraries <- c("RBExT")
+        register_parallel_backend(cl)
 
         # Export the library paths to each worker
         paths <- .libPaths()
+        # RBExT may not be an installed package at all (e.g. the Shiny app's
+        # dev-mode background process only ever `devtools::load_all()`s it),
+        # so each worker needs the same source path to fall back to.
+        pkg_root <- find.package("RBExT")
         parallel::clusterExport(
           cl,
           varlist = c(
             "paths",
-            "required_libraries",
+            "pkg_root",
             "simulation_config",
             "bayes_filename",
             "config_dir",
@@ -394,14 +397,20 @@ simulation_bayesian_ocs <- function(env,
           envir = environment()
         )
 
-        # Evaluate the expression to load libraries in each worker
+        # Evaluate the expression to load RBExT in each worker: library() for
+        # an installed package (the common case), falling back to
+        # devtools::load_all() when it is only loaded from source.
         parallel::clusterEvalQ(cl, {
           .libPaths(paths)
-          sapply(required_libraries, library, character.only = TRUE)
+          if (!requireNamespace("RBExT", quietly = TRUE)) {
+            devtools::load_all(pkg_root, quiet = TRUE)
+          } else {
+            library(RBExT)
+          }
         })
         # Parallel computation over cases
         results <- foreach::foreach(
-          i = 1:nrow(cases),
+          i = seq_len(nrow(cases)),
           .combine = "rbind",
           .options.snow = opts
         ) %dopar% {

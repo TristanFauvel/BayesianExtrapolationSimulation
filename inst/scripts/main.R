@@ -45,6 +45,7 @@ for (env in envs) {
     simulation_config = simulation_config,
     analysis_config = analysis_config,
     frequentist_metrics = frequentist_metrics,
+    inference_metrics = inference_metrics,
     check_results_completeness = check_results_completeness
   )
 }
@@ -62,4 +63,3 @@ for (env in envs) {
 #   lapply(file_names, concatenate_files, results_dirs, "./results/combined/")
 # }
 #
-
