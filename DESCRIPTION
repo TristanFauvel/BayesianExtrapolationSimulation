@@ -57,8 +57,8 @@ LazyData: true
 Biarch: true
 NeedsCompilation: yes
 UseLTO: true
-URL: https://github.com/quintengroup/EMA_ROC02_Bayesian_simulation
-BugReports: https://github.com/quintengroup/EMA_ROC02_Bayesian_simulation/issues
+URL: https://github.com/quinten-health-os/BayesianExtrapolationSimulation, https://quinten-health-os.github.io/BayesianExtrapolationSimulation/
+BugReports: https://github.com/quinten-health-os/BayesianExtrapolationSimulation/issues
 Suggests:
     rmarkdown, 
     testthat (>= 3.2.0),
