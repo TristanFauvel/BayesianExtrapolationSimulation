@@ -690,6 +690,12 @@ plot_metric_vs_sample_size_methods <- function(metric,
 #'
 #' @examples NA
 plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "plot_metric_vs_scenario_methods"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

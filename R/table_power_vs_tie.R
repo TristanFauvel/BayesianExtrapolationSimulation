@@ -161,6 +161,12 @@ table_power_vs_tie <- function(results_metrics_df,
 #'
 #' @export
 power_vs_tie_tables <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "power_vs_tie_tables"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

@@ -207,6 +207,12 @@ power_vs_tie <- function(results_metrics_df,
 #'
 #' @examples NA
 power_vs_tie_plots <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "power_vs_tie_plots"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
   treatment_effects <- c("partially_consistent", "consistent")

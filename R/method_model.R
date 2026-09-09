@@ -82,6 +82,13 @@ Model <- R6::R6Class(
                       method_parameters,
                       source_data,
                       mcmc_config = NULL) {
+      check_model_create_args(
+        case_study_config,
+        method,
+        method_parameters,
+        mcmc_config
+      )
+
       prior <- list(source = as.list(source_data),
                     method_parameters = method_parameters)
 

@@ -170,6 +170,12 @@ plot_metric_vs_ess <- function(results_metrics_df,
 #'
 #' @examples NA
 plot_metrics_vs_ess <- function(results_metrics_df, frequentist_metrics, inference_metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "plot_metrics_vs_ess"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

@@ -1,4 +1,17 @@
 analyze_power_gains <- function(results_freq_df, output_path){
+  check_required_colnames(
+    results_freq_df,
+    c(  "null_space",
+    "target_treatment_effect",
+    "theta_0",
+    "success_proba",
+    "frequentist_power_at_equivalent_tie",
+      "method",
+      "conf_int_success_proba_lower",
+      "nominal_frequentist_power_separate"),
+    context = "analyze_power_gains"
+  )
+
   # Check whether there are cases where the success proba is higher in the alternative space than the frequentist power at equivalent TIE
   subdf <- subset(results_freq_df,
                   (null_space == "left" & target_treatment_effect > theta_0) |
@@ -28,6 +41,16 @@ analyze_power_gains <- function(results_freq_df, output_path){
 }
 
 analyze_power_loss <- function(results_freq_df, output_path){
+  check_required_colnames(
+    results_freq_df,
+    c(  "null_space",
+    "target_treatment_effect",
+    "theta_0",
+    "success_proba",
+    "frequentist_power_at_equivalent_tie"),
+    context = "analyze_power_loss"
+  )
+
   # Check whether there are cases where the success proba is lower in the alternative space than the frequentist power at equivalent TIE while TIE is inflated compared to the nominal TIE.
   subdf <- subset(results_freq_df,
                   (null_space == "left" & target_treatment_effect > theta_0) |
@@ -44,6 +67,17 @@ analyze_power_loss <- function(results_freq_df, output_path){
 }
 
 analyze_power_loss_inflated_tie <- function(results_freq_df, output_path){
+  check_required_colnames(
+    results_freq_df,
+    c(  "null_space",
+    "target_treatment_effect",
+    "theta_0",
+    "success_proba",
+    "frequentist_power_at_equivalent_tie",
+      "conf_int_tie_lower"),
+    context = "analyze_power_loss_inflated_tie"
+  )
+
   # Check whether there are cases where the success proba is lower in the alternative space than the frequentist power at equivalent TIE while TIE is inflated compared to the nominal TIE.
   subdf <- subset(results_freq_df,
                   (null_space == "left" & target_treatment_effect > theta_0) |

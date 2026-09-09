@@ -204,6 +204,12 @@ plot_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
 #' @return None
 #' @export
 empirical_bayes_parameters_plots <- function(results_metrics_df) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "empirical_bayes_parameters_plots"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

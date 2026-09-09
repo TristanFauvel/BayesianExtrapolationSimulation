@@ -48,7 +48,7 @@ run_simulation_env <- function(env,
 
   LOGGING_FILE_PATH <- generate_log_filename(base_name = paste0("./logs/", env, "/error_logs/error_log.log"), suffix_type = "timestamp")
 
-  scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
+  scenarios_config <- read_config(paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema)
 
   # Define the parallel logger
   if (scenarios_config$parallelization){

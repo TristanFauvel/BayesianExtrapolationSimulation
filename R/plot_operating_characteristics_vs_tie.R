@@ -284,6 +284,12 @@ operating_characteristic_vs_tie <- function(
 #'
 #' @examples NA
 operating_characteristics_vs_tie_plots <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "operating_characteristics_vs_tie_plots"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

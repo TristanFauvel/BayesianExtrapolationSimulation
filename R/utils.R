@@ -251,17 +251,149 @@ expected_colnames_source <- c(
 )
 
 
+#' Column types expected across the simulation results
+#'
+#' @description Maps the column names shared by the scenario, source and
+#'   results frames to the type each is expected to hold. Only columns whose
+#'   type is load-bearing downstream are listed; `check_colnames()` ignores
+#'   columns absent from the spec.
+#'
+#' @keywords internal
+expected_coltypes <- c(
+  # Scenario
+  method = "character",
+  parameters = "list|character",
+  target_sample_size_per_arm = "numeric",
+  drift = "numeric",
+  treatment_drift = "numeric",
+  control_drift = "numeric",
+  source_denominator = "numeric",
+  source_denominator_change_factor = "numeric",
+  case_study = "character",
+  sampling_approximation = "logical",
+  source_treatment_effect_estimate = "numeric",
+  target_treatment_effect = "numeric",
+  target_to_source_std_ratio = "numeric",
+  theta_0 = "numeric",
+  null_space = "character",
+  # Source data
+  source_standard_error = "numeric",
+  source_sample_size_control = "numeric",
+  source_sample_size_treatment = "numeric",
+  equivalent_source_sample_size_per_arm = "numeric",
+  summary_measure_likelihood = "character",
+  endpoint = "character",
+  # Results
+  success_proba = "numeric",
+  mcse_success_proba = "numeric",
+  conf_int_success_proba_lower = "numeric",
+  conf_int_success_proba_upper = "numeric",
+  coverage = "numeric",
+  mse = "numeric",
+  bias = "numeric",
+  posterior_mean = "numeric",
+  posterior_median = "numeric",
+  precision = "numeric",
+  credible_interval_lower = "numeric",
+  credible_interval_upper = "numeric",
+  posterior_parameters = "list|character",
+  ess_moment = "numeric",
+  ess_precision = "numeric",
+  ess_elir = "numeric",
+  rhat = "numeric",
+  mcmc_ess = "numeric",
+  n_divergences = "numeric",
+  # Derived by the analysis layer
+  tie = "numeric",
+  conf_int_tie_lower = "numeric",
+  conf_int_tie_upper = "numeric",
+  frequentist_power_at_equivalent_tie = "numeric",
+  frequentist_power_at_equivalent_tie_lower = "numeric",
+  frequentist_power_at_equivalent_tie_upper = "numeric",
+  nominal_frequentist_power_separate = "numeric",
+  nominal_frequentist_power_pooling = "numeric"
+)
+
+
+#' Columns every consumer of a results frame relies on
+#'
+#' @description The identity columns that the analysis, plot and table layers
+#'   read by name from whichever results frame they are handed. `drift` is
+#'   deliberately absent: the Bayesian operating-characteristics frame does not
+#'   carry it, and these columns must hold for both.
+#'
+#' @keywords internal
+required_colnames_consumer <- c(
+  "case_study",
+  "method",
+  "parameters",
+  "target_sample_size_per_arm",
+  "source_denominator_change_factor"
+)
+
+
+#' Look up the expected types for a set of columns
+#'
+#' @param expected_colnames The column names to look up.
+#'
+#' @return The subset of [expected_coltypes] describing those columns. Columns
+#'   the spec does not describe are omitted rather than reported, so that a
+#'   frame carrying extra bookkeeping columns still passes.
+#'
+#' @keywords internal
+default_coltypes <- function(expected_colnames) {
+  expected_coltypes[intersect(names(expected_coltypes), expected_colnames)]
+}
+
+
+#' Predicates used to check a column against a declared type
+#'
+#' @description The vocabulary `check_colnames()` accepts in its `types`
+#'   argument. `numeric` deliberately accepts integer columns, since sample
+#'   sizes and replicate counts are read back as either.
+#'
+#' @keywords internal
+column_type_predicates <- list(
+  numeric = is.numeric,
+  integer = is.integer,
+  character = is.character,
+  logical = is.logical,
+  factor = is.factor,
+  list = is.list
+)
+
+
+#' Describe the type a column actually holds
+#'
+#' @param column A dataframe column.
+#'
+#' @return A single string naming the column's type, for use in error messages.
+#'
+#' @keywords internal
+describe_column_type <- function(column) {
+  paste(class(column), collapse = "/")
+}
+
+
 #' Check columns in a dataframe
 #'
 #' This function checks if a dataframe contains the expected columns and only the expected columns.
+#' When `types` is supplied it additionally checks that those columns hold the
+#' declared type, reporting every mismatch at once.
 #'
 #' @param df A dataframe to check.
 #' @param expected_colnames A character vector of column names the dataframe should contain.
+#' @param types An optional named character vector mapping column names to the
+#'   type they are expected to hold, using the vocabulary of
+#'   [column_type_predicates]. Names must be among `expected_colnames`; columns
+#'   the spec does not mention are not type checked.
 #'
 #' @return No return value, called for side effects.
 #'
 #' @keywords internal
-check_colnames <- function(df, expected_colnames) {
+check_colnames <- function(df,
+                           expected_colnames,
+                           types = default_coltypes(expected_colnames)) {
   missing_cols <- setdiff(expected_colnames, colnames(df))
   if (length(missing_cols) > 0) {
     error_message <- paste(
@@ -278,6 +410,111 @@ check_colnames <- function(df, expected_colnames) {
       paste(missing_cols, collapse = ", ")
     )
     stop(error_message)
+  }
+
+  check_coltypes(df, types, expected_colnames)
+}
+
+
+#' Check that a dataframe carries the columns a consumer relies on
+#'
+#' @description Unlike [check_colnames()], this tolerates additional columns.
+#'   Use it at the entry point of the analysis, plot and table layers, which
+#'   receive frames enriched with derived columns but read a known subset of
+#'   them by name.
+#'
+#' @param df A dataframe to check.
+#' @param required_colnames A character vector of column names that must be
+#'   present.
+#' @param types An optional named character vector of expected types; defaults
+#'   to the entries of [expected_coltypes] describing the required columns.
+#' @param context An optional string naming the caller, included in the error
+#'   so that a schema drift points at the consumer that noticed it.
+#'
+#' @return No return value, called for side effects.
+#'
+#' @keywords internal
+check_required_colnames <- function(df,
+                                    required_colnames,
+                                    types = default_coltypes(required_colnames),
+                                    context = NULL) {
+  prefix <- if (is.null(context)) "" else paste0(context, ": ")
+
+  missing_cols <- setdiff(required_colnames, colnames(df))
+  if (length(missing_cols) > 0) {
+    stop(paste0(
+      prefix, "the dataframe is missing the following required columns: ",
+      paste(missing_cols, collapse = ", ")
+    ))
+  }
+
+  tryCatch(
+    check_coltypes(df, types, required_colnames),
+    error = function(e) stop(paste0(prefix, conditionMessage(e)), call. = FALSE)
+  )
+}
+
+
+#' Check the types of a dataframe's columns
+#'
+#' @param df A dataframe whose columns have already been checked for presence.
+#' @param types A named character vector mapping column names to expected types.
+#' @param expected_colnames The column names `types` is allowed to mention.
+#'
+#' @return No return value, called for side effects.
+#'
+#' @keywords internal
+check_coltypes <- function(df, types, expected_colnames = names(types)) {
+  if (length(types) == 0) {
+    return(invisible(NULL))
+  }
+
+  if (is.null(names(types)) || any(names(types) == "")) {
+    stop("The type specification must be a named character vector.")
+  }
+
+  alternatives <- strsplit(types, "|", fixed = TRUE)
+  unknown_types <- setdiff(unique(unlist(alternatives)), names(column_type_predicates))
+  if (length(unknown_types) > 0) {
+    stop(paste(
+      "The type specification names types that cannot be checked:",
+      paste(unknown_types, collapse = ", ")
+    ))
+  }
+
+  unknown_cols <- setdiff(names(types), expected_colnames)
+  if (length(unknown_cols) > 0) {
+    stop(paste(
+      "The type specification names columns that are not expected:",
+      paste(unknown_cols, collapse = ", ")
+    ))
+  }
+
+  mismatches <- character(0)
+  for (column_name in names(types)) {
+    column <- df[[column_name]]
+
+    # A column holding nothing but NA carries no type information: R types it
+    # as logical regardless of what the column means, so checking it would
+    # reject frames that are merely empty for this scenario.
+    if (is.atomic(column) && length(column) > 0 && all(is.na(column))) {
+      next
+    }
+
+    accepted <- alternatives[[column_name]]
+    if (!any(vapply(accepted, function(type) column_type_predicates[[type]](column), logical(1)))) {
+      mismatches <- c(mismatches, paste0(
+        column_name, " (expected ", types[[column_name]],
+        ", found ", describe_column_type(column), ")"
+      ))
+    }
+  }
+
+  if (length(mismatches) > 0) {
+    stop(paste(
+      "The dataframe has columns of the wrong type:",
+      paste(mismatches, collapse = "; ")
+    ))
   }
 }
 

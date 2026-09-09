@@ -844,6 +844,12 @@ forest_plot_bayesian <- function(results_bayes_df, x_metric, palette = NULL) {
 #'
 #' @return None
 forest_plot_methods_comparison <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "forest_plot_methods_comparison"
+  )
+
   case_studies <- unique(results_metrics_df$case_study)
 
   results_metrics_df <- results_metrics_df[(results_metrics_df[, "source_denominator_change_factor"] == 1 &

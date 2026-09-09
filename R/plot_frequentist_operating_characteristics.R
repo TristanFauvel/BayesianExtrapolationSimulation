@@ -1123,6 +1123,12 @@ plot_metric_vs_sample_size <- function(metric,
 #'
 #' @examples NA
 plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "plot_metric_vs_scenario"
+  )
+
 
   analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
 

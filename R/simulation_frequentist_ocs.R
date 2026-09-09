@@ -33,7 +33,7 @@ frequentist_ocs_scenario_simulation <- function(scenario,
   target_to_source_std_ratio <- scenario$target_to_source_std_ratio[[1]]
 
   case_study_config <- yaml::read_yaml(paste0(case_studies_config_dir, case_study, ".yml"))
-  mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
+  mcmc_config <- read_config(paste0(config_dir, "/mcmc_config.yml"), mcmc_config_schema)
   # `parallelization` may name the methods that run in parallel rather than
   # apply to all of them, so it has to be resolved for this scenario's method
   # before anything keys off it.

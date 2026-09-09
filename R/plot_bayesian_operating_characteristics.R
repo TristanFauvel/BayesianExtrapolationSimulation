@@ -618,6 +618,12 @@ bayesian_metric_vs_sample_size <- function(metric,
 #'
 #' @examples NA
 bayesian_ocs_plots <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "bayesian_ocs_plots"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

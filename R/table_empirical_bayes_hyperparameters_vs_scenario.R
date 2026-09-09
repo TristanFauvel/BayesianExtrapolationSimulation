@@ -197,6 +197,12 @@ table_empirical_bayes_hyperparameters_vs_drift <- function(results_metrics_df,
 #'
 #' @export
 table_empirical_bayes_hyperparameters_vs_scenario <- function(results_metrics_df, metrics) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "table_empirical_bayes_hyperparameters_vs_scenario"
+  )
+
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
 

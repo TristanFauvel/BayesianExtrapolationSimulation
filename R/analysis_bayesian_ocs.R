@@ -498,8 +498,8 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
   if (is.null(case_studies_config_dir)) {
     case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
   }
-  scenarios_config <- yaml::yaml.load_file(paste0(config_dir, "scenarios_config.yml"))
-  simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
+  scenarios_config <- read_config(paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema)
+  simulation_config <- read_config(system.file("conf/simulation_config.yml", package = "RBExT"), simulation_config_schema)
 
   if (is.null(simulation_config)) {
     stop("Simulation config is NULL")
@@ -510,7 +510,7 @@ compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_s
   # Get the list of case studies
   case_studies <- unique(results_freq_df$case_study)
 
-  mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
+  mcmc_config <- read_config(paste0(config_dir, "/mcmc_config.yml"), mcmc_config_schema)
 
   for (case_study in case_studies) {
     case_study_config <- yaml::yaml.load_file(paste0(case_studies_config_dir, case_study, ".yml"))

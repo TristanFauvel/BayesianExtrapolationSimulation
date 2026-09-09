@@ -269,6 +269,12 @@ table_bayesian_metrics_across_case_studies <- function(results_metrics_df) {
 #' @export
 table_bayesian_ocs <- function(results_metrics_df, metrics, source_denominator_change_factor = 1,
                                target_to_source_std_ratio = 1) {
+  check_required_colnames(
+    results_metrics_df,
+    required_colnames_consumer,
+    context = "table_bayesian_ocs"
+  )
+
   case_studies <- unique(results_metrics_df$case_study)
   methods <- unique(results_metrics_df$method)
 
