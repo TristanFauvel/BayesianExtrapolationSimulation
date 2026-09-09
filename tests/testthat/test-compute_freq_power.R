@@ -107,12 +107,13 @@ test_that("compute_power_with_tie_ci preserves its return structure for a missin
     simulation_config = list()
   )
 
-  expect_named(result, c("power", "conf_int_power"))
+  expect_named(result, c("power", "conf_int_power", "n_effective_samples"))
   expect_true(is.na(result$power))
   expect_equal(result$conf_int_power, rep(NA_real_, 2))
+  expect_equal(result$n_effective_samples, 0L)
 })
 
-test_that("compute_power_with_tie_ci handles an empty valid alpha sample", {
+test_that("compute_power_with_tie_ci handles a degenerate type I error of zero", {
   result <- compute_power_with_tie_ci(
     alpha = list(
       mean = 0,
@@ -127,7 +128,8 @@ test_that("compute_power_with_tie_ci handles an empty valid alpha sample", {
     n_samples = 10
   )
 
-  expect_named(result, c("power", "conf_int_power"))
+  expect_named(result, c("power", "conf_int_power", "n_effective_samples"))
   expect_true(is.na(result$power))
   expect_equal(result$conf_int_power, rep(NA_real_, 2))
+  expect_equal(result$n_effective_samples, 0L)
 })

@@ -58,11 +58,7 @@ power_vs_tie <- function(results_metrics_df,
   }
 
   if (power_difference) {
-    results_df <- results_df %>% dplyr::mutate(
-      success_proba = success_proba - frequentist_power_at_equivalent_tie,
-      conf_int_success_proba_lower = conf_int_success_proba_lower - frequentist_power_at_equivalent_tie,
-      conf_int_success_proba_upper = conf_int_success_proba_upper - frequentist_power_at_equivalent_tie
-    )
+    results_df <- add_power_difference_columns(results_df)
     power_label <- "power_difference"
   } else {
     power_label <- "power"

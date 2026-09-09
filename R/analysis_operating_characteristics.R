@@ -1,3 +1,72 @@
+#' Whether power can be computed analytically for this target data
+#'
+#' @description The analytical power formulas apply to a normal summary measure
+#'   on a continuous endpoint; the remaining endpoints have to be simulated.
+#'   Sharing the predicate keeps the power computation and the propagation of
+#'   its uncertainty on the same branch.
+#'
+#' @param target_data Target data object.
+#' @param case_study Optional case-study name.
+#'
+#' @return `TRUE` when power has a closed form for this target data.
+#'
+#' @keywords internal
+uses_analytical_power <- function(target_data, case_study = NULL) {
+  target_data$endpoint == "normal" ||
+    target_data$endpoint == "continuous" ||
+    isTRUE(case_study == "mepolizumab")
+}
+
+
+#' Simulate the p-values of the frequentist test
+#'
+#' @description Generates `n_replicates` trials and returns the p-value of the
+#'   test in each one. Returning the p-values rather than the decisions lets the
+#'   power be read off at any significance level without re-simulating.
+#'
+#' @param target_data Target data object.
+#' @param frequentist_test Type of frequentist test to apply.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param alternative Direction of the alternative hypothesis.
+#' @param simulation_config Simulation configuration.
+#' @param n_replicates Number of trials to simulate.
+#'
+#' @return A numeric vector of `n_replicates` p-values.
+#'
+#' @keywords internal
+simulate_test_p_values <- function(target_data,
+                                   frequentist_test,
+                                   theta_0,
+                                   alternative,
+                                   simulation_config,
+                                   n_replicates) {
+  if (frequentist_test != "t-test") {
+    stop("Only implemented for a t-test.")
+  }
+
+  set.seed(simulation_config$seed)
+
+  # Estimate the frequentist OCs for the model in the scenario considered
+  # Generate data for n_replicates clinical trials
+  target_data_samples <- target_data$generate(n_replicates)
+
+  p_values <- numeric(nrow(target_data_samples))
+  for (r in seq_len(nrow(target_data_samples))) {
+    target_data$sample <- target_data_samples[r, , drop = FALSE]
+    test <- BSDA::tsum.test(
+      mean.x = target_data$sample$treatment_effect_estimate,
+      mu = theta_0,
+      alternative = alternative,
+      s.x = target_data$sample$standard_deviation,
+      n.x = target_data$sample$sample_size_per_arm
+    )
+    p_values[r] <- test$p.value
+  }
+
+  p_values
+}
+
+
 #' Compute the frequentist power
 #'
 #' @description This function computes the power of a test for a given significance level
@@ -48,7 +117,7 @@ compute_freq_power <- function(alpha,
   power <- NA # Default value in case of an unsupported distribution
 
   if (target_data$summary_measure_likelihood == "normal") {
-    if (target_data$endpoint == "normal"  || target_data$endpoint == "continuous"  || case_study == "mepolizumab"){
+    if (uses_analytical_power(target_data, case_study)) {
       # In this case, we use an analytical computation of power
       effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
 
@@ -76,28 +145,16 @@ compute_freq_power <- function(alpha,
       conf_int_power <- c(power, power)
     } else {
       # In this case, we cannot use an analytical computation of power
-      set.seed(simulation_config$seed)
+      p_values <- simulate_test_p_values(
+        target_data = target_data,
+        frequentist_test = frequentist_test,
+        theta_0 = theta_0,
+        alternative = alternative,
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
+      )
 
-      # Estimate the frequentist OCs for the model in the scenario considered
-      # Generate data for n_replicates clinical trials
-      target_data_samples <- target_data$generate(n_replicates)
-
-      test_decisions = numeric(n_replicates)
-      for (r in 1:nrow(target_data_samples)) {
-        target_data$sample <- target_data_samples[r, , drop = FALSE]
-        if (frequentist_test == 't-test'){
-          test <- BSDA::tsum.test(
-            mean.x = target_data$sample$treatment_effect_estimate,
-            mu = theta_0,
-            alternative = alternative,
-            s.x = target_data$sample$standard_deviation,
-            n.x = target_data$sample$sample_size_per_arm
-          )
-        } else {
-          stop("Only implemented for a t-test.")
-        }
-        test_decisions[r] <- test$p.value < alpha
-      }
+      test_decisions <- p_values < alpha
       power <- mean(test_decisions)
       conf_int_power <- binom.test(sum(test_decisions), length(test_decisions), conf.level = 0.95)$conf.int
     }
@@ -333,6 +390,66 @@ compute_freq_power_pooling <- function(alpha,
 }
 
 
+#' Draw plausible values of the equivalent type I error
+#'
+#' @description Draws from the posterior of the type I error implied by the
+#'   replicates it was estimated from, rather than from a normal centred on the
+#'   estimate whose spread is read off the width of an exact interval.
+#'
+#' @param alpha A list with the type I error estimate (`mean`), its exact
+#'   interval bounds and, when available, its Monte Carlo standard error
+#'   (`mcse`) or replicate count (`n_replicates`).
+#' @param n_samples Number of draws to return.
+#'
+#' @return A numeric vector of `n_samples` draws, or `NA` when the replicate
+#'   count behind the estimate cannot be recovered.
+#'
+#' @keywords internal
+sample_equivalent_tie <- function(alpha, n_samples) {
+  if (alpha$conf_int_upper <= alpha$conf_int_lower) {
+    # The type I error carries no uncertainty of its own, so every draw sits at
+    # the estimate and the simulated power supplies the only spread.
+    return(rep(alpha$mean, n_samples))
+  }
+
+  n_replicates <- alpha$n_replicates
+  if (is.null(n_replicates) || is.na(n_replicates)) {
+    n_replicates <- binomial_replicate_count(
+      estimate = alpha$mean,
+      mcse = if (is.null(alpha$mcse)) NA_real_ else alpha$mcse,
+      conf_int_lower = alpha$conf_int_lower,
+      conf_int_upper = alpha$conf_int_upper
+    )
+  }
+
+  sample_binomial_proportion(n_samples, alpha$mean, n_replicates)
+}
+
+
+#' Compute the frequentist power at an estimated type I error
+#'
+#' @description Propagates the uncertainty of the equivalent type I error, and
+#'   the Monte Carlo error of the power itself, into an interval for the power a
+#'   separate frequentist analysis would reach at that type I error.
+#'
+#'   The reported bounds are quantiles of the resulting posterior for the power,
+#'   not a frequentist confidence interval; they are stored under the existing
+#'   `conf_int_power` name for continuity with the columns downstream.
+#'
+#' @param alpha A list describing the estimated type I error: its `mean`, its
+#'   exact interval bounds, and its `mcse` or `n_replicates` when available.
+#' @param target_data Target data object.
+#' @param frequentist_test Type of frequentist test to apply, either z-test or t-test.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param null_space Side of the null space, either left or right.
+#' @param simulation_config Simulation configuration.
+#' @param case_study Optional case-study name.
+#' @param n_replicates Number of Monte Carlo replicates for non-analytical power.
+#' @param n_samples Number of draws of the type I error.
+#'
+#' @return A list with the power, its interval, and the number of draws used.
+#'
+#' @export
 compute_power_with_tie_ci <- function(alpha,
                                       target_data,
                                       frequentist_test,
@@ -340,48 +457,73 @@ compute_power_with_tie_ci <- function(alpha,
                                       null_space,
                                       simulation_config,
                                       case_study = NULL,
-                                      n_replicates = 100,
-                                      n_samples = 100) {
-  if (is.na(alpha$conf_int_upper) || is.na(alpha$conf_int_lower)) {
-    return(list(
-      power = NA_real_,
-      conf_int_power = rep(NA_real_, 2)
-    ))
+                                      n_replicates = 1000,
+                                      n_samples = 1000) {
+  missing_result <- list(
+    power = NA_real_,
+    conf_int_power = rep(NA_real_, 2),
+    n_effective_samples = 0L
+  )
+
+  if (is.na(alpha$mean) || is.na(alpha$conf_int_upper) || is.na(alpha$conf_int_lower)) {
+    return(missing_result)
   }
 
-  # Generate samples of alpha (TIE) based on the confidence interval
-  alpha_samples <- rnorm(n_samples, mean = alpha$mean, sd = ((alpha$conf_int_upper - alpha$conf_int_lower) / (2 * 1.96)))
-
-  # Ensure alpha values stay within valid bounds (0, 1)
-  alpha_samples <- alpha_samples[alpha_samples > 0 & alpha_samples < 1]
-
-  if (length(alpha_samples) == 0L) {
-    return(list(
-      power = NA_real_,
-      conf_int_power = rep(NA_real_, 2)
-    ))
+  alpha_samples <- sample_equivalent_tie(alpha, n_samples)
+  # A degenerate type I error of zero or one carries no information about the
+  # power, so the whole estimate is reported as missing rather than some draws
+  # being dropped from an otherwise usable sample.
+  if (anyNA(alpha_samples) || any(alpha_samples <= 0) || any(alpha_samples >= 1)) {
+    return(missing_result)
   }
 
-  # Compute power for each sampled alpha
-  power_samples <- sapply(alpha_samples, function(alpha) {
-    compute_freq_power(
-      alpha = alpha,
+  if (uses_analytical_power(target_data, case_study)) {
+    # Power is a deterministic function of alpha here, so the type I error is
+    # the only source of uncertainty.
+    power_samples <- vapply(alpha_samples, function(sampled_alpha) {
+      compute_freq_power(
+        alpha = sampled_alpha,
+        target_data = target_data,
+        frequentist_test = frequentist_test,
+        theta_0 = theta_0,
+        null_space = null_space,
+        case_study = case_study,
+        simulation_config = simulation_config,
+        n_replicates = n_replicates
+      )$power
+    }, numeric(1))
+  } else {
+    # Simulate the trials once and read the rejection count off the same
+    # p-values at every sampled alpha, then propagate the Monte Carlo error of
+    # each count through its own posterior. The reported interval therefore
+    # carries both the type I error uncertainty and the replicate noise, which
+    # re-simulating under a fixed seed used to suppress entirely.
+    alternative <- if (null_space == "left") "greater" else "less"
+    p_values <- simulate_test_p_values(
       target_data = target_data,
       frequentist_test = frequentist_test,
       theta_0 = theta_0,
-      null_space = null_space,
-      case_study = case_study,
+      alternative = alternative,
       simulation_config = simulation_config,
       n_replicates = n_replicates
-    )$power
-  })
+    )
+    rejections <- vapply(alpha_samples, function(sampled_alpha) {
+      sum(p_values < sampled_alpha)
+    }, numeric(1))
+    power_samples <- stats::rbeta(
+      n_samples,
+      shape1 = rejections + 0.5,
+      shape2 = length(p_values) - rejections + 0.5
+    )
+  }
 
-  # Compute mean and confidence interval of power
-  mean_power <- mean(power_samples, na.rm = TRUE)
-  power_ci <- quantile(power_samples, probs = c(0.025, 0.975), na.rm = TRUE)
-
-  # Takes into account the uncertainty on alpha
-  return(list(power = mean_power, conf_int_power = power_ci))
+  list(
+    power = mean(power_samples, na.rm = TRUE),
+    conf_int_power = unname(
+      stats::quantile(power_samples, probs = c(0.025, 0.975), na.rm = TRUE)
+    ),
+    n_effective_samples = length(alpha_samples)
+  )
 }
 
 
@@ -506,7 +648,8 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
       alpha <- list(
         mean = results$tie[i],
         conf_int_lower = results$conf_int_tie_lower[i],
-        conf_int_upper = results$conf_int_tie_upper[i]
+        conf_int_upper = results$conf_int_tie_upper[i],
+        mcse = results$mcse_tie[i]
       )
 
       power_estimation <- compute_power_with_tie_ci(
@@ -559,7 +702,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
         next
       }
 
-      alpha = list(mean = results$tie[i], conf_int_lower = results$conf_int_tie_lower[i], conf_int_upper = results$conf_int_tie_upper[i])
+      alpha = list(mean = results$tie[i], conf_int_lower = results$conf_int_tie_lower[i], conf_int_upper = results$conf_int_tie_upper[i], mcse = results$mcse_tie[i])
 
       power_estimation <- compute_power_with_tie_ci(
         alpha = alpha,
