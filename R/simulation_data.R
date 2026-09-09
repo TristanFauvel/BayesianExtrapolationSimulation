@@ -345,8 +345,8 @@ SourceData <- R6::R6Class("SourceData",
                                     1 / n_responders_treatment + 1 / (self$sample_size_treatment - n_responders_treatment) + 1 / n_responders_control + 1 / (self$sample_size_control - n_responders_control)
                                   )
 
-                                  assertions::assert_number(self$treatment_rate)
-                                  assertions::assert_number(self$control_rate)
+                                  assert_single_number(self$treatment_rate)
+                                  assert_single_number(self$control_rate)
                                 }
                               } else if (self$endpoint == "time_to_event") {
                                 if (is.na(source_denominator)) {
@@ -436,8 +436,8 @@ ObservedSourceData <- R6::R6Class(
       self$sample_size_control <- case_study_config$source$control
       self$sample_size_treatment <- case_study_config$source$treatment
 
-      assertions::assert_number(self$sample_size_control)
-      assertions::assert_number(self$sample_size_treatment)
+      assert_single_number(self$sample_size_control)
+      assert_single_number(self$sample_size_treatment)
 
       self$equivalent_source_sample_size_per_arm <- 2 * self$sample_size_control * self$sample_size_treatment / (self$sample_size_control + self$sample_size_treatment)
 
@@ -449,8 +449,8 @@ ObservedSourceData <- R6::R6Class(
         self$control_rate <- case_study_config$source$responses$control / self$sample_size_control
         self$treatment_rate <- case_study_config$source$responses$treatment / case_study_config$source$treatment
 
-        assertions::assert_number(self$treatment_rate)
-        assertions::assert_number(self$control_rate)
+        assert_single_number(self$treatment_rate)
+        assert_single_number(self$control_rate)
 
         if (self$summary_measure_likelihood == "binomial") {
           self$treatment_effect_estimate <- self$treatment_rate - self$control_rate
@@ -479,8 +479,8 @@ ObservedSourceData <- R6::R6Class(
           self$standard_error <- case_study_config$source$standard_error
           self$control_rate <- case_study_config$source$control_rate
           self$treatment_rate <- case_study_config$source$treatment_rate
-          assertions::assert_number(self$treatment_rate)
-          assertions::assert_number(self$control_rate)
+          assert_single_number(self$treatment_rate)
+          assert_single_number(self$control_rate)
         } else {
           stop("Not implemented for other distributions")
         }
@@ -489,13 +489,13 @@ ObservedSourceData <- R6::R6Class(
         self$standard_error <- case_study_config$source$standard_error
         self$control_rate <- case_study_config[["source"]]$control_rate
         self$treatment_rate <- case_study_config$source$treatment_rate
-        assertions::assert_number(self$treatment_rate)
-        assertions::assert_number(self$control_rate)
+        assert_single_number(self$treatment_rate)
+        assert_single_number(self$control_rate)
       } else {
         stop("Not implemented for other endpoints")
       }
-      assertions::assert_number(self$treatment_effect_estimate)
-      assertions::assert_number(self$standard_error)
+      assert_single_number(self$treatment_effect_estimate)
+      assert_single_number(self$standard_error)
     },
 
     #' Convert the object's data to a dictionary format
@@ -553,9 +553,9 @@ TargetDataFactory <- R6::R6Class("TargetDataFactory", public = list(
                     summary_measure_likelihood,
                     target_to_source_std_ratio = NULL) {
     assertions::assert_class(source_data, c("SourceData", "ObservedSourceData"))
-    assertions::assert_number(target_sample_size_per_arm)
-    assertions::assert_number(control_drift)
-    assertions::assert_number(treatment_drift)
+    assert_single_number(target_sample_size_per_arm)
+    assert_single_number(control_drift)
+    assert_single_number(treatment_drift)
     sampling_approximation <- case_study_config$sampling_approximation
     if (source_data$endpoint == "continuous") {
       if (is.null(target_to_source_std_ratio)) {
@@ -652,9 +652,9 @@ TargetData <- R6::R6Class(
                           summary_measure_likelihood) {
       assertions::assert_class(source_data, c("SourceData", "ObservedSourceData"))
       assertions::assert_flag(sampling_approximation)
-      assertions::assert_number(target_sample_size_per_arm)
-      assertions::assert_number(control_drift)
-      assertions::assert_number(treatment_drift)
+      assert_single_number(target_sample_size_per_arm)
+      assert_single_number(control_drift)
+      assert_single_number(treatment_drift)
 
       self$endpoint <- source_data$endpoint
       self$treatment_drift <- treatment_drift
@@ -774,12 +774,12 @@ ContinuousTargetData <- R6::R6Class(
 
       self$treatment_effect <- self$drift + source_data$treatment_effect_estimate
 
-      assertions::assert_number(target_to_source_std_ratio)
+      assert_single_number(target_to_source_std_ratio)
 
       self$standard_deviation <- target_to_source_std_ratio * source_data$standard_error  * sqrt(source_data$equivalent_source_sample_size_per_arm) # This is the sampling standard deviation for pairs of individual patients data.
 
-      assertions::assert_number(self$standard_deviation)
-      assertions::assert_number(self$treatment_effect)
+      assert_single_number(self$standard_deviation)
+      assert_single_number(self$treatment_effect)
     },
 
     #' @description Generates samples for the continuous target data object.
@@ -871,8 +871,8 @@ BinaryTargetData <- R6::R6Class(
         stop("Not implemented for other distributions")
       }
 
-      assertions::assert_number(self$treatment_rate)
-      assertions::assert_number(self$control_rate)
+      assert_single_number(self$treatment_rate)
+      assert_single_number(self$control_rate)
 
       # Ensuring rates are within valid range ([0,1])
       stopifnot(all.equal(self$control_rate, min(max(self$control_rate, 0), 1)))
@@ -894,7 +894,7 @@ BinaryTargetData <- R6::R6Class(
         ) * sqrt(self$sample_size_per_arm)
       }
 
-      assertions::assert_number(self$standard_deviation)
+      assert_single_number(self$standard_deviation)
 
       # Logic to adjust the treatment effect based on drifts
       if (summary_measure_likelihood == "binomial") {
@@ -906,7 +906,7 @@ BinaryTargetData <- R6::R6Class(
         #   stop("The treatment effect (log odds ratio) is not consistent with the drift")
         # }
       }
-      assertions::assert_number(self$treatment_effect)
+      assert_single_number(self$treatment_effect)
     },
 
     #' @description Generates samples for the binary target data object.
@@ -1177,8 +1177,8 @@ RecurrentEventTargetData <- R6::R6Class(
         stop("Invalid endpoint")
       }
       self$sample_size_per_arm <- target_sample_size_per_arm
-      assertions::assert_number(k_treatment)
-      assertions::assert_number(k_control)
+      assert_single_number(k_treatment)
+      assert_single_number(k_control)
       if (k_treatment <= 0 || k_control <= 0) {
         stop("Negative-binomial size parameters must be positive.")
       }
@@ -1195,8 +1195,8 @@ RecurrentEventTargetData <- R6::R6Class(
 
       self$treatment_effect <- self$drift + source_data$treatment_effect_estimate
 
-      assertions::assert_number(self$control_rate)
-      assertions::assert_number(self$treatment_rate)
+      assert_single_number(self$control_rate)
+      assert_single_number(self$treatment_rate)
       # We make sure that target treatment effect is consistent with the rates in each arm, otherwise this means there is an implementation mistake
       if (abs(self$treatment_effect - log(self$treatment_rate / self$control_rate)) > 1e-3) {
         stop("The treatment effect (log rates ratio) is not consistent with the drift")
@@ -1219,7 +1219,7 @@ RecurrentEventTargetData <- R6::R6Class(
         self$standard_deviation <- sqrt(self$sample_size_per_arm) * sqrt((SE_R_treatment / mu_treatment) ^
                                                                            2 + (SE_R_control / mu_control) ^ 2)
 
-        assertions::assert_number(self$standard_deviation)
+        assert_single_number(self$standard_deviation)
       } else if (self$summary_measure_likelihood != "normal") {
         stop("Not implemented for treatment effect distributions that are not Normal.")
       }
@@ -1537,9 +1537,9 @@ ObservedTargetData <- R6::R6Class(
                           treatment_effect_standard_error,
                           target_sample_size_per_arm,
                           summary_measure_likelihood) {
-      assertions::assert_number(treatment_effect_estimate)
-      assertions::assert_number(treatment_effect_standard_error)
-      assertions::assert_number(target_sample_size_per_arm)
+      assert_single_number(treatment_effect_estimate)
+      assert_single_number(treatment_effect_standard_error)
+      assert_single_number(target_sample_size_per_arm)
       assertions::assert_character(summary_measure_likelihood)
       self$summary_measure_likelihood <- summary_measure_likelihood
       self$sample_size_per_arm <- target_sample_size_per_arm

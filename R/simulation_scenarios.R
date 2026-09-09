@@ -269,7 +269,12 @@ simulation_scenarios <- function(config_dir, scenarios_config, case_studies_conf
                                   current_scenario_configurations)
   }
   # Cartesian product between methods configurations and scenarios
-  scenarios_configurations_df <- data.frame(do.call(rbind, scenarios_configurations))
+  # rbind() over a list of lists gives a matrix of mode list, which turns
+  # every column into a list of length-1 values - see
+  # unwrap_scalar_list_columns().
+  scenarios_configurations_df <- unwrap_scalar_list_columns(
+    data.frame(do.call(rbind, scenarios_configurations))
+  )
 
   cases_df <- merge(methods_configurations_df,
                     scenarios_configurations_df,

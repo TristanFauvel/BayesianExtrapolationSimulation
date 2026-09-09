@@ -79,3 +79,68 @@ test_that("compute_source_denominator_range computes the correct source denomina
     expected_source_denominator_range
   )
 })
+
+
+# Building the scenario grid with data.frame(do.call(rbind, list_of_lists))
+# yields a matrix of mode list, so every column arrives as a list of length-1
+# values rather than a vector of scalars. Nothing downstream wants that, and
+# the results-frame schema rejects it outright.
+
+test_that("unwrap_scalar_list_columns unwraps columns whose cells are scalars", {
+  df <- data.frame(id = 1:3)
+  df$x <- list(1, 2, 3)
+  df$y <- list("a", "b", "c")
+
+  out <- unwrap_scalar_list_columns(df)
+
+  expect_false(any(vapply(out, is.list, logical(1))))
+  expect_identical(out$x, c(1, 2, 3))
+  expect_identical(out$y, c("a", "b", "c"))
+  expect_identical(out$id, 1:3)
+  expect_identical(nrow(out), nrow(df))
+})
+
+test_that("unwrap_scalar_list_columns leaves everything else alone", {
+  # A column that genuinely holds several values per row must survive.
+  df <- data.frame(id = 1:2)
+  df$many <- list(c(1, 2), c(3, 4, 5))
+
+  out <- unwrap_scalar_list_columns(df)
+
+  expect_true(is.list(out$many))
+  expect_identical(out$many, df$many)
+  expect_identical(out$id, 1:2)
+
+  # So must a column deliberately wrapped in I(), which is how the grid keeps
+  # each row's method parameters together.
+  wrapped <- data.frame(id = 1:2)
+  wrapped$parameters <- I(list("a = 1", "a = 2"))
+  expect_true(inherits(unwrap_scalar_list_columns(wrapped)$parameters, "AsIs"))
+
+  # Atomic columns are untouched.
+  plain <- data.frame(a = c(1.5, 2.5), b = c("x", "y"), stringsAsFactors = FALSE)
+  expect_identical(unwrap_scalar_list_columns(plain), plain)
+})
+
+test_that("simulation_scenarios returns a grid of scalars, not list columns", {
+  config_dir <- paste0(system.file("conf/aprepitant_mcmc_config_light", package = "RBExT"), "/")
+  skip_if(config_dir == "/", "packaged configuration not available")
+
+  scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
+  cases <- simulation_scenarios(
+    config_dir = config_dir,
+    scenarios_config = scenarios_config,
+    case_studies_config_dir = paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  )
+
+  # `parameters` holds each row's method parameters and is deliberately
+  # wrapped in I(); every other column describes one scenario value per row.
+  list_columns <- names(cases)[vapply(cases, is.list, logical(1))]
+  expect_identical(list_columns, "parameters")
+
+  expect_true(is.numeric(cases$target_sample_size_per_arm))
+  expect_true(is.numeric(cases$drift))
+  expect_true(is.character(cases$case_study))
+  expect_true(is.character(cases$null_space))
+  expect_true(is.numeric(cases$theta_0))
+})

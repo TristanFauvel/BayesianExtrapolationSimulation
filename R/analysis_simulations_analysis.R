@@ -28,9 +28,16 @@ simulation_analysis <- function(env,
   futile.logger::flog.info("Starting the analysis of results in environment %s", env)
 
   # The caller usually already holds the scenarios config; fall back to
-  # reading it so a direct call still honours the environment's setting.
+  # reading it so a direct call still honours the environment's setting. A
+  # config_dir without one keeps the behaviour this argument replaced:
+  # analyse sequentially.
   if (is.null(parallelization)) {
-    parallelization <- read_config(paste0(config_dir, "scenarios_config.yml"), scenarios_config_schema)$parallelization
+    scenarios_config_path <- paste0(config_dir, "scenarios_config.yml")
+    parallelization <- if (file.exists(scenarios_config_path)) {
+      read_config(scenarios_config_path, scenarios_config_schema)$parallelization
+    } else {
+      FALSE
+    }
   }
   run_in_parallel <- analysis_runs_in_parallel(parallelization)
 

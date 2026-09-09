@@ -65,6 +65,75 @@ simulate_test_p_values <- function(target_data,
 
   p_values
 }
+#' Direction of the alternative hypothesis implied by the null space
+#'
+#' @param null_space Side of the null space, either left or right.
+#'
+#' @return "greater" or "less".
+#' @noRd
+alternative_from_null_space <- function(null_space) {
+  if (null_space == "left") {
+    "greater"
+  } else if (null_space == "right") {
+    "less"
+  } else {
+    stop("Null space must be either 'left' or 'right'")
+  }
+}
+
+#' Closed-form power of the frequentist test
+#'
+#' Vectorised over `alpha`: every pwr function used here accepts a vector of
+#' significance levels and returns one power per level, which is what lets
+#' compute_power_with_tie_ci() price 1000 sampled type I errors in a single
+#' call instead of 1000 (the per-call overhead of pwr - match.arg, argument
+#' assembly, simplify2array - costs more than the power calculation itself).
+#'
+#' @param alpha Significance level(s).
+#' @param target_data Target data object.
+#' @param frequentist_test Type of frequentist test to apply.
+#' @param theta_0 Boundary of the null hypothesis space.
+#' @param alternative Direction of the alternative hypothesis.
+#'
+#' @return A numeric vector of powers, one per element of `alpha`.
+#' @noRd
+analytical_power <- function(alpha, target_data, frequentist_test, theta_0, alternative) {
+  if (target_data$summary_measure_likelihood == "normal") {
+    effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
+
+    if (frequentist_test == "t-test") {
+      pwr::pwr.t.test(
+        d = effect_size,
+        n = target_data$sample_size_per_arm,
+        sig.level = alpha,
+        type = "one.sample",
+        alternative = alternative
+      )$power
+    } else if (frequentist_test == "z-test") {
+      pwr::pwr.norm.test(
+        d = effect_size,
+        n = target_data$sample_size_per_arm,
+        sig.level = alpha,
+        alternative = alternative
+      )$power
+    } else {
+      stop("Unsupported test type.")
+    }
+  } else if (target_data$summary_measure_likelihood == "binomial") {
+    h <- pwr::ES.h(target_data$treatment_rate, target_data$control_rate)
+
+    pwr::pwr.2p2n.test(
+      h = h,
+      n1 = target_data$sample_size_per_arm,
+      n2 = target_data$sample_size_per_arm,
+      sig.level = alpha,
+      alternative = alternative
+    )$power
+  } else {
+    stop("Unsupported likelihood type.")
+  }
+}
+
 #' Check the target data fields the power computations read
 #'
 #' Hoisted out of compute_freq_power(): compute_power_with_tie_ci()
@@ -116,13 +185,7 @@ compute_freq_power <- function(alpha,
                                simulation_config,
                                case_study = NULL,
                                n_replicates = 1000) {
-  if (null_space == "left") {
-    alternative <- "greater"
-  } else if (null_space == "right") {
-    alternative <- "less"
-  } else {
-    stop("Null space must be either 'left' or 'right'")
-  }
+  alternative <- alternative_from_null_space(null_space)
 
   if (is.na(alpha)){
     return(list(
@@ -135,29 +198,7 @@ compute_freq_power <- function(alpha,
 
   if (target_data$summary_measure_likelihood == "normal") {
     if (uses_analytical_power(target_data, case_study)) {
-      # In this case, we use an analytical computation of power
-      effect_size <- (target_data$treatment_effect - theta_0) / target_data$standard_deviation
-
-      if (frequentist_test == "t-test") {
-        # Use pwr::pwr.t.test for a t-test power calculation
-        power <- pwr::pwr.t.test(
-          d = effect_size,
-          n = target_data$sample_size_per_arm,
-          sig.level = alpha,
-          type = "one.sample",
-          alternative = alternative
-        )$power
-      } else if (frequentist_test == "z-test") {
-        # Calculate the power of the z-test
-        power <- pwr::pwr.norm.test(
-          d = effect_size,
-          n = target_data$sample_size_per_arm,
-          sig.level = alpha,
-          alternative = alternative
-        )$power
-      } else {
-        stop("Unsupported test type.")
-      }
+      power <- analytical_power(alpha, target_data, frequentist_test, theta_0, alternative)
 
       conf_int_power <- c(power, power)
     } else {
@@ -176,16 +217,7 @@ compute_freq_power <- function(alpha,
       conf_int_power <- binom.test(sum(test_decisions), length(test_decisions), conf.level = 0.95)$conf.int
     }
   } else if (target_data$summary_measure_likelihood == "binomial") {
-    # Compute Cohen's h
-    h <- pwr::ES.h(target_data$treatment_rate, target_data$control_rate)
-
-    power <- pwr::pwr.2p2n.test(
-      h = h,
-      n1 = target_data$sample_size_per_arm,
-      n2 = target_data$sample_size_per_arm,
-      sig.level = alpha,
-      alternative = alternative
-    )$power
+    power <- analytical_power(alpha, target_data, frequentist_test, theta_0, alternative)
 
     conf_int_power <- c(power, power)
   } else {
@@ -500,19 +532,12 @@ compute_power_with_tie_ci <- function(alpha,
     assert_target_data_numbers(target_data)
 
     # Power is a deterministic function of alpha here, so the type I error is
-    # the only source of uncertainty.
-    power_samples <- vapply(alpha_samples, function(sampled_alpha) {
-      compute_freq_power(
-        alpha = sampled_alpha,
-        target_data = target_data,
-        frequentist_test = frequentist_test,
-        theta_0 = theta_0,
-        null_space = null_space,
-        case_study = case_study,
-        simulation_config = simulation_config,
-        n_replicates = n_replicates
-      )$power
-    }, numeric(1))
+    # the only source of uncertainty. Every sampled level is priced in one
+    # vectorised call - see analytical_power().
+    alternative <- alternative_from_null_space(null_space)
+    power_samples <- analytical_power(
+      alpha_samples, target_data, frequentist_test, theta_0, alternative
+    )
   } else {
     # Simulate the trials once and read the rejection count off the same
     # p-values at every sampled alpha, then propagate the Monte Carlo error of
@@ -655,7 +680,6 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
       }
 
       target_data <- load_data(results[i, ], type = "target", reload_data_objects = TRUE)
-      source_data <- load_data(results[i, ], type = "source", reload_data_objects = TRUE)
 
       alpha <- list(
         mean = results$tie[i],
@@ -702,9 +726,6 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
                                type = "target",
                                reload_data_objects = TRUE)
 
-      source_data <- load_data(results[i, ],
-                               type = "source",
-                               reload_data_objects = TRUE)
 
       if (is.na(results$tie[i])){
         warning("TIE is NA")
