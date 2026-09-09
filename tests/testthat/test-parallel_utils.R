@@ -103,3 +103,26 @@ test_that("chain parallelism is capped only for a method that runs in parallel",
   expect_equal(capped$parallel_chains, 1L)
   expect_equal(untouched$parallel_chains, 4L)
 })
+
+## The simulation loops pass a per-scenario callback as `.options.snow$progress`:
+## it drives the console progress bar and the progress file the Shiny app's Run
+## tab reads. Only doSNOW honours that option - doParallel warns "ignoring
+## unrecognized snow option(s): progress" and never calls it, which leaves both
+## readouts frozen until a whole case study/method block is finished. Which
+## backend gets registered is therefore part of the contract, not an
+## implementation detail.
+test_that("the registered parallel backend reports each task as it finishes", {
+  `%dopar%` <- foreach::`%dopar%`
+
+  cl <- parallel::makeCluster(2)
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  register_parallel_backend(cl)
+
+  seen <- integer(0)
+  opts <- list(progress = function(n) seen <<- c(seen, n))
+  invisible(
+    foreach::foreach(i = 1:6, .combine = c, .options.snow = opts) %dopar% i
+  )
+
+  expect_equal(seen, 1:6)
+})

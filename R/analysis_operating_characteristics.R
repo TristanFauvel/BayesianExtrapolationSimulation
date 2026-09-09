@@ -65,6 +65,27 @@ simulate_test_p_values <- function(target_data,
 
   p_values
 }
+#' Check the target data fields the power computations read
+#'
+#' Hoisted out of compute_freq_power(): compute_power_with_tie_ci()
+#' evaluates power at 1000 sampled alphas per result row and target_data is
+#' identical across all of them, so asserting inside that call ran the same
+#' three checks 3000 times a row. assertions::assert_number() costs ~190us a
+#' call (it deparses, matches the call and dispatches over a list of
+#' assertion functions), which made argument checking ~87% of the analysis.
+#'
+#' @param target_data Target study data, as returned by load_data().
+#'
+#' @return `NULL`, invisibly. Called for the error it raises.
+#' @noRd
+assert_target_data_numbers <- function(target_data) {
+  assertions::assert_number(target_data$treatment_effect)
+  assertions::assert_number(target_data$standard_deviation)
+  assertions::assert_number(target_data$sample_size_per_arm)
+
+  invisible(NULL)
+}
+
 
 
 #' Compute the frequentist power
@@ -109,10 +130,6 @@ compute_freq_power <- function(alpha,
       conf_int_power = rep(NA_real_, 2)
     ))
   }
-
-  assertions::assert_number(target_data$treatment_effect)
-  assertions::assert_number(target_data$standard_deviation)
-  assertions::assert_number(target_data$sample_size_per_arm)
 
   power <- NA # Default value in case of an unsupported distribution
 
@@ -478,6 +495,10 @@ compute_power_with_tie_ci <- function(alpha,
   }
 
   if (uses_analytical_power(target_data, case_study)) {
+    # Once per result row rather than once per sampled alpha - see
+    # assert_target_data_numbers().
+    assert_target_data_numbers(target_data)
+
     # Power is a deterministic function of alpha here, so the type I error is
     # the only source of uncertainty.
     power_samples <- vapply(alpha_samples, function(sampled_alpha) {
@@ -608,27 +629,18 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 
   frequentist_test <- analysis_config[["frequentist_test"]]
 
-  if (parallelization == TRUE){
+  if (analysis_uses_cluster(parallelization, nrow(results))) {
     # Set up parallel backend
     n_cores <- get_parallel_worker_count()
     cl <- parallel::makeCluster(n_cores)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
     doParallel::registerDoParallel(cl)
 
-    required_libraries <- c(
-      "RBExT", "pwr", "dplyr", "yaml", "BSDA"
-    )
-
-    # Export necessary functions and objects to the cluster
-    paths <- .libPaths()
-    parallel::clusterExport(cl,
-                  varlist = c("paths", "required_libraries"),
-                  envir = environment())
-
-    # Load required libraries in workers
-    parallel::clusterEvalQ(cl, {
-      .libPaths(paths)
-      sapply(required_libraries, library, character.only = TRUE)
-    })
+    # RBExT is often loaded from source rather than installed (main.R and
+    # the Shiny app both devtools::load_all() it), which a bare
+    # library(RBExT) in the workers cannot cope with - see
+    # load_rbext_in_workers().
+    load_rbext_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
 
     # Use foreach for parallel computation
     results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {
@@ -669,9 +681,6 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
         frequentist_test = frequentist_test
       )
     }
-
-    # Stop parallel backend
-    parallel::stopCluster(cl)
 
     # Combine results into the dataframe
     results <- cbind(results, dplyr::bind_rows(results_list))
@@ -772,7 +781,7 @@ frequentist_power_at_nominal_tie <- function(results, analysis_config, simulatio
                              reload_data_objects = TRUE)
 
 
-
+    assert_target_data_numbers(target_data)
     nominal_frequentist_power_separate <- compute_freq_power(
       alpha = nominal_tie,
       target_data = target_data,

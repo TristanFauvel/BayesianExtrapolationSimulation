@@ -8,6 +8,10 @@
 #' @param analysis_config A list containing the analysis configuration parameters.
 #' @param config_dir A character string specifying the directory containing the configuration files.
 #' @param frequentist_metrics List of frequentist metrics.
+#' @param parallelization Whether the analysis runs in parallel: a single
+#'   logical, or a list of method names, in the same form as the
+#'   `parallelization` entry of `scenarios_config.yml`. Defaults to that
+#'   entry, read from `config_dir`.
 #'
 #' @return This function does not return a value. It writes the results and sweet spot analysis
 #' to CSV files in the specified results directory.
@@ -19,8 +23,16 @@
 simulation_analysis <- function(env,
                                 analysis_config,
                                 config_dir,
-                                frequentist_metrics, case_studies = "all", to_compute = c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"), methods = "all", case_studies_config_dir = NULL) {
+                                frequentist_metrics, case_studies = "all", to_compute = c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"), methods = "all", case_studies_config_dir = NULL,
+                                parallelization = NULL) {
   futile.logger::flog.info("Starting the analysis of results in environment %s", env)
+
+  # The caller usually already holds the scenarios config; fall back to
+  # reading it so a direct call still honours the environment's setting.
+  if (is.null(parallelization)) {
+    parallelization <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))$parallelization
+  }
+  run_in_parallel <- analysis_runs_in_parallel(parallelization)
 
   results_dir <- paste0("./results/", env)
   outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
@@ -72,7 +84,7 @@ simulation_analysis <- function(env,
   )
 
   if ("frequentist_power_at_equivalent_tie" %in% to_compute){
-    new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = FALSE)
+    new_results_power_df <- frequentist_power_at_equivalent_tie(results = results_freq_subset, analysis_config = analysis_config, simulation_config = simulation_config, parallelization = run_in_parallel)
 
     updated_results_df <- results_freq_df %>%
       dplyr::anti_join(new_results_power_df, by = matching_columns)

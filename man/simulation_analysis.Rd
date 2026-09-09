@@ -12,7 +12,9 @@ simulation_analysis(
   case_studies = "all",
   to_compute = c("frequentist_power_at_equivalent_tie",
     "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"),
-  methods = "all"
+  methods = "all",
+  case_studies_config_dir = NULL,
+  parallelization = NULL
 )
 }
 \arguments{
@@ -23,6 +25,11 @@ simulation_analysis(
 \item{config_dir}{A character string specifying the directory containing the configuration files.}
 
 \item{frequentist_metrics}{List of frequentist metrics.}
+
+\item{parallelization}{Whether the analysis runs in parallel: a single
+logical, or a list of method names, in the same form as the
+\code{parallelization} entry of \code{scenarios_config.yml}. Defaults to that
+entry, read from \code{config_dir}.}
 }
 \value{
 This function does not return a value. It writes the results and sweet spot analysis
