@@ -242,13 +242,13 @@ GaussianRMP_RBesT <- R6::R6Class(
         # information provided by a single subject per arm in the target study (as explained in the protocol)
         # Note that in Best et al, 2021 (Mepolizumab), this is the information provided by a single subject in the target study
 
-        info = c(
+        info <- c(
           self$w,
           self$info_prior_mean,
           sqrt(self$info_prior_variance)
         )
 
-        vague = c(
+        vague <- c(
           1 - self$w,
           self$vague_prior_mean,
           sqrt(self$vague_prior_variance)
@@ -408,9 +408,9 @@ GaussianRMP_RBesT <- R6::R6Class(
       }
 
       if (self$w == 0) {
-        return(list(weights = 1,
-                    means = self$vague_prior_mean,
-                    sds = sqrt(rep_len(vague_variance, n_replicates))))
+        return(list(weights = matrix(1, nrow = n_replicates, ncol = 1),
+                    means = matrix(self$vague_prior_mean, nrow = n_replicates, ncol = 1),
+                    sds = matrix(sqrt(rep_len(vague_variance, n_replicates)), nrow = n_replicates, ncol = 1)))
       }
 
       list(
