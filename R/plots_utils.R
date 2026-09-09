@@ -88,7 +88,7 @@ format_uncertainty <- function(yerr_input, y, metric) {
 #' @keywords internal
 convert_params_to_str <- function(method, parameters) {
   # Round floating point parameters to 2 decimal places
-  parameters <- map_if(parameters, is.numeric, round, 2)
+  parameters <- purrr::map_if(parameters, is.numeric, round, 2)
 
   if (is.null(names(parameters))) {
     stop("parameters must be a dataframe")

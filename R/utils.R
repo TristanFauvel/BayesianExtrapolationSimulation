@@ -774,16 +774,16 @@ compile_stan_model <- function(model_name, stan_model_code) {
   return(stan_model)
 }
 
-load_data <- function(results_row, type, reload_data_objects = FALSE) {
+load_data <- function(results_row, type, reload_data_objects = FALSE, case_studies_config_dir = NULL) {
   if (!(type %in% c("target", "source"))){
     stop("type must either be 'target' or 'source'.")
   }
 
   if (reload_data_objects) {
-    case_study_config <- yaml::yaml.load_file(system.file(
-      paste0("conf/case_studies/", results_row$case_study, ".yml"),
-      package = "RBExT"
-    ))
+    if (is.null(case_studies_config_dir)) {
+      case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+    }
+    case_study_config <- yaml::yaml.load_file(paste0(case_studies_config_dir, results_row$case_study, ".yml"))
 
     source_data <- SourceData$new(
       case_study_config = case_study_config,

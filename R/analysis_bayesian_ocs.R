@@ -489,10 +489,15 @@ prior_proba_success <- function(conditional_proba_success,
   return(p)
 }
 
-compute_bayesian_ocs <- function(results_freq_df, env) {
+compute_bayesian_ocs <- function(results_freq_df, env, config_dir = NULL, case_studies_config_dir = NULL) {
   results_bayesian_ocs <- data.frame()
 
-  config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+  if (is.null(config_dir)) {
+    config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+  }
+  if (is.null(case_studies_config_dir)) {
+    case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  }
   scenarios_config <- yaml::yaml.load_file(paste0(config_dir, "scenarios_config.yml"))
   simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
 
@@ -508,10 +513,7 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
   mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
 
   for (case_study in case_studies) {
-    case_study_config <- yaml::yaml.load_file(system.file(
-      paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
-    ))
+    case_study_config <- yaml::yaml.load_file(paste0(case_studies_config_dir, case_study, ".yml"))
     results_df_0 <- results_freq_df %>%
       dplyr::filter(case_study == !!case_study)
     null_space <- case_study_config$null_space
@@ -529,7 +531,8 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
 
       source_data <- load_data(results_df_1[1, ],
                                type = "source",
-                               reload_data_objects = TRUE)
+                               reload_data_objects = TRUE,
+                               case_studies_config_dir = case_studies_config_dir)
 
       source_data_df <- data.frame(source_data$to_dict())
       to_remove <- c("source_control_rate", "source_treatment_rate")

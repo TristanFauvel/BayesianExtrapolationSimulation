@@ -19,7 +19,7 @@
 simulation_analysis <- function(env,
                                 analysis_config,
                                 config_dir,
-                                frequentist_metrics, case_studies = "all", to_compute = c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"), methods = "all") {
+                                frequentist_metrics, case_studies = "all", to_compute = c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs"), methods = "all", case_studies_config_dir = NULL) {
   futile.logger::flog.info("Starting the analysis of results in environment %s", env)
 
   results_dir <- paste0("./results/", env)
@@ -112,7 +112,7 @@ simulation_analysis <- function(env,
   }
   if ("bayesian_ocs" %in% to_compute){
     # Compute Bayesian OCs (in a deterministic manner) based on the results
-    results_bayesian_ocs <- compute_bayesian_ocs(results_freq_subset, env)
+    results_bayesian_ocs <- compute_bayesian_ocs(results_freq_subset, env, config_dir = config_dir, case_studies_config_dir = case_studies_config_dir)
     bayes_filename <- paste0(results_dir,
                              "/",
                              outputs_config$bayesian_ocs_deterministic_results_filename)

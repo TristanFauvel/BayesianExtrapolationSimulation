@@ -619,10 +619,12 @@ plot_metric_vs_drift <- function(metric,
   file_path <- file.path(directory, figure_name)
 
   if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE){
-    return()
+    return(invisible(plt))
   }
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
+
+  invisible(plt)
 }
 
 #' Function to plot metric vs parameters
@@ -728,6 +730,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
 
   # Loop over the different parameters that take different values in the simulation study
+  plots <- list()
   for (i in 1:ncol(parameters_df)) {
     # Select the other parameters
     other_parameters <- unique(parameters_df[,-i])
@@ -866,6 +869,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
       figure_name <- format_filename(filename = figure_name, case_study = case_study, target_to_source_std_ratio = target_to_source_std_ratio, source_denominator_change_factor = source_denominator_change_factor)
 
+      plots[[figure_name]] <- plt
 
       plot.size <- set_size(426)
       fig_width_in <- plot.size[1]
@@ -881,6 +885,7 @@ plot_metric_vs_parameters <- function(results_metrics_df,
 
     }
   }
+  invisible(plots)
 }
 
 #' Function to plot metric vs sample size
@@ -1098,10 +1103,12 @@ plot_metric_vs_sample_size <- function(metric,
   file_path <- file.path(directory, figure_name)
 
   if (file.exists(paste0(file_path, ".pdf")) && file.exists(paste0(file_path, ".png")) && remake_figures == FALSE){
-    return()
+    return(invisible(plt))
   }
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "pdf")
   export_plots(plt, file_path, fig_width_in, fig_height_in, type = "png")
+
+  invisible(plt)
 }
 
 

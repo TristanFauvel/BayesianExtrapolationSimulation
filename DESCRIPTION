@@ -51,7 +51,12 @@ Imports:
     Hmisc,
     knitr,
     statmod,
-    tinytex
+    tinytex,
+    shiny,
+    callr,
+    plotly,
+    DT,
+    bslib
 License: GPL-3 | file LICENSE
 Additional_repositories: https://stan-dev.r-universe.dev/
 LazyData: true
