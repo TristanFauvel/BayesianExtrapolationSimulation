@@ -253,8 +253,8 @@ compute_freq_power_pooling <- function(alpha,
       # Generate data for n_replicates clinical trials
       target_data_samples <- target_data$generate(n_replicates)
 
-      test_decisions = numeric(n_replicates)
-      for (r in 1:nrow(target_data_samples)) {
+      test_decisions <- numeric(n_replicates)
+      for (r in seq_len(nrow(target_data_samples))) {
         target_data$sample <- target_data_samples[r, , drop = FALSE]
 
         target_treatment_effect_standard_error <- target_data$sample$standard_deviation / sqrt(target_data$sample$sample_size_per_arm)
@@ -323,7 +323,7 @@ compute_freq_power_pooling <- function(alpha,
       alternative = alternative
     )$power
 
-    conf_int_power = c(power, power)
+    conf_int_power <- c(power, power)
   } else {
     stop("This likelihood is not supported.")
   }
@@ -561,7 +561,7 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
 
       alpha = list(mean = results$tie[i], conf_int_lower = results$conf_int_tie_lower[i], conf_int_upper = results$conf_int_tie_upper[i])
 
-      power_estimation <- compute_power_with_tie_ci (
+      power_estimation <- compute_power_with_tie_ci(
         alpha = alpha,
         target_data = target_data,
         frequentist_test = frequentist_test,

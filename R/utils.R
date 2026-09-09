@@ -518,7 +518,7 @@ format_parameters_to_json <- function(json_parameters, escape = FALSE) {
 
 
 format_case_study_config <- function(case_study_config) {
-  if (case_study_config$endpoint == "continuous" |
+  if (case_study_config$endpoint == "continuous" ||
       case_study_config$endpoint == "recurrent_event") {
     data <- data.frame(
       Parameter = c(
@@ -566,7 +566,7 @@ format_case_study_config <- function(case_study_config) {
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
-      kableExtra::kable_styling("striped", full_width = F) %>%
+      kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 7) %>%
       kableExtra::pack_rows("Target", 8, 12) %>%
       kableExtra::pack_rows("Source", 13, 17)
@@ -619,7 +619,7 @@ format_case_study_config <- function(case_study_config) {
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
-      kableExtra::kable_styling("striped", full_width = F) %>%
+      kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 6) %>%
       kableExtra::pack_rows("Target", 7, 12) %>%
       kableExtra::pack_rows("Source", 13, 18)
@@ -678,7 +678,7 @@ format_case_study_config <- function(case_study_config) {
           col.names = c("Parameter", "Value"),
           align = "l") %>%
       kableExtra::add_header_above(c("Case Study Configuration" = 2)) %>%
-      kableExtra::kable_styling("striped", full_width = F) %>%
+      kableExtra::kable_styling("striped", full_width = FALSE) %>%
       kableExtra::pack_rows("General", 1, 7) %>%
       kableExtra::pack_rows("Target", 8, 14) %>%
       kableExtra::pack_rows("Source", 15, 21)
@@ -826,7 +826,7 @@ load_data <- function(results_row, type, reload_data_objects = FALSE) {
         control_rate = results_row$source_control_rate
       )
 
-      if (is.null(data$equivalent_source_sample_size_per_arm) |
+      if (is.null(data$equivalent_source_sample_size_per_arm) ||
           any(is.na(data$equivalent_source_sample_size_per_arm))) {
         data$equivalent_source_sample_size_per_arm <- 2 * data$sample_size_control * data$sample_size_treatment / (data$sample_size_control + data$sample_size_treatment)
       }
@@ -884,7 +884,7 @@ check_confidence_intervals <- function(df, metrics) {
 
 
 # Used to extract parameters as nested list
-extract_nested_parameter = function(parameters){
+extract_nested_parameter <- function(parameters){
   # Initialize an empty list to store the nested list
   nested_list <- list()
 

@@ -114,7 +114,7 @@ preposterior_proba_TP_MC <- function(conditional_proba_success,
 #' @examples NA
 average_tie <- function(prepost_proba_FP,
                         prior_proba_no_benefit) {
-  if (is.na(prepost_proba_FP) | is.na(prior_proba_no_benefit)) {
+  if (is.na(prepost_proba_FP) || is.na(prior_proba_no_benefit)) {
     return(NA)
   }
 
@@ -143,7 +143,7 @@ average_tie <- function(prepost_proba_FP,
 #' @examples NA
 average_power <- function(prepost_proba_TP,
                           prior_proba_no_benefit) {
-  if (is.na(prepost_proba_TP) | is.na(prior_proba_no_benefit)) {
+  if (is.na(prepost_proba_TP) || is.na(prior_proba_no_benefit)) {
     return(NA)
   }
 
@@ -567,7 +567,7 @@ compute_bayesian_ocs <- function(results_freq_df, env) {
             # Get the different parameters combinations studies for this method
             parameters_combinations <- data.frame(parameters = unique(results_df_4[, "parameters"]))
 
-            for (i in 1:nrow(parameters_combinations)) {
+            for (i in seq_len(nrow(parameters_combinations))) {
               # We unpack the parameter inside this loop (and not inside the previous one), because for some methods such as the commensurate power prior, there is a nested parameters structure which implies that they cannot all be stored in a single dataframe.
               method_parameters <- as.list(get_parameters(parameters_combinations[i, , drop = FALSE]))
               # convert strings to numeric or boolean if possible

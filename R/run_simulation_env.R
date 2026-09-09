@@ -1,50 +1,41 @@
-rm(list = ls())
-
-library(RBExT)
-
-devtools::load_all() # FIXME
-
-# If the envs variable is not defined as an environment variable, define it.
-envs <- ifelse(Sys.getenv("envs") != "", Sys.getenv("envs"), c("fast_cases_config"))
-
-envs <- c("aprepitant_mcmc_config_light")
-# envs = c("fast_cases_config")
-#envs = c("tests")
-
-options(readr.show_col_types = FALSE) #  FALSE : prevent the column specification message from appearing every time read_csv() is used.
-
-concat_all_results <- TRUE
-delete_stan_files <- FALSE
-check_results_completeness <- TRUE
-
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
-
-analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
-
-simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
-
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
-
-closeAllConnections()
-
-if (delete_stan_files == TRUE) {
-  # Delete all Stan files (to make sure models are recompiled)
-  stan_files <- list.files(path = system.file("stan", package = "RBExT"), pattern = "\\.stan$", full.names = TRUE)
-  exe_files <- list.files(path = system.file("stan", package = "RBExT"), pattern = "\\.exe$", full.names = TRUE)
-
-  # Combine the lists of .stan and .exe files and remove them
-  files_to_delete <- c(stan_files, exe_files)
-  file.remove(files_to_delete)
-}
-
-outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
-ocs_filename <- outputs_config$frequentist_ocs_results_filename
-
-for (env in envs) {
-  # if (!(env %in% c("aprepitant_approx_config", "aprepitant_mcmc_config", "commensurate_pp_config", "fast_cases_config", "pdccpp_config", "npp_config", "tests", "full", "pipeline_tests", "ttp"))) {
-  #   stop("Invalid environment name.")
-  # }
-
+#' Run a full simulation for one environment
+#'
+#' @description Runs the frequentist and/or Bayesian Monte Carlo operating
+#'   characteristics simulation for a single environment. This mirrors the
+#'   per-environment body of the driver loop in `inst/scripts/main.R`, extracted
+#'   into a callable function so it can be invoked directly (e.g. from a
+#'   background process launched by the Shiny app).
+#'
+#' @param env The environment name (used to name the `./logs/<env>/` and
+#'   `./results/<env>/` directories).
+#' @param config_dir Directory containing `scenarios_config.yml`,
+#'   `mcmc_config.yml` and `methods_config.R` for this environment (must end
+#'   with a trailing slash).
+#' @param case_studies_config_dir Directory containing the case study YAML
+#'   files referenced by this environment (must end with a trailing slash).
+#' @param simulation_config Simulation configuration list (as read from
+#'   `simulation_config.yml`).
+#' @param analysis_config Analysis configuration list (as read from
+#'   `analysis_config.yml`).
+#' @param frequentist_metrics List of frequentist metrics, as defined by
+#'   sourcing `metrics_config.R`.
+#' @param results_dir Directory the results are written to. Defaults to
+#'   `./results/<env>/`.
+#' @param check_results_completeness Reserved for a future completeness
+#'   check; currently unused, mirroring `inst/scripts/main.R` where the
+#'   corresponding call is commented out.
+#'
+#' @return `TRUE`, invisibly, once frequentist and/or Bayesian OCs have been
+#'   computed and concatenated according to `simulation_config`.
+#' @export
+run_simulation_env <- function(env,
+                               config_dir,
+                               case_studies_config_dir,
+                               simulation_config,
+                               analysis_config,
+                               frequentist_metrics,
+                               results_dir = paste0("./results/", env, "/"),
+                               check_results_completeness = TRUE) {
   # Set up the log file location
   dir.create(paste0("./logs/", env, "/checkpoints/"), showWarnings = FALSE, recursive = TRUE)
   dir.create(paste0("./logs/", env, "/error_logs/"), showWarnings = FALSE, recursive = TRUE)
@@ -54,11 +45,8 @@ for (env in envs) {
 
   LOGGING_FILE_PATH <- generate_log_filename(base_name = paste0("./logs/", env, "/error_logs/error_log.log"), suffix_type = "timestamp")
 
-  # We must add trailing slashes manually as otherwise system.file will drop them.
-  config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
-
-  results_dir <- paste0("./results/", env, "/")
   scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
+
   # Define the parallel logger
   if (scenarios_config$parallelization){
     # Parallel logger
@@ -91,6 +79,9 @@ for (env in envs) {
     options(error = global_error_handler)
   }
 
+  outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+  ocs_filename <- outputs_config$frequentist_ocs_results_filename
+
   if (simulation_config$compute_frequentist_ocs == TRUE) {
     if (simulation_config$delete_old_results) {
       unlink(results_dir, recursive = TRUE, force = TRUE)
@@ -105,15 +96,28 @@ for (env in envs) {
     case_studies_config_dir = case_studies_config_dir,
     logging_file_path = LOGGING_FILE_PATH)
 
-    if (check_results_completeness){
-      # check_simulation_completeness(results_dir = results_dir, ocs_filename = ocs_filename, scenarios_config = scenarios_config, config_dir)
-    }
-
     # Concatenate case_study/method results into a single file for the environment.
     concatenate_simulation_results(results_dir = results_dir, ocs_filename = ocs_filename)
 
+    # frequentist_power_at_equivalent_tie()/frequentist_power_at_nominal_tie()
+    # (in R/analysis_operating_characteristics.R) call load_data() without
+    # threading case_studies_config_dir through, so they only resolve
+    # package-shipped case studies. Skip them for a case study outside the
+    # package rather than crash; sweet_spot and bayesian_ocs (which do
+    # thread case_studies_config_dir through) still run either way.
+    all_case_studies_shipped <- all(vapply(scenarios_config$case_studies, function(cs) {
+      nzchar(system.file(file.path("conf", "case_studies", paste0(cs, ".yml")), package = "RBExT"))
+    }, logical(1)))
+    analysis_to_compute <- if (all_case_studies_shipped) {
+      c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs")
+    } else {
+      c("sweet_spot", "bayesian_ocs")
+    }
+
     # The analysis is performed on the results concatenated at the level of the environment.
-    simulation_analysis(env, analysis_config, config_dir, frequentist_metrics)
+    simulation_analysis(env, analysis_config, config_dir, frequentist_metrics,
+                        to_compute = analysis_to_compute,
+                        case_studies_config_dir = case_studies_config_dir)
   }
 
   if (simulation_config$compute_bayesian_ocs_mc == TRUE) {
@@ -135,19 +139,6 @@ for (env in envs) {
     ocs_filename <- outputs_config$bayesian_ocs_mc_results_filename
     concatenate_simulation_results(results_dir = results_dir, ocs_filename = ocs_filename)
   }
-}
-#
-#
-# if (concat_all_results == TRUE) {
-#   closeAllConnections()
-#
-#   envs <-  c("aprepitant_mcmc_config", "commensurate_config", "fast_cases_config", "commensurate_config", "aprepitant_approx_config", "npp_config")
-#   file_names <- c(outputs_config$frequentist_ocs_results_filename, "sweet_spot.csv", outputs_config$bayesian_ocs_deterministic_results_filename)
-#
-#   results_dirs <- lapply(envs, function(env) paste0("./results/", env, "/"))
-#
-#   # Concatenate and save each file type
-#   lapply(file_names, concatenate_files, results_dirs, "./results/combined/")
-# }
-#
 
+  invisible(TRUE)
+}
