@@ -11,6 +11,13 @@ A collection of R tools to :
 - Study frequentist and Bayesian operating characteristics of clinical trial designs leveraging Bayesian partial extrapolation (also known as borrowing).
 - Analyze clinical trial data using Bayesian partial extrapolation methods.
 
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 my-4">
+<div class="col"><a href="articles/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📚 Vignettes</h5><p class="card-text small text-muted">Step-by-step guides to simulation studies, data generation, borrowing methods, and case-study replications.</p></div></a></div>
+<div class="col"><a href="reference/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🔧 API reference</h5><p class="card-text small text-muted">Every exported function and R6 class, grouped by topic: data, methods, plots, tables, operating characteristics.</p></div></a></div>
+<div class="col"><a href="#browser-based-interface" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">🖥️ Browser app</h5><p class="card-text small text-muted">Configure, run, and analyze a simulation study from a Shiny app, without hand-editing config files.</p></div></a></div>
+<div class="col"><a href="news/index.html" class="card h-100 text-decoration-none"><div class="card-body"><h5 class="card-title">📝 Changelog</h5><p class="card-text small text-muted">What changed in each release.</p></div></a></div>
+</div>
+
 Copyright 2024 Quinten Health, under exclusive licence to the European Medicines Agency. Sharing and distribution are prohibited.
 
 - Core contributor: Tristan Fauvel

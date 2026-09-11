@@ -1,6 +1,14 @@
 url: 'https://tristanfauvel.github.io/BayesianExtrapolationSimulation/'
 template:
   bootstrap: 5
+  bslib:
+    primary: "#F7931E"
+    base_font: {google: "Inter"}
+    heading_font: {google: "Inter"}
+    code_font: {google: "Fira Code"}
+  light-switch: true
+  theme: arrow-light
+  theme-dark: arrow-dark
 
 # See https://pkgdown.r-lib.org/reference/build_articles.html
 articles:
