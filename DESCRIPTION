@@ -64,8 +64,8 @@ LazyData: true
 Biarch: true
 NeedsCompilation: yes
 UseLTO: true
-URL: https://github.com/quinten-health-os/BayesianExtrapolationSimulation, https://quinten-health-os.github.io/BayesianExtrapolationSimulation/
-BugReports: https://github.com/quinten-health-os/BayesianExtrapolationSimulation/issues
+URL: https://github.com/TristanFauvel/BayesianExtrapolationSimulation, https://tristanfauvel.github.io/BayesianExtrapolationSimulation/
+BugReports: https://github.com/TristanFauvel/BayesianExtrapolationSimulation/issues
 Suggests:
     rmarkdown,
     testthat (>= 3.2.0),
