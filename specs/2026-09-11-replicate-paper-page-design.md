@@ -5,7 +5,7 @@ Status: approved, pending implementation plan
 
 ## Problem
 
-The paper's 39 figures and 4 generated tables are each one specific slice of
+The paper's 39 figures and 3 generated tables are each one specific slice of
 the simulation grid: a case study, a target sample size, a metric, sometimes a
 method and a parameter value. Nothing in the repository records that mapping.
 `inst/scripts/plots.R` and `inst/scripts/tables.R` call loop functions
@@ -28,6 +28,9 @@ manifest.
   simulation output; the design priors live as R6 classes in
   `R/analysis_design_prior.R` with no table-ready labels. The exporter writes a
   README line saying they are hand-authored in the manuscript.
+- Table S8 (precision and coverage, belimumab). Out of scope by request. Note
+  this is the *table*; Figure S8 (coverage versus type I error rate, botox) is
+  in scope.
 - Renaming figure outputs to paper numbers. Generator filenames are preserved;
   the paper number is recorded in `manifest.csv`.
 - Changing any existing plot or table generator's output for existing callers.
@@ -100,7 +103,8 @@ success_proba)`. 3: `forest_plot(botox, f2, mse)`. 4:
 **Supplementary** — S3: `plot_success_proba_vs_drift(belimumab, f6,
 conditional_power_prior, gamma = 0.25, both baselines)`. S4: same for
 `(botox, f4, p_value_based_PP, k = 20, lambda = 0.5)`. S5:
-`plot_metric_vs_ess(botox, f2, ess_moment, mse)`. S6:
+`plot_metric_vs_ess(botox, f2, ess_moment, mse, treatment_effect =
+"partially_consistent")`. S6:
 `forest_plot(botox, f2, ess_moment)`. S7: `forest_plot(botox, f2, bias)`.
 S8: `operating_characteristic_vs_tie(botox, f2, no_effect, coverage, ratio = 1)`.
 S9: `forest_plot(botox, f4, success_proba, relative)`. S10:
@@ -128,8 +132,7 @@ relative)`.
 **Tables** — S1 (total target sample sizes per case study): new generator from
 the case-study YAMLs × `sample_size_factors`. S2 (drift ranges): already emitted
 as `drift_ranges.tex` by `R/simulation_scenarios.R:288`; the exporter copies it.
-S7 (case-study summary): new generator from the YAMLs. S8 (precision and
-coverage, belimumab f4): two calls to `generate_comparison_table(df, metric)`.
+S7 (case-study summary): new generator from the YAMLs.
 
 ### `R/paper_replication.R`
 
@@ -161,12 +164,10 @@ it. `mod_run_server()` is refactored to call it; its behaviour is unchanged.
 
 Three steps, following the existing `rbext_step()` layout:
 
-1. **Select** — checklist of the 43 paper items (39 figures, 4 tables) grouped
-   Main / Supplementary and sub-grouped by case study, with select-all. Ticking
-   one item selects all of its manifest entries: S5 expands to three (S5a/b/c,
-   one per treatment-effect scenario) and S8 to two (S8a/S8b, precision and
-   coverage), so 43 ticked items produce 46 manifest entries. Each row shows
-   its caption and a coverage badge against the chosen `results/<env>/`.
+1. **Select** — checklist of the 42 paper items (39 figures, 3 tables) grouped
+   Main / Supplementary and sub-grouped by case study, with select-all. One
+   ticked item is one manifest entry. Each row shows its caption and a coverage
+   badge against the chosen `results/<env>/`.
 2. **Run** — shows the derived scenario count (`estimate_total_scenarios()`),
    writes the derived env under `user_configs/`, launches it via
    `launch_simulation_run()`, and reuses the Run page's progress bar, log tail
@@ -242,15 +243,11 @@ tables/publication_tables/<run>/README.md
 Note: `tests/testthat/test-simulation_analysis.R:61` already fails on a clean
 checkout and is unrelated to this work.
 
-## Open items carried into implementation
+## Caption corrections confirmed by the author
 
-1. **Figure S4 says λ=20.** `equivalence_margin` for `p_value_based_PP` is
-   `{0.1, 0.5}` in every config in the repo; 20 appears nowhere. `k = 20` is
-   valid (`shape_parameter` includes 20). Treated as a caption typo; the
-   manifest uses λ = 0.5 (its `important_values`) and records the substitution
-   in a comment and in `manifest.csv`.
-2. **Figure S5 names no treatment-effect scenario** but `plot_metric_vs_ess()`
-   requires one. The manifest emits all three (`no_effect`,
-   `partially_consistent`, `consistent`) as S5a/b/c.
-3. **Table S8 pairs precision and coverage**; `generate_comparison_table()`
-   handles one metric per table, so it is emitted as two sub-tables S8a/S8b.
+1. **Figure S4's "λ = 20" is a typo** for λ = 0.5. The correct caption reads
+   "Probability of success of the p-value-based Power Prior with parameters
+   k = 20 and λ = 0.5 as a function of the drift". This matches the configs,
+   where `equivalence_margin` is `{0.1, 0.5}` and 20 appears nowhere.
+2. **Figure S5 is the partially consistent treatment effect.** The published
+   caption does not name a scenario; `plot_metric_vs_ess()` requires one.
