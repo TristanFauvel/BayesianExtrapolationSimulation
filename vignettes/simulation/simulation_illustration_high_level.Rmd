@@ -88,13 +88,13 @@ Create a source_data instance, where information about the source data is stored
 ```{r}
 source_denominator <- case_study_config$source$responses$control / case_study_config$source$total
 source_data <- SourceData$new(case_study_config, source_denominator)
-print(source_data)
+print(source_data$to_dict())
 ```
 
-Alternatively, if we want to use the control rate from the source study data: 
-```{r} 
+Alternatively, if we want to use the control rate from the source study data:
+```{r}
 source_data <- SourceData$new(case_study_config)
-print(source_data)
+print(source_data$to_dict())
 ```
 
 Create an instance of the BinaryTargetData class, which will allow us to sample target study data. Note that this target_data depends on the specific parameters chosen for the scenario (in particular, the drift and target sample size). 
@@ -110,7 +110,7 @@ target_data <- target_data$create(
 ```
 Here, we use a factory method design pattern. The target_data object is of the BinaryTargetData class, which inherits from the TargetData class.
 ```{r}
-print(target_data)
+print(target_data$to_dict())
 ```
 
 Now, we define the model we want to use for inferring the treatment effect in the target study. Again, the model class definition relies on the factory method design patter, which is very convenient in this situation, as you can use the same function with different arguments to instantiate any model:

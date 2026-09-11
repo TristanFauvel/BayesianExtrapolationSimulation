@@ -87,7 +87,7 @@ Create a source_data instance, where information about the source data is stored
 
 ```{r}
 source_data <- SourceData$new(case_study_config)
-print(source_data)
+print(source_data$to_dict())
 ```
 
 Create an instance of the BinaryTargetData class, which will allow us to sample target study data. Note that this target_data depends on the specific parameters chosen for the scenario (in particular, the drift and target sample size). 

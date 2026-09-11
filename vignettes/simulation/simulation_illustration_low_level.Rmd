@@ -86,7 +86,7 @@ denominator_change_factor <- 1.5
 source_denominator <- denominator_change_factor * odds_control
 
 source_data <- SourceData$new(case_study_config, source_denominator)
-print(source_data)
+print(source_data$to_dict())
 ```
  
 
@@ -290,7 +290,7 @@ results <- self$simulation_for_given_treatment_effect(
   n_samples_quantiles_estimation = simulation_config$n_samples_quantiles_estimation
 )
 
-print(data.frame(results))
+knitr::kable(head(data.frame(results), 10))
 ```
 Now that we have the results of inference and test decisions for each replicate, we can compute the operating characteristics:
 

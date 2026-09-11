@@ -55,7 +55,7 @@ target_sample_size_per_arm <- as.integer(case_study_config$target$total / 2)
 drift <- 0.4
 
 source_data <- ObservedSourceData$new(case_study_config)
-print(source_data)
+print(source_data$to_dict())
 ```
 
 Set the observed target data (in the paediatrics population)
