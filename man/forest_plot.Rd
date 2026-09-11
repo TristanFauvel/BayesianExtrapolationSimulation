@@ -4,12 +4,26 @@
 \alias{forest_plot}
 \title{Generate a forest plot}
 \usage{
-forest_plot(results_freq_df, x_metric, panels = TRUE)
+forest_plot(
+  results_freq_df,
+  x_metric,
+  panels = TRUE,
+  palette = NULL,
+  relative_to_separate = FALSE
+)
 }
 \arguments{
 \item{results_freq_df}{The results dataframe.}
 
 \item{x_metric}{Metric on the x-axis}
+
+\item{palette}{A colour scheme from rbext_palette() for the Shiny app's
+dark mode, or NULL for the publication figure.}
+
+\item{relative_to_separate}{When TRUE, divide the metric and its confidence
+bounds by the separate analysis's value in the same scenario, label the
+axis accordingly, and draw a reference line at 1. Used by supplementary
+figures S9, S14, S17, S27, S32 and S37.}
 
 \item{selected_case_study}{The selected case study.}
 

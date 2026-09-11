@@ -67,6 +67,66 @@ forest_ink_layer <- function(geom, palette, ...) {
   do.call(geom, args)
 }
 
+#' Express a metric as a ratio to the separate analysis
+#'
+#' @description Divides each row's metric by the value the `separate` (no
+#'   borrowing) method takes in the same scenario. The scenario key is the full
+#'   set of coordinates that identify a simulated configuration, so the ratio
+#'   never collapses across drift or sample size.
+#'
+#'   A zero or missing denominator makes the ratio undefined. Those rows are
+#'   dropped with a warning rather than reported as `Inf` or as some finite
+#'   stand-in.
+#'
+#' @param df A frequentist results frame containing `separate` method rows.
+#' @param metric_columns Character vector of columns to divide - typically the
+#'   metric and its two confidence bounds.
+#'
+#' @return `df` with `metric_columns` divided by the separate analysis's value,
+#'   in the original column order.
+#'
+#' @export
+scale_by_separate <- function(df, metric_columns) {
+  key <- c(
+    "case_study", "target_sample_size_per_arm", "drift",
+    "target_to_source_std_ratio", "source_denominator_change_factor"
+  )
+  missing_columns <- setdiff(c(key, metric_columns), names(df))
+  if (length(missing_columns) > 0) {
+    stop(
+      "scale_by_separate() needs these columns: ",
+      paste(missing_columns, collapse = ", ")
+    )
+  }
+
+  baseline <- df[df$method == "separate", c(key, metric_columns[1]), drop = FALSE]
+  if (nrow(baseline) == 0) {
+    stop("No `separate` method rows to use as the denominator.")
+  }
+  names(baseline)[names(baseline) == metric_columns[1]] <- ".separate_value"
+  baseline <- unique(baseline)
+
+  original_columns <- names(df)
+  out <- merge(df, baseline, by = key, all.x = TRUE, sort = FALSE)
+
+  usable <- !is.na(out$.separate_value) & out$.separate_value != 0
+  if (any(!usable)) {
+    warning(
+      sum(!usable),
+      " row(s) dropped: the separate analysis's value is zero or missing, ",
+      "so the ratio is undefined."
+    )
+    out <- out[usable, , drop = FALSE]
+  }
+
+  for (column in metric_columns) {
+    out[[column]] <- out[[column]] / out$.separate_value
+  }
+
+  out[, original_columns, drop = FALSE]
+}
+
+
 #' Create a forest plot
 #'
 #' @description This function creates a forest plot using the provided data.
@@ -80,6 +140,7 @@ forest_ink_layer <- function(geom, palette, ...) {
 #' @param x_metric_label Label of the metric on the x-axis
 #' @param palette A colour scheme from rbext_palette() for the Shiny app's
 #'   dark mode, or NULL for the publication figure.
+#' @param reference_line x position of a dotted vertical reference line, or NULL for none.
 #'
 #' @return A ggplot2::ggplot( object representing the forest plot.
 #' @keywords internal
@@ -93,8 +154,12 @@ forest_subplot <- function(data,
                            methods_labels,
                            legend = FALSE,
                            sort_by = FALSE,
-                           palette = NULL) {
+                           palette = NULL,
+                           reference_line = NULL) {
   refs <- forest_reference_colours(palette)
+  ## A ratio plot needs its own reference at 1; the metric-name-driven
+  ## reference lines further down do not cover it.
+  extra_reference <- reference_line
   if (sort_by == "methods_parameters"){
     # Make sure that the data are sorted according to the parameters values
     for (method in unique(data$method)) {
@@ -239,6 +304,13 @@ forest_subplot <- function(data,
   #
   #   # plt <- plt + scale_x_continuous(limits = c(new_xl, new_xu))
   # }
+  if (!is.null(extra_reference)) {
+    plt <- plt + geom_vline(
+      xintercept = extra_reference,
+      linetype = "dotted",
+      color = refs$ink
+    )
+  }
   return(plt)
 }
 
@@ -422,9 +494,14 @@ forest_combined_plot <- function(data,
 #' @param x_metric Metric on the x-axis
 #' @param palette A colour scheme from rbext_palette() for the Shiny app's
 #'   dark mode, or NULL for the publication figure.
+#' @param relative_to_separate When TRUE, divide the metric and its confidence
+#'   bounds by the separate analysis's value in the same scenario, label the
+#'   axis accordingly, and draw a reference line at 1. Used by supplementary
+#'   figures S9, S14, S17, S27, S32 and S37.
 #'
 #' @return None
-forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL) {
+forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL,
+                        relative_to_separate = FALSE) {
   selected_case_study <- unique(results_freq_df$case_study)
   selected_target_sample_size_per_arm <- unique(results_freq_df$target_sample_size_per_arm)
 
@@ -448,6 +525,14 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
   x_metric_uncertainty_upper <- rlang::sym(paste0(metric$metric_uncertainty, "_upper"))
   x_metric_label <- metric$label
 
+  if (relative_to_separate) {
+    results_freq_df <- scale_by_separate(
+      results_freq_df,
+      c(metric$name, as.character(x_metric_uncertainty_lower),
+        as.character(x_metric_uncertainty_upper))
+    )
+    x_metric_label <- paste0(x_metric_label, " relative to a separate analysis")
+  }
 
   directory <- file.path(figures_dir, selected_case_study)
 
@@ -462,6 +547,10 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
     "_forest_plot_target_sample_size_per_arm_",
     selected_target_sample_size_per_arm
   )
+
+  if (relative_to_separate) {
+    filename <- paste0(filename, "_relative_to_separate")
+  }
 
   case_study <- unique(results_freq_df$case_study)
   target_to_source_std_ratio <- unique(results_freq_df$target_to_source_std_ratio)
@@ -603,6 +692,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       methods_labels = methods_labels,
       legend = FALSE,
       sort_by = FALSE,
+      reference_line = if (relative_to_separate) 1 else NULL,
       palette = palette
     )
     plot_partially_consistent_effect <- forest_subplot(
@@ -616,6 +706,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       methods_labels = methods_labels,
       legend = FALSE,
       sort_by = FALSE,
+      reference_line = if (relative_to_separate) 1 else NULL,
       palette = palette
     )
     plot_consistent_effect <- forest_subplot(
@@ -629,6 +720,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
       methods_labels = methods_labels,
       legend = TRUE,
       sort_by = FALSE,
+      reference_line = if (relative_to_separate) 1 else NULL,
       palette = palette
     )
 
