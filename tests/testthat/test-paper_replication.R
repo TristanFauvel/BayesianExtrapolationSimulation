@@ -125,3 +125,83 @@ test_that("export_paper_outputs marks an entry failed rather than aborting the b
     expect_true(nzchar(status$message[status$id == "S16"]))
   })
 })
+
+test_that("export_paper_outputs restores the caller's .GlobalEnv and ggplot theme", {
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$target_sample_size_per_arm <- 58
+
+  ## Guard against a previous run's globals still being set (which would
+  ## itself be evidence of the leak this test exists to catch), so the test
+  ## reflects a clean caller session regardless of test order.
+  if (exists("textwidth", envir = .GlobalEnv, inherits = FALSE)) {
+    rm("textwidth", envir = .GlobalEnv)
+  }
+  had_font_before <- exists("font", envir = .GlobalEnv, inherits = FALSE)
+  previous_font <- if (had_font_before) get("font", envir = .GlobalEnv) else NULL
+  assign("font", "SENTINEL", envir = .GlobalEnv)
+  previous_theme <- ggplot2::theme_get()
+
+  on.exit({
+    if (had_font_before) {
+      assign("font", previous_font, envir = .GlobalEnv)
+    } else if (exists("font", envir = .GlobalEnv, inherits = FALSE)) {
+      rm("font", envir = .GlobalEnv)
+    }
+    ggplot2::theme_set(previous_theme)
+  }, add = TRUE)
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    export_paper_outputs(
+      results_dir = results_dir,
+      figures_dir = file.path(getwd(), "figures", ""),
+      tables_dir = file.path(getwd(), "tables"),
+      ids = c("1", "TS1"),
+      case_studies_config_dir = config_dir()
+    )
+  })
+
+  ## "font" is a name the conf files also define - the caller's sentinel
+  ## value must come back exactly as they left it, not conf/plots_config.R's
+  ## "CMU Serif".
+  expect_equal(get("font", envir = .GlobalEnv), "SENTINEL")
+  ## "textwidth" did not exist before the call, but conf/plots_config.R
+  ## defines it - it must not linger in .GlobalEnv afterwards.
+  expect_false(exists("textwidth", envir = .GlobalEnv, inherits = FALSE))
+  ## conf/plots_config.R calls ggplot2::theme_set(); that must not leak either.
+  expect_identical(ggplot2::theme_get(), previous_theme)
+})
+
+test_that("export_paper_outputs still attributes outputs on a re-export into the same directories", {
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$target_sample_size_per_arm <- 58
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    figures_dir <- file.path(getwd(), "figures", "")
+    tables_dir <- file.path(getwd(), "tables")
+
+    first <- export_paper_outputs(
+      results_dir = results_dir, figures_dir = figures_dir, tables_dir = tables_dir,
+      ids = c("1", "TS1"), case_studies_config_dir = config_dir()
+    )
+    expect_true(nzchar(first$outputs[first$id == "1"]))
+
+    ## Re-export into the same directories: remake_figures is TRUE, so this
+    ## overwrites the exact same paths the first run wrote. A before/after
+    ## path-list diff would find every path already present in "before" (it
+    ## was written by the first run) and report an empty outputs column here -
+    ## the failure mode this test exists to catch.
+    second <- export_paper_outputs(
+      results_dir = results_dir, figures_dir = figures_dir, tables_dir = tables_dir,
+      ids = c("1", "TS1"), case_studies_config_dir = config_dir()
+    )
+    expect_true(nzchar(second$outputs[second$id == "1"]))
+  })
+})

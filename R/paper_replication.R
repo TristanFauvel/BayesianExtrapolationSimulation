@@ -126,6 +126,80 @@ ensure_paper_plot_globals <- function() {
   invisible(NULL)
 }
 
+## Snapshot every name currently bound in .GlobalEnv (and the current ggplot
+## theme), so a later call to paper_restore_globals() can put the caller's
+## session back exactly as it was. Unlike mod_analyze.R's
+## ensure_plot_globals() - which is allowed to leave these set because it
+## lives inside a single long-running Shiny session - export_paper_outputs()
+## is an exported library function that a script or interactive session can
+## call directly, so it must not leak font/textwidth/methods_dict/... (or a
+## replaced ggplot2::theme_set()) into the caller's .GlobalEnv.
+paper_snapshot_globals <- function() {
+  names_before <- ls(envir = .GlobalEnv, all.names = TRUE)
+  list(
+    names_before = names_before,
+    values_before = mget(names_before, envir = .GlobalEnv),
+    theme_before = ggplot2::theme_get()
+  )
+}
+
+## Restore .GlobalEnv (and the ggplot theme) to what paper_snapshot_globals()
+## recorded: reassign every name that already existed back to its old value,
+## and remove every name that ensure_paper_plot_globals()/figures_dir/
+## remake_figures newly introduced. Determining "newly introduced" via
+## setdiff(ls(.GlobalEnv), snapshot$names_before) - rather than a hard-coded
+## list of names - means this keeps working if the conf/*.R files start
+## defining (or stop defining) globals.
+paper_restore_globals <- function(snapshot) {
+  names_now <- ls(envir = .GlobalEnv, all.names = TRUE)
+  new_names <- setdiff(names_now, snapshot$names_before)
+  if (length(new_names) > 0) {
+    suppressWarnings(rm(list = new_names, envir = .GlobalEnv))
+  }
+  for (name in snapshot$names_before) {
+    assign(name, snapshot$values_before[[name]], envir = .GlobalEnv)
+  }
+  ggplot2::theme_set(snapshot$theme_before)
+  invisible(NULL)
+}
+
+## A snapshot of every figure/table file already on disk, with enough to tell
+## whether a later write is a genuinely new file or an overwrite of an
+## existing one - see paper_outputs_written() below.
+paper_output_snapshot <- function(figures_dir, tables_dir) {
+  paths <- c(
+    list.files(figures_dir, recursive = TRUE, full.names = TRUE),
+    list.files(tables_dir, recursive = TRUE, full.names = TRUE)
+  )
+  info <- file.info(paths, extra_cols = FALSE)
+  data.frame(
+    path = paths,
+    mtime = info$mtime,
+    size = info$size,
+    stringsAsFactors = FALSE
+  )
+}
+
+## Which paths in `after` (a paper_output_snapshot()) were written since
+## `before` was taken: either the path did not exist before, or its mtime or
+## size changed. A plain before/after path-list diff (the brief's approach)
+## mis-attributes provenance on a second export into the same directories -
+## with remake_figures TRUE, every path from the first run is already present
+## in "before" on a second run, so nothing would ever look new. Comparing
+## mtime (checked at microsecond resolution on this filesystem - verified
+## with back-to-back writes carrying no sleep in between, see the task-5 fix
+## report) plus size catches an overwrite that reproduces the same bytes but
+## still counts as "produced by this run".
+paper_outputs_written <- function(before, after) {
+  match_index <- match(after$path, before$path)
+  is_new <- is.na(match_index)
+  changed <- !is_new & (
+    after$mtime != before$mtime[match_index] |
+      after$size != before$size[match_index]
+  )
+  after$path[is_new | changed]
+}
+
 #' Build the context one manifest entry's generator receives
 #'
 #' @description The generators take the slice already narrowed to their own
@@ -225,23 +299,17 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
   ## variables out of .GlobalEnv - see inst/scripts/plots.R and
   ## ensure_paper_plot_globals() above, modelled on
   ## inst/shiny_app/modules/mod_analyze.R's ensure_plot_globals()/
-  ## prepare_plot_globals_for_env().
-  ensure_paper_plot_globals()
+  ## prepare_plot_globals_for_env(). Unlike that Shiny module, this is an
+  ## exported function a caller can invoke from their own script or
+  ## interactive session, so every name it is about to set is snapshotted
+  ## first and restored via on.exit(), including the ggplot theme
+  ## conf/plots_config.R replaces with theme_set().
+  globals_snapshot <- paper_snapshot_globals()
+  on.exit(paper_restore_globals(globals_snapshot), add = TRUE)
 
-  previous_figures_dir <- if (exists("figures_dir", envir = .GlobalEnv)) {
-    get("figures_dir", envir = .GlobalEnv)
-  } else {
-    NULL
-  }
+  ensure_paper_plot_globals()
   assign("figures_dir", figures_dir, envir = .GlobalEnv)
   assign("remake_figures", TRUE, envir = .GlobalEnv)
-  on.exit({
-    if (is.null(previous_figures_dir)) {
-      suppressWarnings(rm("figures_dir", envir = .GlobalEnv))
-    } else {
-      assign("figures_dir", previous_figures_dir, envir = .GlobalEnv)
-    }
-  }, add = TRUE)
 
   rows <- lapply(seq_along(entries), function(index) {
     entry <- entries[[index]]
@@ -249,10 +317,7 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
       progress(index, length(entries), entry$id)
     }
 
-    before <- c(
-      list.files(figures_dir, recursive = TRUE, full.names = TRUE),
-      list.files(tables_dir, recursive = TRUE, full.names = TRUE)
-    )
+    before <- paper_output_snapshot(figures_dir, tables_dir)
 
     result <- tryCatch({
       ctx <- paper_entry_context(
@@ -265,11 +330,8 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
       list(status = "failed", message = conditionMessage(e))
     })
 
-    after <- c(
-      list.files(figures_dir, recursive = TRUE, full.names = TRUE),
-      list.files(tables_dir, recursive = TRUE, full.names = TRUE)
-    )
-    written <- setdiff(after, before)
+    after <- paper_output_snapshot(figures_dir, tables_dir)
+    written <- paper_outputs_written(before, after)
 
     data.frame(
       id = entry$id,
