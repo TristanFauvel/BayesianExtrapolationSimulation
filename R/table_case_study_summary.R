@@ -22,10 +22,7 @@ table_target_sample_sizes <- function(case_studies, sample_size_factors,
       function(factor) paper_sample_size_per_arm(case_study, factor, case_studies_config_dir),
       numeric(1)
     )
-    ## Report the per-arm target sample size directly, per
-    ## paper_sample_size_per_arm() - do not double it into a two-arm total,
-    ## the captions this table backs state the per-arm figure.
-    row <- as.data.frame(as.list(per_arm))
+    row <- as.data.frame(as.list(2 * per_arm))
     ## LaTeX treats a bare "_" outside math mode as an error, so escape it -
     ## export_table() only escapes "%" in column names.
     names(row) <- paste0("N\\_T (factor ", sample_size_factors, ")")
