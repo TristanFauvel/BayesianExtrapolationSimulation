@@ -20,6 +20,7 @@ source(file.path(app_dir, "theme.R"))
 source(file.path(app_dir, "modules", "mod_configure.R"))
 source(file.path(app_dir, "modules", "mod_run.R"))
 source(file.path(app_dir, "modules", "mod_analyze.R"))
+source(file.path(app_dir, "modules", "mod_replicate.R"))
 
 ## rbext_theme() compiles www/rbext.scss, so it has to run while the working
 ## directory still points at the app.
@@ -43,6 +44,7 @@ ui <- shiny::tagList(
     bslib::nav_panel("Configure", mod_configure_ui("configure")),
     bslib::nav_panel("Run", mod_run_ui("run")),
     bslib::nav_panel("Analyze", mod_analyze_ui("analyze")),
+    bslib::nav_panel("Replicate paper", mod_replicate_ui("replicate")),
     bslib::nav_spacer(),
     bslib::nav_item(bslib::input_dark_mode(id = "color_mode"))
   )
@@ -59,6 +61,7 @@ server <- function(input, output, session) {
   mod_configure_server("configure", on_env_saved = function() env_saved(env_saved() + 1L))
   mod_run_server("run", on_run_complete = function(env) just_finished_env(env), env_saved = env_saved)
   mod_analyze_server("analyze", just_finished_env = just_finished_env, color_mode = color_mode)
+  mod_replicate_server("replicate", color_mode = color_mode)
 }
 
 shiny::shinyApp(ui, server)
