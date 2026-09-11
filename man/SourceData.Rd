@@ -7,59 +7,60 @@
 This class represents the source data used for Bayesian borrowing. It processes the source data to compute necessary statistics for various endpoints.
 }
 \section{Super class}{
-\code{\link[RBExT:ObservedSourceData]{RBExT::ObservedSourceData}} -> \code{SourceData}
+\code{\link[BExTE:ObservedSourceData]{ObservedSourceData}} -> \code{SourceData}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-SourceData-new}{\code{SourceData$new()}}
-\item \href{#method-SourceData-clone}{\code{SourceData$clone()}}
+  \itemize{
+    \item \href{#method-SourceData-initialize}{\code{SourceData$new()}}
+    \item \href{#method-SourceData-clone}{\code{SourceData$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ObservedSourceData" data-id="to_dict"><a href='../../RBExT/html/ObservedSourceData.html#method-ObservedSourceData-to_dict'><code>RBExT::ObservedSourceData$to_dict()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ObservedSourceData" data-id="to_dict"><a href='../../BExTE/html/ObservedSourceData.html#method-ObservedSourceData-to_dict'><code>ObservedSourceData$to_dict()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SourceData-new"></a>}}
-\if{latex}{\out{\hypertarget{method-SourceData-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the SourceData object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourceData$new(case_study_config, source_denominator = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-SourceData-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-SourceData-initialize}{}}}
+\subsection{\code{SourceData$new()}}{
+  Initialize the SourceData object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourceData$new(case_study_config, source_denominator = NA)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{case_study_config}}{list: A configuration list containing details of the case study.}
+      \item{\code{source_denominator}}{numeric: An optional denominator for computing control rates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new SourceData object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{case_study_config}}{list: A configuration list containing details of the case study.}
-
-\item{\code{source_denominator}}{numeric: An optional denominator for computing control rates.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new SourceData object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SourceData-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-SourceData-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourceData$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{SourceData$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourceData$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

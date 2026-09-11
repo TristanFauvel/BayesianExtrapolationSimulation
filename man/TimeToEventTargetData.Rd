@@ -8,42 +8,41 @@ This class represents target data for time-to-event analysis.
 It inherits from the TargetData class.
 }
 \section{Super class}{
-\code{\link[RBExT:TargetData]{RBExT::TargetData}}
+\code{\link[BExTE:TargetData]{TargetData}}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{control_rate}}{Rate in the control arm of the target study}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{control_rate}}{Rate in the control arm of the target study}
 
-\item{\code{treatment_rate}}{Rate in the treatment arm of the target study}
+    \item{\code{treatment_rate}}{Rate in the treatment arm of the target study}
 
-\item{\code{max_follow_up_time}}{Maximum follow-up time}
-}
-\if{html}{\out{</div>}}
+    \item{\code{max_follow_up_time}}{Maximum follow-up time}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-NA-new}{\code{TimeToEventTargetData$new()}}
-\item \href{#method-NA-generate}{\code{TimeToEventTargetData$generate()}}
-\item \href{#method-NA-to_dict}{\code{TimeToEventTargetData$to_dict()}}
-\item \href{#method-unknown-clone}{\code{TimeToEventTargetData$clone()}}
+  \itemize{
+    \item \href{#method-NA-initialize}{\code{NA$new()}}
+    \item \href{#method-NA-generate}{\code{NA$generate()}}
+    \item \href{#method-NA-to_dict}{\code{NA$to_dict()}}
+    \item \href{#method-unknown-clone}{\code{unknown$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TargetData" data-id="plot_sample"><a href='../../RBExT/html/TargetData.html#method-TargetData-plot_sample'><code>RBExT::TargetData$plot_sample()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TargetData" data-id="plot_sample"><a href='../../BExTE/html/TargetData.html#method-TargetData-plot_sample'><code>TargetData$plot_sample()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-NA-new"></a>}}
-\if{latex}{\out{\hypertarget{method-NA-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the TimeToEventTargetData object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TimeToEventTargetData$new(
+\if{html}{\out{<a id="method-NA-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-NA-initialize}{}}}
+\subsection{\code{NA$new()}}{
+  Initialize the TimeToEventTargetData object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{NA$new(
   source_data,
   sampling_approximation,
   target_sample_size_per_arm,
@@ -51,78 +50,79 @@ Initialize the TimeToEventTargetData object
   treatment_drift,
   summary_measure_likelihood,
   max_follow_up_time
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{source_data}}{The source data used for generating the target data.}
-
-\item{\code{sampling_approximation}}{A flag indicating whether to use sampling approximation.}
-
-\item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
-
-\item{\code{control_drift}}{The control drift.}
-
-\item{\code{treatment_drift}}{The treatment drift.}
-
-\item{\code{summary_measure_likelihood}}{The summary measure distribution.}
-
-\item{\code{max_follow_up_time}}{The maximum follow-up time.
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{source_data}}{The source data used for generating the target data.}
+      \item{\code{sampling_approximation}}{A flag indicating whether to use sampling approximation.}
+      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{control_drift}}{The control drift.}
+      \item{\code{treatment_drift}}{The treatment drift.}
+      \item{\code{summary_measure_likelihood}}{The summary measure distribution.}
+      \item{\code{max_follow_up_time}}{The maximum follow-up time.
 Generate target data}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-generate"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-generate}{}}}
-\subsection{Method \code{generate()}}{
-This function generates target data based on the specified parameters.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TimeToEventTargetData$generate(n_replicates)}\if{html}{\out{</div>}}
+\subsection{\code{NA$generate()}}{
+  This function generates target data based on the specified parameters.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{NA$generate(n_replicates)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_replicates}}{The number of replicates to generate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame containing the generated target data.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_replicates}}{The number of replicates to generate.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A data frame containing the generated target data.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-to_dict"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-to_dict}{}}}
-\subsection{Method \code{to_dict()}}{
-Converts the target data object to a dictionary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TimeToEventTargetData$to_dict()}\if{html}{\out{</div>}}
+\subsection{\code{NA$to_dict()}}{
+  Converts the target data object to a dictionary.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{NA$to_dict()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list representing the target data object.
+  }
 }
 
-\subsection{Returns}{
-A list representing the target data object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-unknown-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-unknown-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TimeToEventTargetData$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{unknown$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{unknown$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

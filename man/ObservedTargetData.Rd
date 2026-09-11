@@ -7,69 +7,70 @@
 A wrapper used for analyzing observed data (not used for simulation)
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{summary_measure_likelihood}}{Summary measure distribution}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{summary_measure_likelihood}}{Summary measure distribution}
 
-\item{\code{sample_size_per_arm}}{Sample size per arm in the target study}
+    \item{\code{sample_size_per_arm}}{Sample size per arm in the target study}
 
-\item{\code{sample}}{Observed data sample}
-}
-\if{html}{\out{</div>}}
+    \item{\code{sample}}{Observed data sample}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ObservedTargetData-new}{\code{ObservedTargetData$new()}}
-\item \href{#method-ObservedTargetData-clone}{\code{ObservedTargetData$clone()}}
-}
+  \itemize{
+    \item \href{#method-ObservedTargetData-initialize}{\code{ObservedTargetData$new()}}
+    \item \href{#method-ObservedTargetData-clone}{\code{ObservedTargetData$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ObservedTargetData-new"></a>}}
-\if{latex}{\out{\hypertarget{method-ObservedTargetData-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes an ObservedTargetData object with the given parameters
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ObservedTargetData$new(
+\if{html}{\out{<a id="method-ObservedTargetData-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-ObservedTargetData-initialize}{}}}
+\subsection{\code{ObservedTargetData$new()}}{
+  Initializes an ObservedTargetData object with the given parameters
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ObservedTargetData$new(
   treatment_effect_estimate,
   treatment_effect_standard_error,
   target_sample_size_per_arm,
   summary_measure_likelihood
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{treatment_effect_estimate}}{The estimated treatment effect}
+      \item{\code{treatment_effect_standard_error}}{The standard error of the treatment effect estimate}
+      \item{\code{target_sample_size_per_arm}}{The target sample size per treatment arm}
+      \item{\code{summary_measure_likelihood}}{The distribution of the summary measure (e.g., "normal", "binomial")}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    An initialized ObservedTargetData object
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{treatment_effect_estimate}}{The estimated treatment effect}
-
-\item{\code{treatment_effect_standard_error}}{The standard error of the treatment effect estimate}
-
-\item{\code{target_sample_size_per_arm}}{The target sample size per treatment arm}
-
-\item{\code{summary_measure_likelihood}}{The distribution of the summary measure (e.g., "normal", "binomial")}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-An initialized ObservedTargetData object
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ObservedTargetData-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ObservedTargetData-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ObservedTargetData$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ObservedTargetData$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ObservedTargetData$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

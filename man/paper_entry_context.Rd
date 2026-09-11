@@ -17,7 +17,7 @@ paper_entry_context(
 }
 \description{
 The generators take the slice already narrowed to their own
-  case study, sample size, denominator factor and standard deviation ratio,
-  mirroring what the loop functions in inst/scripts/plots.R pass them.
+case study, sample size, denominator factor and standard deviation ratio,
+mirroring what the loop functions in inst/scripts/plots.R pass them.
 }
 \keyword{internal}

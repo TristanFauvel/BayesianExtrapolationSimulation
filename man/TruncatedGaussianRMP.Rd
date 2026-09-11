@@ -10,188 +10,242 @@ An R6 class object representing a TruncatedGaussianRMP model
 This class represents a Bayesian borrowing model with a truncated Gaussian prior. It inherits from the MCMCModel class.
 }
 \section{Super classes}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{\link[RBExT:MCMCModel]{RBExT::MCMCModel}} -> \code{TruncatedGaussianRMP}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:MCMCModel]{MCMCModel}} -> \code{TruncatedGaussianRMP}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{w}}{The weight parameter for the mixture prior}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{w}}{The weight parameter for the mixture prior}
 
-\item{\code{vague_prior_mean}}{The mean of the vague prior distribution}
+    \item{\code{vague_prior_mean}}{The mean of the vague prior distribution}
 
-\item{\code{vague_posterior_mean}}{The mean of the vague posterior distribution}
+    \item{\code{vague_posterior_mean}}{The mean of the vague posterior distribution}
 
-\item{\code{vague_prior_variance}}{The variance of the vague prior distribution}
+    \item{\code{vague_prior_variance}}{The variance of the vague prior distribution}
 
-\item{\code{vague_posterior_variance}}{The variance of the vague posterior distribution}
+    \item{\code{vague_posterior_variance}}{The variance of the vague posterior distribution}
 
-\item{\code{info_prior_mean}}{The mean of the informative prior distribution}
+    \item{\code{info_prior_mean}}{The mean of the informative prior distribution}
 
-\item{\code{info_posterior_mean}}{The mean of the informative posterior distribution}
+    \item{\code{info_posterior_mean}}{The mean of the informative posterior distribution}
 
-\item{\code{info_prior_variance}}{The variance of the informative prior distribution}
+    \item{\code{info_prior_variance}}{The variance of the informative prior distribution}
 
-\item{\code{info_posterior_variance}}{The variance of the informative posterior distribution}
+    \item{\code{info_posterior_variance}}{The variance of the informative posterior distribution}
 
-\item{\code{wpost}}{The posterior weight parameter for the mixture prior}
+    \item{\code{wpost}}{The posterior weight parameter for the mixture prior}
 
-\item{\code{method}}{Method name}
-}
-\if{html}{\out{</div>}}
+    \item{\code{method}}{Method name}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-TruncatedGaussianRMP-new}{\code{TruncatedGaussianRMP$new()}}
-\item \href{#method-TruncatedGaussianRMP-empirical_bayes_update}{\code{TruncatedGaussianRMP$empirical_bayes_update()}}
-\item \href{#method-TruncatedGaussianRMP-prepare_data}{\code{TruncatedGaussianRMP$prepare_data()}}
-\item \href{#method-TruncatedGaussianRMP-sample_prior}{\code{TruncatedGaussianRMP$sample_prior()}}
-\item \href{#method-TruncatedGaussianRMP-inference}{\code{TruncatedGaussianRMP$inference()}}
-\item \href{#method-TruncatedGaussianRMP-print_model_summary}{\code{TruncatedGaussianRMP$print_model_summary()}}
-\item \href{#method-TruncatedGaussianRMP-clone}{\code{TruncatedGaussianRMP$clone()}}
+  \itemize{
+    \item \href{#method-TruncatedGaussianRMP-initialize}{\code{TruncatedGaussianRMP$new()}}
+    \item \href{#method-TruncatedGaussianRMP-empirical_bayes_update}{\code{TruncatedGaussianRMP$empirical_bayes_update()}}
+    \item \href{#method-TruncatedGaussianRMP-prior_elir_ess}{\code{TruncatedGaussianRMP$prior_elir_ess()}}
+    \item \href{#method-TruncatedGaussianRMP-prepare_data}{\code{TruncatedGaussianRMP$prepare_data()}}
+    \item \href{#method-TruncatedGaussianRMP-sample_prior}{\code{TruncatedGaussianRMP$sample_prior()}}
+    \item \href{#method-TruncatedGaussianRMP-inference}{\code{TruncatedGaussianRMP$inference()}}
+    \item \href{#method-TruncatedGaussianRMP-print_model_summary}{\code{TruncatedGaussianRMP$print_model_summary()}}
+    \item \href{#method-TruncatedGaussianRMP-clone}{\code{TruncatedGaussianRMP$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_mean"><a href='../../RBExT/html/Model.html#method-Model-posterior_mean'><code>RBExT::Model$posterior_mean()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_moments"><a href='../../RBExT/html/Model.html#method-Model-posterior_moments'><code>RBExT::Model$posterior_moments()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../RBExT/html/Model.html#method-Model-posterior_to_RBesT'><code>RBExT::Model$posterior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_to_RBesT"><a href='../../RBExT/html/Model.html#method-Model-prior_to_RBesT'><code>RBExT::Model$prior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="test_decision"><a href='../../RBExT/html/Model.html#method-Model-test_decision'><code>RBExT::Model$test_decision()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="check_data"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-check_data'><code>RBExT::MCMCModel$check_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="check_mcmc_config"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-check_mcmc_config'><code>RBExT::MCMCModel$check_mcmc_config()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="compute_posterior_parameters"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-compute_posterior_parameters'><code>RBExT::MCMCModel$compute_posterior_parameters()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="credible_interval"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-credible_interval'><code>RBExT::MCMCModel$credible_interval()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="draw_mcmc_prior"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-draw_mcmc_prior'><code>RBExT::MCMCModel$draw_mcmc_prior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="posterior_cdf"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-posterior_cdf'><code>RBExT::MCMCModel$posterior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="posterior_median"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>RBExT::MCMCModel$posterior_median()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>RBExT::MCMCModel$posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>RBExT::MCMCModel$prior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>RBExT::MCMCModel$prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>RBExT::MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href='../../BExTE/html/Model.html#method-Model-posterior_mean'><code>Model$posterior_mean()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/Model.html#method-Model-vectorised_replicate_inference'><code>Model$vectorised_replicate_inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="check_mcmc_config"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-check_mcmc_config'><code>MCMCModel$check_mcmc_config()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="compute_posterior_parameters"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-compute_posterior_parameters'><code>MCMCModel$compute_posterior_parameters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="credible_interval"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-credible_interval'><code>MCMCModel$credible_interval()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="draw_mcmc_prior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-draw_mcmc_prior'><code>MCMCModel$draw_mcmc_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_cdf'><code>MCMCModel$posterior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_ess"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_ess'><code>MCMCModel$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_median"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>MCMCModel$posterior_median()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>MCMCModel$posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_cdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_cdf'><code>MCMCModel$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="prior_pdf"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-prior_pdf'><code>MCMCModel$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../BExTE/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>MCMCModel$sample_posterior()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-TruncatedGaussianRMP-new"></a>}}
-\if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the TruncatedGaussianRMP object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$new(prior, mcmc_config)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-TruncatedGaussianRMP-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-initialize}{}}}
+\subsection{\code{TruncatedGaussianRMP$new()}}{
+  Initialize the TruncatedGaussianRMP object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$new(prior, mcmc_config)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior}}{The prior object}
+      \item{\code{mcmc_config}}{The MCMC configuration parameters}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{The prior object}
-
-\item{\code{mcmc_config}}{The MCMC configuration parameters}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TruncatedGaussianRMP-empirical_bayes_update"></a>}}
 \if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-empirical_bayes_update}{}}}
-\subsection{Method \code{empirical_bayes_update()}}{
-Update the empirical Bayes parameters
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$empirical_bayes_update(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{TruncatedGaussianRMP$empirical_bayes_update()}}{
+  Update the empirical Bayes parameters
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$empirical_bayes_update(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data for inference}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{The target data for inference}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TruncatedGaussianRMP-prior_elir_ess"></a>}}
+\if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-prior_elir_ess}{}}}
+\subsection{\code{TruncatedGaussianRMP$prior_elir_ess()}}{
+  ELIR effective sample size of the current prior
+
+The prior is a two-component normal mixture, each component truncated to
+the interval the treatment effect is supported on, so the ELIR integral
+is evaluated on it directly. The inherited route would instead draw from
+the prior and fit an untruncated mixture to the draws, once per replicate
+because the vague component is set by the observed target standard error.
+That fit both costs a mixture fit per replicate and overstates the local
+information, since it smooths away the truncation.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$prior_elir_ess(target_data, ...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data, whose sampling standard deviation
+is the reference scale.}
+      \item{\code{...}}{Unused, kept so that the simulation can call every model the
+same way.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The ELIR effective sample size.
+  }
 }
-\if{html}{\out{</div>}}
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TruncatedGaussianRMP-prepare_data"></a>}}
 \if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-prepare_data}{}}}
-\subsection{Method \code{prepare_data()}}{
-Prepare the data for use with Stan
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$prepare_data(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{TruncatedGaussianRMP$prepare_data()}}{
+  Prepare the data for use with Stan
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$prepare_data(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data for inference}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of data prepared for Stan
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{The target data for inference}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A list of data prepared for Stan
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TruncatedGaussianRMP-sample_prior"></a>}}
 \if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-sample_prior}{}}}
-\subsection{Method \code{sample_prior()}}{
-Sample from the prior distribution
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$sample_prior(n_samples)}\if{html}{\out{</div>}}
+\subsection{\code{TruncatedGaussianRMP$sample_prior()}}{
+  Sample from the prior distribution
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$sample_prior(n_samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_samples}}{Number of samples to generate}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A vector of samples from the prior distribution
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{Number of samples to generate}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A vector of samples from the prior distribution
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TruncatedGaussianRMP-inference"></a>}}
 \if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-inference}{}}}
-\subsection{Method \code{inference()}}{
-Inference
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$inference(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{TruncatedGaussianRMP$inference()}}{
+  Inference
+
+The reported prior weight is the posterior probability that the treatment
+effect came from the informative component, which is what the models with
+a normal summary measure report. It is taken over the same counts and the
+same truncated mixture the Stan program was given, so the two describe one
+model rather than an approximation of it: the prior density at the
+observed estimate is not a component probability, and unlike the normal
+case the truncation leaves no closed form to fall back on.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$inference(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target data object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Indicator whether inference succeeded or not
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target data object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Indicator whether inference succeeded or not
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TruncatedGaussianRMP-print_model_summary"></a>}}
 \if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-print_model_summary}{}}}
-\subsection{Method \code{print_model_summary()}}{
-Print a summary of the model attributes
+\subsection{\code{TruncatedGaussianRMP$print_model_summary()}}{
+  Print a summary of the model attributes
 
 This method creates and prints a formatted table of key model attributes.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$print_model_summary()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-A printed data frame displaying the following model attributes:
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$print_model_summary()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A printed data frame displaying the following model attributes:
 \itemize{
 \item Posterior Weight
 \item Vague Posterior Mean
@@ -200,23 +254,26 @@ A printed data frame displaying the following model attributes:
 \item Informative Posterior Variance
 }
 All numeric values are formatted to 6 decimal places.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TruncatedGaussianRMP-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-TruncatedGaussianRMP-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TruncatedGaussianRMP$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{TruncatedGaussianRMP$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TruncatedGaussianRMP$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

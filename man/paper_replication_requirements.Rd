@@ -12,16 +12,16 @@ paper_replication_requirements(ids, case_studies_config_dir)
 \item{case_studies_config_dir}{Directory holding the case study YAMLs.}
 }
 \value{
-A `scenarios_config` list, ready for `save_environment()`.
+A \code{scenarios_config} list, ready for \code{save_environment()}.
 }
 \description{
-Folds the selected manifest entries into a `scenarios_config`
-  covering exactly the case studies and sample size factors they need. The
-  fidelity settings do not scale with the selection: `ndrift` stays at 30
-  because `forest_plot()` selects the three principal treatment-effect
-  scenarios by nearest grid point, so a coarser grid would quietly plot
-  different drift values rather than failing.
+Folds the selected manifest entries into a \code{scenarios_config}
+covering exactly the case studies and sample size factors they need. The
+fidelity settings do not scale with the selection: \code{ndrift} stays at 30
+because \code{forest_plot()} selects the three principal treatment-effect
+scenarios by nearest grid point, so a coarser grid would quietly plot
+different drift values rather than failing.
 
-  No paper figure varies the source denominator change factor or the
-  target-to-source standard deviation ratio, so both are pinned to 1.
+No paper figure varies the source denominator change factor or the
+target-to-source standard deviation ratio, so both are pinned to 1.
 }

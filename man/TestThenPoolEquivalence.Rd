@@ -10,132 +10,192 @@ This class extends the TestThenPool class to implement the Test-Then-Pool framew
 The TestThenPoolEquivalence class provides methods for testing and inference in equivalence trials using the Test-Then-Pool framework.
 }
 \section{Super classes}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{\link[RBExT:TestThenPool]{RBExT::TestThenPool}} -> \code{TestThenPoolEquivalence}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:TestThenPool]{TestThenPool}} -> \code{TestThenPoolEquivalence}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{significance_level}}{Significance level for the test}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{significance_level}}{Significance level for the test}
 
-\item{\code{equivalence_margin}}{Equivalence margin for the test}
+    \item{\code{equivalence_margin}}{Equivalence margin for the test}
 
-\item{\code{method}}{Method name}
-}
-\if{html}{\out{</div>}}
+    \item{\code{method}}{Method name}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-TestThenPoolEquivalence-new}{\code{TestThenPoolEquivalence$new()}}
-\item \href{#method-TestThenPoolEquivalence-test_pvalue}{\code{TestThenPoolEquivalence$test_pvalue()}}
-\item \href{#method-TestThenPoolEquivalence-test}{\code{TestThenPoolEquivalence$test()}}
-\item \href{#method-TestThenPoolEquivalence-clone}{\code{TestThenPoolEquivalence$clone()}}
+  \itemize{
+    \item \href{#method-TestThenPoolEquivalence-initialize}{\code{TestThenPoolEquivalence$new()}}
+    \item \href{#method-TestThenPoolEquivalence-test_pvalue}{\code{TestThenPoolEquivalence$test_pvalue()}}
+    \item \href{#method-TestThenPoolEquivalence-test}{\code{TestThenPoolEquivalence$test()}}
+    \item \href{#method-TestThenPoolEquivalence-vectorised_test_pvalue}{\code{TestThenPoolEquivalence$vectorised_test_pvalue()}}
+    \item \href{#method-TestThenPoolEquivalence-vectorised_pool}{\code{TestThenPoolEquivalence$vectorised_pool()}}
+    \item \href{#method-TestThenPoolEquivalence-clone}{\code{TestThenPoolEquivalence$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_mean"><a href='../../RBExT/html/Model.html#method-Model-posterior_mean'><code>RBExT::Model$posterior_mean()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_moments"><a href='../../RBExT/html/Model.html#method-Model-posterior_moments'><code>RBExT::Model$posterior_moments()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="credible_interval"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-credible_interval'><code>RBExT::TestThenPool$credible_interval()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="empirical_bayes_update"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-empirical_bayes_update'><code>RBExT::TestThenPool$empirical_bayes_update()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="inference"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-inference'><code>RBExT::TestThenPool$inference()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="plot_test_pvalue_vs_drift"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-plot_test_pvalue_vs_drift'><code>RBExT::TestThenPool$plot_test_pvalue_vs_drift()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="plot_test_vs_drift"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-plot_test_vs_drift'><code>RBExT::TestThenPool$plot_test_vs_drift()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="posterior_cdf"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-posterior_cdf'><code>RBExT::TestThenPool$posterior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="posterior_median"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-posterior_median'><code>RBExT::TestThenPool$posterior_median()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="posterior_pdf"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-posterior_pdf'><code>RBExT::TestThenPool$posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="posterior_to_RBesT"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-posterior_to_RBesT'><code>RBExT::TestThenPool$posterior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="prior_cdf"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-prior_cdf'><code>RBExT::TestThenPool$prior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="prior_pdf"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-prior_pdf'><code>RBExT::TestThenPool$prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="prior_to_RBesT"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-prior_to_RBesT'><code>RBExT::TestThenPool$prior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="sample_posterior"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-sample_posterior'><code>RBExT::TestThenPool$sample_posterior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="sample_prior"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-sample_prior'><code>RBExT::TestThenPool$sample_prior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TestThenPool" data-id="test_decision"><a href='../../RBExT/html/TestThenPool.html#method-TestThenPool-test_decision'><code>RBExT::TestThenPool$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href='../../BExTE/html/Model.html#method-Model-posterior_mean'><code>Model$posterior_mean()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_moments"><a href='../../BExTE/html/Model.html#method-Model-posterior_moments'><code>Model$posterior_moments()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="credible_interval"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-credible_interval'><code>TestThenPool$credible_interval()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="empirical_bayes_update"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-empirical_bayes_update'><code>TestThenPool$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="inference"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-inference'><code>TestThenPool$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="plot_test_pvalue_vs_drift"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-plot_test_pvalue_vs_drift'><code>TestThenPool$plot_test_pvalue_vs_drift()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="plot_test_vs_drift"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-plot_test_vs_drift'><code>TestThenPool$plot_test_vs_drift()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="posterior_cdf"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-posterior_cdf'><code>TestThenPool$posterior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="posterior_ess"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-posterior_ess'><code>TestThenPool$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="posterior_median"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-posterior_median'><code>TestThenPool$posterior_median()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="posterior_pdf"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-posterior_pdf'><code>TestThenPool$posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="posterior_to_RBesT"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-posterior_to_RBesT'><code>TestThenPool$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="prior_cdf"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-prior_cdf'><code>TestThenPool$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="prior_pdf"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-prior_pdf'><code>TestThenPool$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="prior_to_RBesT"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-prior_to_RBesT'><code>TestThenPool$prior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="sample_posterior"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-sample_posterior'><code>TestThenPool$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="sample_prior"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-sample_prior'><code>TestThenPool$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="test_decision"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-test_decision'><code>TestThenPool$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TestThenPool" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/TestThenPool.html#method-TestThenPool-vectorised_replicate_inference'><code>TestThenPool$vectorised_replicate_inference()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-TestThenPoolEquivalence-new"></a>}}
-\if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes a TestThenPoolEquivalence object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestThenPoolEquivalence$new(prior, mcmc_config = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-TestThenPoolEquivalence-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-initialize}{}}}
+\subsection{\code{TestThenPoolEquivalence$new()}}{
+  Initializes a TestThenPoolEquivalence object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPoolEquivalence$new(prior, mcmc_config = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior}}{The prior distribution for the treatment effect.}
+      \item{\code{mcmc_config}}{Configuration for the MCMC sampling.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{The prior distribution for the treatment effect.}
-
-\item{\code{mcmc_config}}{Configuration for the MCMC sampling.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TestThenPoolEquivalence-test_pvalue"></a>}}
 \if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-test_pvalue}{}}}
-\subsection{Method \code{test_pvalue()}}{
-Performs the test in the Test-Then-Pool framework for equivalence.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestThenPoolEquivalence$test_pvalue(target_data, test_type = "t-test")}\if{html}{\out{</div>}}
+\subsection{\code{TestThenPoolEquivalence$test_pvalue()}}{
+  Performs the test in the Test-Then-Pool framework for equivalence.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPoolEquivalence$test_pvalue(target_data, test_type = "t-test")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The data from the target study.}
+      \item{\code{test_type}}{Test type}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{The data from the target study.}
-
-\item{\code{test_type}}{Test type}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TestThenPoolEquivalence-test"></a>}}
 \if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-test}{}}}
-\subsection{Method \code{test()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestThenPoolEquivalence$test(target_data, test_type = "t-test")}\if{html}{\out{</div>}}
+\subsection{\code{TestThenPoolEquivalence$test()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPoolEquivalence$test(target_data, test_type = "t-test")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+      \item{\code{test_type}}{Frequentist test}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TestThenPoolEquivalence-vectorised_test_pvalue"></a>}}
+\if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-vectorised_test_pvalue}{}}}
+\subsection{\code{TestThenPoolEquivalence$vectorised_test_pvalue()}}{
+  Equivalence test p-value for every replicate at once.
 
-\item{\code{test_type}}{Frequentist test}
+\code{inference()} calls \code{test()} without a test type, so the t-test default
+is the one that runs in the simulation.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPoolEquivalence$vectorised_test_pvalue(target_data, samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A vector of p-values.
+  }
 }
-\if{html}{\out{</div>}}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-TestThenPoolEquivalence-vectorised_pool"></a>}}
+\if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-vectorised_pool}{}}}
+\subsection{\code{TestThenPoolEquivalence$vectorised_pool()}}{
+  Rejecting equivalence's null means the studies are close
+enough to pool.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPoolEquivalence$vectorised_pool(p_value)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{p_value}}{Vector of p-values.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A logical vector.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TestThenPoolEquivalence-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-TestThenPoolEquivalence-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TestThenPoolEquivalence$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{TestThenPoolEquivalence$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TestThenPoolEquivalence$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

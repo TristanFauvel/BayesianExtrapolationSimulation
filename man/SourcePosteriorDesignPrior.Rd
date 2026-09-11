@@ -7,136 +7,141 @@
 A class representing the source posterior design prior for Bayesian borrowing.
 }
 \section{Super class}{
-\code{\link[RBExT:DesignPrior]{RBExT::DesignPrior}} -> \code{SourcePosteriorDesignPrior}
+\code{\link[BExTE:DesignPrior]{DesignPrior}} -> \code{SourcePosteriorDesignPrior}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{parameters}}{Parameters}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{parameters}}{Parameters}
 
-\item{\code{summary_measure_likelihood}}{Treatment effect distribution}
+    \item{\code{summary_measure_likelihood}}{Treatment effect distribution}
 
-\item{\code{n_successes_control}}{Number of successes in the control arm}
+    \item{\code{n_successes_control}}{Number of successes in the control arm}
 
-\item{\code{n_successes_treatment}}{Number of successes in the treatment arm}
+    \item{\code{n_successes_treatment}}{Number of successes in the treatment arm}
 
-\item{\code{n_control}}{Number of participants in the control arm}
+    \item{\code{n_control}}{Number of participants in the control arm}
 
-\item{\code{n_treatment}}{Number of participants in the treatment arm}
-}
-\if{html}{\out{</div>}}
+    \item{\code{n_treatment}}{Number of participants in the treatment arm}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-SourcePosteriorDesignPrior-new}{\code{SourcePosteriorDesignPrior$new()}}
-\item \href{#method-SourcePosteriorDesignPrior-sample}{\code{SourcePosteriorDesignPrior$sample()}}
-\item \href{#method-SourcePosteriorDesignPrior-cdf}{\code{SourcePosteriorDesignPrior$cdf()}}
-\item \href{#method-SourcePosteriorDesignPrior-pdf}{\code{SourcePosteriorDesignPrior$pdf()}}
-\item \href{#method-SourcePosteriorDesignPrior-clone}{\code{SourcePosteriorDesignPrior$clone()}}
+  \itemize{
+    \item \href{#method-SourcePosteriorDesignPrior-initialize}{\code{SourcePosteriorDesignPrior$new()}}
+    \item \href{#method-SourcePosteriorDesignPrior-sample}{\code{SourcePosteriorDesignPrior$sample()}}
+    \item \href{#method-SourcePosteriorDesignPrior-cdf}{\code{SourcePosteriorDesignPrior$cdf()}}
+    \item \href{#method-SourcePosteriorDesignPrior-pdf}{\code{SourcePosteriorDesignPrior$pdf()}}
+    \item \href{#method-SourcePosteriorDesignPrior-clone}{\code{SourcePosteriorDesignPrior$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="DesignPrior" data-id="create"><a href='../../RBExT/html/DesignPrior.html#method-DesignPrior-create'><code>RBExT::DesignPrior$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="DesignPrior" data-id="create"><a href='../../BExTE/html/DesignPrior.html#method-DesignPrior-create'><code>DesignPrior$create()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SourcePosteriorDesignPrior-new"></a>}}
-\if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes a new instance of SourcePosteriorDesignPrior.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourcePosteriorDesignPrior$new(
+\if{html}{\out{<a id="method-SourcePosteriorDesignPrior-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-initialize}{}}}
+\subsection{\code{SourcePosteriorDesignPrior$new()}}{
+  Initializes a new instance of SourcePosteriorDesignPrior.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourcePosteriorDesignPrior$new(
   source_data,
   case_study_config,
   simulation_config,
   mcmc_config = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{source_data}}{The source data object.}
+      \item{\code{case_study_config}}{Case study configuration}
+      \item{\code{simulation_config}}{Simulation configuration}
+      \item{\code{mcmc_config}}{MCMC configuration}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{source_data}}{The source data object.}
-
-\item{\code{case_study_config}}{Case study configuration}
-
-\item{\code{simulation_config}}{Simulation configuration}
-
-\item{\code{mcmc_config}}{MCMC configuration}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SourcePosteriorDesignPrior-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-sample}{}}}
-\subsection{Method \code{sample()}}{
-Samples from the source posterior design prior.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourcePosteriorDesignPrior$sample(n_samples)}\if{html}{\out{</div>}}
+\subsection{\code{SourcePosteriorDesignPrior$sample()}}{
+  Samples from the source posterior design prior.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourcePosteriorDesignPrior$sample(n_samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_samples}}{The number of samples to generate.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{The number of samples to generate.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SourcePosteriorDesignPrior-cdf"></a>}}
 \if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-cdf}{}}}
-\subsection{Method \code{cdf()}}{
-Computes the cumulative distribution function (CDF) of the source posterior design prior.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourcePosteriorDesignPrior$cdf(x)}\if{html}{\out{</div>}}
+\subsection{\code{SourcePosteriorDesignPrior$cdf()}}{
+  Computes the cumulative distribution function (CDF) of the source posterior design prior.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourcePosteriorDesignPrior$cdf(x)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{The value at which to evaluate the CDF.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x}}{The value at which to evaluate the CDF.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SourcePosteriorDesignPrior-pdf"></a>}}
 \if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-pdf}{}}}
-\subsection{Method \code{pdf()}}{
-Computes the cumulative distribution function (PDF) of the source posterior design prior.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourcePosteriorDesignPrior$pdf(x)}\if{html}{\out{</div>}}
+\subsection{\code{SourcePosteriorDesignPrior$pdf()}}{
+  Computes the cumulative distribution function (PDF) of the source posterior design prior.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourcePosteriorDesignPrior$pdf(x)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{The value at which to evaluate the PDF.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x}}{The value at which to evaluate the PDF.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SourcePosteriorDesignPrior-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-SourcePosteriorDesignPrior-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SourcePosteriorDesignPrior$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{SourcePosteriorDesignPrior$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SourcePosteriorDesignPrior$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

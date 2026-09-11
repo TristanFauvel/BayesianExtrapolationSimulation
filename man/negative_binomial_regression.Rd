@@ -13,5 +13,6 @@ negative_binomial_regression(input_data)
 A list containing the rate estimate, standard error of the rate estimate, and standard error of the log(rate) estimate.
 }
 \description{
-This function fits a model using glm.nb and estimates the rate parameter and its standard error.
+This function estimates the rate parameter of an intercept-only
+negative binomial model and its standard error.
 }

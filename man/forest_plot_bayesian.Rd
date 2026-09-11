@@ -4,12 +4,15 @@
 \alias{forest_plot_bayesian}
 \title{Generate a forest plot for bayesian metrics}
 \usage{
-forest_plot_bayesian(results_bayes_df, x_metric)
+forest_plot_bayesian(results_bayes_df, x_metric, palette = NULL)
 }
 \arguments{
 \item{results_bayes_df}{The results dataframe.}
 
 \item{x_metric}{Metric on the x-axis}
+
+\item{palette}{A colour scheme from bexte_palette() for the Shiny app's
+dark mode, or NULL for the publication figure.}
 
 \item{selected_case_study}{The selected case study.}
 

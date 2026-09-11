@@ -48,7 +48,7 @@ export(compute_freq_power)
 export(compute_freq_power_pooling)
 export(compute_power_with_tie_ci)
 export(concatenate_simulation_logs)
-export(create_rbext_shortcut)
+export(create_bexte_shortcut)
 export(empirical_bayes_parameters_plots)
 export(export_paper_outputs)
 export(findCalibrationParameter)
@@ -65,7 +65,11 @@ export(inference_cache_reset)
 export(inference_cache_size)
 export(mover_difference_ci)
 export(negative_binomial_regression)
+export(normal_mixture_elir_ess)
+export(normal_mixture_posterior)
+export(normal_mixture_summary)
 export(normal_reference_ess)
+export(npp_prior_mixture)
 export(operating_characteristic_vs_tie)
 export(p_value_based_PP_Binomial)
 export(p_value_based_PP_Gaussian)
@@ -94,7 +98,7 @@ export(prior_precision_ess)
 export(rate_from_drift_logOR)
 export(rate_from_drift_logRR)
 export(read_function_code)
-export(run_rbext_app)
+export(run_bexte_app)
 export(run_simulation_env)
 export(sample_aggregate_binary_data)
 export(sample_aggregate_normal_data)
@@ -105,6 +109,8 @@ export(scale_by_separate)
 export(simulation_analysis)
 export(simulation_frequentist_ocs)
 export(standard_error_log_odds_ratio)
+export(summary_t_test_p_value)
+export(summary_z_test_p_value)
 export(table_bayesian_metrics)
 export(table_bayesian_ocs)
 export(table_case_study_summary)
@@ -141,49 +147,67 @@ import(yaml)
 importFrom(Bolstad2,sintegral)
 importFrom(HDInterval,inverseCDF)
 importFrom(R6,R6Class)
-importFrom(RBesT,automixfit)
-importFrom(RBesT,ess)
-importFrom(RBesT,mixnorm)
-importFrom(RBesT,postmix)
-importFrom(RBesT,sigma)
+importFrom(RBesT,
+  automixfit,
+  ess,
+  mixnorm,
+  postmix,
+  sigma
+)
 importFrom(doParallel,registerDoParallel)
-importFrom(dplyr,arrange)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,everything)
-importFrom(dplyr,filter)
-importFrom(dplyr,group_by)
-importFrom(dplyr,mutate)
-importFrom(dplyr,rename)
-importFrom(dplyr,select)
-importFrom(dplyr,ungroup)
+importFrom(dplyr,
+  arrange,
+  bind_rows,
+  everything,
+  filter,
+  group_by,
+  mutate,
+  rename,
+  select,
+  ungroup
+)
 importFrom(foreach,"%dopar%")
 importFrom(gridExtra,grid.arrange)
-importFrom(jsonlite,toJSON)
-importFrom(jsonlite,write_json)
-importFrom(kableExtra,add_header_above)
-importFrom(kableExtra,collapse_rows)
-importFrom(kableExtra,kable_styling)
-importFrom(kableExtra,pack_rows)
-importFrom(kableExtra,row_spec)
-importFrom(knitr,kable)
-importFrom(knitr,knit)
-importFrom(knitr,opts_chunk)
+importFrom(jsonlite,
+  toJSON,
+  write_json
+)
+importFrom(kableExtra,
+  add_header_above,
+  collapse_rows,
+  kable_styling,
+  pack_rows,
+  row_spec
+)
+importFrom(knitr,
+  kable,
+  knit,
+  opts_chunk
+)
 importFrom(latex2exp,TeX)
-importFrom(parallel,clusterEvalQ)
-importFrom(parallel,clusterExport)
-importFrom(parallel,detectCores)
-importFrom(parallel,makeCluster)
-importFrom(parallel,stopCluster)
+importFrom(parallel,
+  clusterEvalQ,
+  clusterExport,
+  detectCores,
+  makeCluster,
+  stopCluster
+)
 importFrom(progress,progress_bar)
 importFrom(purrr,imap)
-importFrom(pwr,ES.h)
-importFrom(pwr,pwr.2p2n.test)
-importFrom(pwr,pwr.norm.test)
-importFrom(pwr,pwr.t.test)
-importFrom(readr,read_csv)
-importFrom(readr,write_csv)
+importFrom(pwr,
+  ES.h,
+  pwr.2p2n.test,
+  pwr.norm.test,
+  pwr.t.test
+)
+importFrom(readr,
+  read_csv,
+  write_csv
+)
 importFrom(rlang,sym)
 importFrom(stats,pexp)
 importFrom(truncnorm,rtruncnorm)
-importFrom(yaml,read_yaml)
-importFrom(yaml,yaml.load_file)
+importFrom(yaml,
+  read_yaml,
+  yaml.load_file
+)

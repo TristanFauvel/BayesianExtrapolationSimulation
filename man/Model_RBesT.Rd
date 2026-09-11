@@ -7,331 +7,451 @@
 An R6 class representing a Bayesian model using RBesT.
 }
 \section{Super class}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{Model_RBesT}
+\code{\link[BExTE:Model]{Model}} -> \code{Model_RBesT}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{posterior_summary}}{Summary of the posterior distribution}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{posterior_summary}}{Summary of the posterior distribution}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Model_RBesT-new}{\code{Model_RBesT$new()}}
-\item \href{#method-Model_RBesT-prior_pdf}{\code{Model_RBesT$prior_pdf()}}
-\item \href{#method-Model_RBesT-prior_cdf}{\code{Model_RBesT$prior_cdf()}}
-\item \href{#method-Model_RBesT-posterior_moments}{\code{Model_RBesT$posterior_moments()}}
-\item \href{#method-Model_RBesT-posterior_mean}{\code{Model_RBesT$posterior_mean()}}
-\item \href{#method-Model_RBesT-posterior_variance}{\code{Model_RBesT$posterior_variance()}}
-\item \href{#method-Model_RBesT-posterior_median}{\code{Model_RBesT$posterior_median()}}
-\item \href{#method-Model_RBesT-posterior_pdf}{\code{Model_RBesT$posterior_pdf()}}
-\item \href{#method-Model_RBesT-posterior_cdf}{\code{Model_RBesT$posterior_cdf()}}
-\item \href{#method-Model_RBesT-sample_prior}{\code{Model_RBesT$sample_prior()}}
-\item \href{#method-Model_RBesT-sample_posterior}{\code{Model_RBesT$sample_posterior()}}
-\item \href{#method-Model_RBesT-prior_to_RBesT}{\code{Model_RBesT$prior_to_RBesT()}}
-\item \href{#method-Model_RBesT-posterior_to_RBesT}{\code{Model_RBesT$posterior_to_RBesT()}}
-\item \href{#method-Model_RBesT-credible_interval}{\code{Model_RBesT$credible_interval()}}
-\item \href{#method-Model_RBesT-clone}{\code{Model_RBesT$clone()}}
+  \itemize{
+    \item \href{#method-Model_RBesT-initialize}{\code{Model_RBesT$new()}}
+    \item \href{#method-Model_RBesT-prior_pdf}{\code{Model_RBesT$prior_pdf()}}
+    \item \href{#method-Model_RBesT-prior_cdf}{\code{Model_RBesT$prior_cdf()}}
+    \item \href{#method-Model_RBesT-posterior_moments}{\code{Model_RBesT$posterior_moments()}}
+    \item \href{#method-Model_RBesT-posterior_mean}{\code{Model_RBesT$posterior_mean()}}
+    \item \href{#method-Model_RBesT-posterior_variance}{\code{Model_RBesT$posterior_variance()}}
+    \item \href{#method-Model_RBesT-posterior_median}{\code{Model_RBesT$posterior_median()}}
+    \item \href{#method-Model_RBesT-posterior_pdf}{\code{Model_RBesT$posterior_pdf()}}
+    \item \href{#method-Model_RBesT-posterior_cdf}{\code{Model_RBesT$posterior_cdf()}}
+    \item \href{#method-Model_RBesT-sample_prior}{\code{Model_RBesT$sample_prior()}}
+    \item \href{#method-Model_RBesT-sample_posterior}{\code{Model_RBesT$sample_posterior()}}
+    \item \href{#method-Model_RBesT-prior_to_RBesT}{\code{Model_RBesT$prior_to_RBesT()}}
+    \item \href{#method-Model_RBesT-posterior_to_RBesT}{\code{Model_RBesT$posterior_to_RBesT()}}
+    \item \href{#method-Model_RBesT-credible_interval}{\code{Model_RBesT$credible_interval()}}
+    \item \href{#method-Model_RBesT-vectorised_prior_components}{\code{Model_RBesT$vectorised_prior_components()}}
+    \item \href{#method-Model_RBesT-vectorised_posterior_parameters}{\code{Model_RBesT$vectorised_posterior_parameters()}}
+    \item \href{#method-Model_RBesT-vectorised_replicate_inference}{\code{Model_RBesT$vectorised_replicate_inference()}}
+    \item \href{#method-Model_RBesT-clone}{\code{Model_RBesT$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="empirical_bayes_update"><a href='../../RBExT/html/Model.html#method-Model-empirical_bayes_update'><code>RBExT::Model$empirical_bayes_update()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="inference"><a href='../../RBExT/html/Model.html#method-Model-inference'><code>RBExT::Model$inference()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="test_decision"><a href='../../RBExT/html/Model.html#method-Model-test_decision'><code>RBExT::Model$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href='../../BExTE/html/Model.html#method-Model-empirical_bayes_update'><code>Model$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference"><a href='../../BExTE/html/Model.html#method-Model-inference'><code>Model$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Model_RBesT-new"></a>}}
-\if{latex}{\out{\hypertarget{method-Model_RBesT-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the GaussianRMP object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$new(prior)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-Model_RBesT-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-Model_RBesT-initialize}{}}}
+\subsection{\code{Model_RBesT$new()}}{
+  Initializes the GaussianRMP object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$new(prior)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior}}{The prior information for the analysis.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{The prior information for the analysis.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-prior_pdf"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-prior_pdf}{}}}
-\subsection{Method \code{prior_pdf()}}{
-Calculates the prior probability density function (PDF) for a given target treatment effect.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$prior_pdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$prior_pdf()}}{
+  Calculates the prior probability density function (PDF) for a given target treatment effect.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$prior_pdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{The target treatment effect.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The prior PDF.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{The target treatment effect.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The prior PDF.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-prior_cdf"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-prior_cdf}{}}}
-\subsection{Method \code{prior_cdf()}}{
-Calculates the prior cumulative distribution function (CDF) for a given target treatment effect.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$prior_cdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$prior_cdf()}}{
+  Calculates the prior cumulative distribution function (CDF) for a given target treatment effect.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$prior_cdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{The target treatment effect.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The prior CDF.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{The target treatment effect.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The prior CDF.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_moments"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_moments}{}}}
-\subsection{Method \code{posterior_moments()}}{
-Calculates the posterior moments based on the target data.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_moments(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_moments()}}{
+  Calculates the posterior moments based on the target data.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_moments(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data for the analysis.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    None
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{The target data for the analysis.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-None
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_mean"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_mean}{}}}
-\subsection{Method \code{posterior_mean()}}{
-Calculates the posterior mean.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_mean()}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_mean()}}{
+  Calculates the posterior mean.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_mean()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The posterior mean.
+  }
 }
 
-\subsection{Returns}{
-The posterior mean.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_variance"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_variance}{}}}
-\subsection{Method \code{posterior_variance()}}{
-Calculates the posterior variance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_variance()}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_variance()}}{
+  Calculates the posterior variance.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_variance()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The posterior variance.
+  }
 }
 
-\subsection{Returns}{
-The posterior variance.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_median"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_median}{}}}
-\subsection{Method \code{posterior_median()}}{
-Calculates the posterior median.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_median(...)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_median()}}{
+  Calculates the posterior median.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_median(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Additional arguments}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The posterior median.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The posterior median.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_pdf"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_pdf}{}}}
-\subsection{Method \code{posterior_pdf()}}{
-Calculates the posterior probability density function (PDF) for a given target treatment effect.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_pdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_pdf()}}{
+  Calculates the posterior probability density function (PDF) for a given target treatment effect.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_pdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{The target treatment effect.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The posterior PDF.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{The target treatment effect.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The posterior PDF.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_cdf"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_cdf}{}}}
-\subsection{Method \code{posterior_cdf()}}{
-Calculates the posterior cumulative distribution function (CDF) for a given target treatment effect.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_cdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_cdf()}}{
+  Calculates the posterior cumulative distribution function (CDF) for a given target treatment effect.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_cdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{The target treatment effect.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The posterior CDF.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{The target treatment effect.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The posterior CDF.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-sample_prior"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-sample_prior}{}}}
-\subsection{Method \code{sample_prior()}}{
-Samples from the prior distribution.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$sample_prior(n_samples)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$sample_prior()}}{
+  Samples from the prior distribution.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$sample_prior(n_samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_samples}}{The number of samples to generate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The samples from the prior distribution.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{The number of samples to generate.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The samples from the prior distribution.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-sample_posterior"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-sample_posterior}{}}}
-\subsection{Method \code{sample_posterior()}}{
-Samples from the posterior distribution.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$sample_posterior(n_samples)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$sample_posterior()}}{
+  Samples from the posterior distribution.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$sample_posterior(n_samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_samples}}{The number of samples to generate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The samples from the posterior distribution.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{The number of samples to generate.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The samples from the posterior distribution.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-prior_to_RBesT"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-prior_to_RBesT}{}}}
-\subsection{Method \code{prior_to_RBesT()}}{
-Converts the prior distribution to the RBesT format.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$prior_to_RBesT(...)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$prior_to_RBesT()}}{
+  Converts the prior distribution to the RBesT format.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$prior_to_RBesT(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Additional arguments}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    None
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-None
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-posterior_to_RBesT"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-posterior_to_RBesT}{}}}
-\subsection{Method \code{posterior_to_RBesT()}}{
-Converts the posterior distribution to the RBesT format.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$posterior_to_RBesT(target_data, ...)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$posterior_to_RBesT()}}{
+  Converts the posterior distribution to the RBesT format.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$posterior_to_RBesT(target_data, ...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+      \item{\code{...}}{Additional arguments}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data}
-
-\item{\code{...}}{Additional arguments}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-credible_interval"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-credible_interval}{}}}
-\subsection{Method \code{credible_interval()}}{
-Calculates the credible interval.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$credible_interval(level = 0.95)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$credible_interval()}}{
+  Calculates the credible interval.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$credible_interval(level = 0.95)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{level}}{Level of the credible interval.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A vector containing the lower and upper bounds of the credible interval.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{level}}{Level of the credible interval.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model_RBesT-vectorised_prior_components"></a>}}
+\if{latex}{\out{\hypertarget{method-Model_RBesT-vectorised_prior_components}{}}}
+\subsection{\code{Model_RBesT$vectorised_prior_components()}}{
+  Prior mixture components for each replicate
+
+Subclasses return the \code{weights}, \code{means} and \code{sds} of their prior, either
+as vectors shared by every replicate or as matrices with one row per
+replicate. Returning \code{NULL} disables the vectorised path.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$vectorised_prior_components(target_data, samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with \code{weights}, \code{means} and \code{sds}, or \code{NULL}.
+  }
 }
-\if{html}{\out{</div>}}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model_RBesT-vectorised_posterior_parameters"></a>}}
+\if{latex}{\out{\hypertarget{method-Model_RBesT-vectorised_posterior_parameters}{}}}
+\subsection{\code{Model_RBesT$vectorised_posterior_parameters()}}{
+  Posterior parameters reported by the vectorised path
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$vectorised_posterior_parameters(posterior)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{posterior}}{Posterior mixture returned by \code{\link[=normal_mixture_posterior]{normal_mixture_posterior()}}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame, or \code{NULL}.
+  }
 }
-\subsection{Returns}{
-A vector containing the lower and upper bounds of the credible interval.
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Model_RBesT-vectorised_replicate_inference"></a>}}
+\if{latex}{\out{\hypertarget{method-Model_RBesT-vectorised_replicate_inference}{}}}
+\subsection{\code{Model_RBesT$vectorised_replicate_inference()}}{
+  Run every replicate at once
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$vectorised_replicate_inference(
+  target_data,
+  samples,
+  to_return,
+  critical_value,
+  theta_0,
+  confidence_level,
+  null_space
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+      \item{\code{to_return}}{Character vector of requested outputs.}
+      \item{\code{critical_value}}{Critical value for hypothesis testing.}
+      \item{\code{theta_0}}{Null hypothesis value.}
+      \item{\code{confidence_level}}{Confidence level for the credible interval.}
+      \item{\code{null_space}}{The null space for hypothesis testing.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of simulation results, or \code{NULL} to use the replicate loop.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Model_RBesT-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Model_RBesT-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Model_RBesT$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Model_RBesT$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Model_RBesT$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

@@ -11,8 +11,8 @@ A list of manifest entries.
 }
 \description{
 Every figure and generated table in the paper, in publication
-  order, each paired with the generator call that produces it. Table ids are
-  prefixed `TS` so they never collide with a figure of the same number -
-  figure S8 and table S8 are different objects, and only the figure is in
-  scope.
+order, each paired with the generator call that produces it. Table ids are
+prefixed \code{TS} so they never collide with a figure of the same number -
+figure S8 and table S8 are different objects, and only the figure is in
+scope.
 }

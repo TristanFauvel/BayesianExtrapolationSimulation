@@ -4,7 +4,11 @@
 \alias{check_colnames}
 \title{Check columns in a dataframe}
 \usage{
-check_colnames(df, expected_colnames, types = default_coltypes(expected_colnames))
+check_colnames(
+  df,
+  expected_colnames,
+  types = default_coltypes(expected_colnames)
+)
 }
 \arguments{
 \item{df}{A dataframe to check.}

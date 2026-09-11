@@ -8,18 +8,19 @@ A factory class for creating different types of target data objects.
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-TargetDataFactory-create}{\code{TargetDataFactory$create()}}
-\item \href{#method-TargetDataFactory-clone}{\code{TargetDataFactory$clone()}}
-}
+  \itemize{
+    \item \href{#method-TargetDataFactory-create}{\code{TargetDataFactory$create()}}
+    \item \href{#method-TargetDataFactory-clone}{\code{TargetDataFactory$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TargetDataFactory-create"></a>}}
 \if{latex}{\out{\hypertarget{method-TargetDataFactory-create}{}}}
-\subsection{Method \code{create()}}{
-Creates a target data object based on the source data and configuration.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TargetDataFactory$create(
+\subsection{\code{TargetDataFactory$create()}}{
+  Creates a target data object based on the source data and configuration.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TargetDataFactory$create(
   source_data,
   case_study_config,
   target_sample_size_per_arm,
@@ -27,47 +28,44 @@ Creates a target data object based on the source data and configuration.
   treatment_drift,
   summary_measure_likelihood,
   target_to_source_std_ratio = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{source_data}}{The source data object.}
+      \item{\code{case_study_config}}{The case study configuration object.}
+      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{control_drift}}{The control drift.}
+      \item{\code{treatment_drift}}{The treatment drift.}
+      \item{\code{summary_measure_likelihood}}{The summary measure distribution.}
+      \item{\code{target_to_source_std_ratio}}{Ratio between the target and source study sampling standard deviation}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The created target data object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{source_data}}{The source data object.}
-
-\item{\code{case_study_config}}{The case study configuration object.}
-
-\item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
-
-\item{\code{control_drift}}{The control drift.}
-
-\item{\code{treatment_drift}}{The treatment drift.}
-
-\item{\code{summary_measure_likelihood}}{The summary measure distribution.}
-
-\item{\code{target_to_source_std_ratio}}{Ratio between the target and source study sampling standard deviation}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The created target data object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TargetDataFactory-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-TargetDataFactory-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{TargetDataFactory$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{TargetDataFactory$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{TargetDataFactory$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

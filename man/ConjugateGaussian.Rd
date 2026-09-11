@@ -7,322 +7,450 @@
 This class represents a conjugate Gaussian model (Gaussian prior and Gaussian likelihood)
 }
 \section{Super class}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{ConjugateGaussian}
+\code{\link[BExTE:Model]{Model}} -> \code{ConjugateGaussian}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{prior_mean}}{Prior mean}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{prior_mean}}{Prior mean}
 
-\item{\code{prior_var}}{Prior variance}
+    \item{\code{prior_var}}{Prior variance}
 
-\item{\code{empirical_bayes}}{Whether the method relies on empirical Bayes or not}
+    \item{\code{empirical_bayes}}{Whether the method relies on empirical Bayes or not}
 
-\item{\code{post_mean}}{Posterior mean}
+    \item{\code{post_mean}}{Posterior mean}
 
-\item{\code{post_var}}{Posterior variance}
+    \item{\code{post_var}}{Posterior variance}
 
-\item{\code{posterior_parameters}}{Posterior parameters}
-}
-\if{html}{\out{</div>}}
+    \item{\code{posterior_parameters}}{Posterior parameters}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ConjugateGaussian-new}{\code{ConjugateGaussian$new()}}
-\item \href{#method-ConjugateGaussian-sample_prior}{\code{ConjugateGaussian$sample_prior()}}
-\item \href{#method-ConjugateGaussian-sample_posterior}{\code{ConjugateGaussian$sample_posterior()}}
-\item \href{#method-ConjugateGaussian-prior_pdf}{\code{ConjugateGaussian$prior_pdf()}}
-\item \href{#method-ConjugateGaussian-prior_cdf}{\code{ConjugateGaussian$prior_cdf()}}
-\item \href{#method-ConjugateGaussian-posterior_cdf}{\code{ConjugateGaussian$posterior_cdf()}}
-\item \href{#method-ConjugateGaussian-posterior_pdf}{\code{ConjugateGaussian$posterior_pdf()}}
-\item \href{#method-ConjugateGaussian-posterior_mean}{\code{ConjugateGaussian$posterior_mean()}}
-\item \href{#method-ConjugateGaussian-posterior_variance}{\code{ConjugateGaussian$posterior_variance()}}
-\item \href{#method-ConjugateGaussian-posterior_moments}{\code{ConjugateGaussian$posterior_moments()}}
-\item \href{#method-ConjugateGaussian-posterior_median}{\code{ConjugateGaussian$posterior_median()}}
-\item \href{#method-ConjugateGaussian-credible_interval}{\code{ConjugateGaussian$credible_interval()}}
-\item \href{#method-ConjugateGaussian-prior_to_RBesT}{\code{ConjugateGaussian$prior_to_RBesT()}}
-\item \href{#method-ConjugateGaussian-posterior_to_RBesT}{\code{ConjugateGaussian$posterior_to_RBesT()}}
-\item \href{#method-ConjugateGaussian-clone}{\code{ConjugateGaussian$clone()}}
+  \itemize{
+    \item \href{#method-ConjugateGaussian-initialize}{\code{ConjugateGaussian$new()}}
+    \item \href{#method-ConjugateGaussian-sample_prior}{\code{ConjugateGaussian$sample_prior()}}
+    \item \href{#method-ConjugateGaussian-sample_posterior}{\code{ConjugateGaussian$sample_posterior()}}
+    \item \href{#method-ConjugateGaussian-prior_pdf}{\code{ConjugateGaussian$prior_pdf()}}
+    \item \href{#method-ConjugateGaussian-prior_cdf}{\code{ConjugateGaussian$prior_cdf()}}
+    \item \href{#method-ConjugateGaussian-posterior_cdf}{\code{ConjugateGaussian$posterior_cdf()}}
+    \item \href{#method-ConjugateGaussian-posterior_pdf}{\code{ConjugateGaussian$posterior_pdf()}}
+    \item \href{#method-ConjugateGaussian-posterior_mean}{\code{ConjugateGaussian$posterior_mean()}}
+    \item \href{#method-ConjugateGaussian-posterior_variance}{\code{ConjugateGaussian$posterior_variance()}}
+    \item \href{#method-ConjugateGaussian-posterior_moments}{\code{ConjugateGaussian$posterior_moments()}}
+    \item \href{#method-ConjugateGaussian-vectorised_replicate_inference}{\code{ConjugateGaussian$vectorised_replicate_inference()}}
+    \item \href{#method-ConjugateGaussian-vectorised_prior_variance}{\code{ConjugateGaussian$vectorised_prior_variance()}}
+    \item \href{#method-ConjugateGaussian-vectorised_posterior_parameters}{\code{ConjugateGaussian$vectorised_posterior_parameters()}}
+    \item \href{#method-ConjugateGaussian-posterior_median}{\code{ConjugateGaussian$posterior_median()}}
+    \item \href{#method-ConjugateGaussian-credible_interval}{\code{ConjugateGaussian$credible_interval()}}
+    \item \href{#method-ConjugateGaussian-prior_to_RBesT}{\code{ConjugateGaussian$prior_to_RBesT()}}
+    \item \href{#method-ConjugateGaussian-posterior_to_RBesT}{\code{ConjugateGaussian$posterior_to_RBesT()}}
+    \item \href{#method-ConjugateGaussian-clone}{\code{ConjugateGaussian$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="empirical_bayes_update"><a href='../../RBExT/html/Model.html#method-Model-empirical_bayes_update'><code>RBExT::Model$empirical_bayes_update()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="inference"><a href='../../RBExT/html/Model.html#method-Model-inference'><code>RBExT::Model$inference()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="test_decision"><a href='../../RBExT/html/Model.html#method-Model-test_decision'><code>RBExT::Model$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href='../../BExTE/html/Model.html#method-Model-empirical_bayes_update'><code>Model$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference"><a href='../../BExTE/html/Model.html#method-Model-inference'><code>Model$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConjugateGaussian-new"></a>}}
-\if{latex}{\out{\hypertarget{method-ConjugateGaussian-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize object from the ConjugateGaussian class
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$new(prior)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-ConjugateGaussian-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-ConjugateGaussian-initialize}{}}}
+\subsection{\code{ConjugateGaussian$new()}}{
+  Initialize object from the ConjugateGaussian class
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$new(prior)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior}}{Prior}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{Prior}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-sample_prior"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-sample_prior}{}}}
-\subsection{Method \code{sample_prior()}}{
-Sample from the prior
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$sample_prior(n_samples)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$sample_prior()}}{
+  Sample from the prior
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$sample_prior(n_samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_samples}}{Number of samples from the prior}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{Number of samples from the prior}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-sample_posterior"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-sample_posterior}{}}}
-\subsection{Method \code{sample_posterior()}}{
-Sample from the posterior
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$sample_posterior(n_samples)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$sample_posterior()}}{
+  Sample from the posterior
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$sample_posterior(n_samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_samples}}{Number of samples from the posterior}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{Number of samples from the posterior}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-prior_pdf"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-prior_pdf}{}}}
-\subsection{Method \code{prior_pdf()}}{
-Prior PDF
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$prior_pdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$prior_pdf()}}{
+  Prior PDF
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$prior_pdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{Point at which to evaluate the prior PDF}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{Point at which to evaluate the prior PDF}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-prior_cdf"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-prior_cdf}{}}}
-\subsection{Method \code{prior_cdf()}}{
-Prior CDF
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$prior_cdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$prior_cdf()}}{
+  Prior CDF
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$prior_cdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{Point at which to evaluate the prior CDF}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{Point at which to evaluate the prior CDF}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_cdf"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_cdf}{}}}
-\subsection{Method \code{posterior_cdf()}}{
-Posterior CDF
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_cdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_cdf()}}{
+  Posterior CDF
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_cdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{Point at which to evaluate the posterior CDF}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{Point at which to evaluate the posterior CDF}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_pdf"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_pdf}{}}}
-\subsection{Method \code{posterior_pdf()}}{
-Posterior PDF
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_pdf(target_treatment_effect)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_pdf()}}{
+  Posterior PDF
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_pdf(target_treatment_effect)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_treatment_effect}}{Point at which to evaluate the posterior PDF}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{Point at which to evaluate the posterior PDF}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_mean"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_mean}{}}}
-\subsection{Method \code{posterior_mean()}}{
-Posterior mean
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_mean(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_mean()}}{
+  Posterior mean
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_mean(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_variance"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_variance}{}}}
-\subsection{Method \code{posterior_variance()}}{
-Posterior variance
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_variance(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_variance()}}{
+  Posterior variance
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_variance(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_moments"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_moments}{}}}
-\subsection{Method \code{posterior_moments()}}{
-Posterior moments
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_moments(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_moments()}}{
+  Posterior moments
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_moments(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConjugateGaussian-vectorised_replicate_inference"></a>}}
+\if{latex}{\out{\hypertarget{method-ConjugateGaussian-vectorised_replicate_inference}{}}}
+\subsection{\code{ConjugateGaussian$vectorised_replicate_inference()}}{
+  Run every replicate at once
+
+The prior is a single normal, so the posterior is available in closed
+form for all replicates simultaneously. Empirical Bayes subclasses
+re-derive the prior variance from each replicate; they supply it through
+\code{vectorised_prior_variance()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$vectorised_replicate_inference(
+  target_data,
+  samples,
+  to_return,
+  critical_value,
+  theta_0,
+  confidence_level,
+  null_space
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+      \item{\code{to_return}}{Character vector of requested outputs.}
+      \item{\code{critical_value}}{Critical value for hypothesis testing.}
+      \item{\code{theta_0}}{Null hypothesis value.}
+      \item{\code{confidence_level}}{Confidence level for the credible interval.}
+      \item{\code{null_space}}{The null space for hypothesis testing.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of simulation results, or \code{NULL} to use the replicate loop.
+  }
 }
-\if{html}{\out{</div>}}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConjugateGaussian-vectorised_prior_variance"></a>}}
+\if{latex}{\out{\hypertarget{method-ConjugateGaussian-vectorised_prior_variance}{}}}
+\subsection{\code{ConjugateGaussian$vectorised_prior_variance()}}{
+  Prior variance for each replicate
+
+Declines the vectorised path by default. Subclasses with a genuinely
+fixed prior return it, and empirical Bayes subclasses return one
+variance per replicate.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$vectorised_prior_variance(target_data, samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A scalar, a vector with one entry per replicate, or \code{NULL}.
+  }
 }
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConjugateGaussian-vectorised_posterior_parameters"></a>}}
+\if{latex}{\out{\hypertarget{method-ConjugateGaussian-vectorised_posterior_parameters}{}}}
+\subsection{\code{ConjugateGaussian$vectorised_posterior_parameters()}}{
+  Posterior parameters reported by the vectorised path
+
+The plain conjugate models report none. Empirical Bayes subclasses
+override this to report the power parameter they estimated.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$vectorised_posterior_parameters(prior_variance)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior_variance}}{Per-replicate prior variance.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame, or \code{NULL}.
+  }
 }
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_median"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_median}{}}}
-\subsection{Method \code{posterior_median()}}{
-Posterior median
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_median(...)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_median()}}{
+  Posterior median
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_median(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Additional argument}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The posterior median
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional argument}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The posterior median
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-credible_interval"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-credible_interval}{}}}
-\subsection{Method \code{credible_interval()}}{
-Credible interval
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$credible_interval(level = 0.95)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$credible_interval()}}{
+  Credible interval
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$credible_interval(level = 0.95)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{level}}{Level of the credible interval}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{level}}{Level of the credible interval}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-prior_to_RBesT"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-prior_to_RBesT}{}}}
-\subsection{Method \code{prior_to_RBesT()}}{
-Convert the prior to RBesT format
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$prior_to_RBesT(...)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$prior_to_RBesT()}}{
+  Convert the prior to RBesT format
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$prior_to_RBesT(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Additional arguments}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-posterior_to_RBesT"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-posterior_to_RBesT}{}}}
-\subsection{Method \code{posterior_to_RBesT()}}{
-Convert the posterior distribution to RBesT format
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$posterior_to_RBesT(target_data, ...)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$posterior_to_RBesT()}}{
+  Convert the posterior distribution to RBesT format
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$posterior_to_RBesT(target_data, ...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data}
+      \item{\code{...}}{Additional arguments}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data}
-
-\item{\code{...}}{Additional arguments}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConjugateGaussian-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ConjugateGaussian-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConjugateGaussian$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ConjugateGaussian$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ConjugateGaussian$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

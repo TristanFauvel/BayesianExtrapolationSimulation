@@ -19,8 +19,8 @@ The target sample size per arm, as an integer.
 }
 \description{
 Mirrors the arithmetic the simulation itself uses
-  (R/simulation_scenarios.R): the total target sample size is the source
-  study's arm sizes summed and divided by the factor, and the per-arm size
-  is half of that, floored. Note this uses `control + treatment` rather than
-  the `total:` field, which is stale for aprepitant.
+(R/simulation_scenarios.R): the total target sample size is the source
+study's arm sizes summed and divided by the factor, and the per-arm size
+is half of that, floored. Note this uses \code{control + treatment} rather than
+the \verb{total:} field, which is stale for aprepitant.
 }

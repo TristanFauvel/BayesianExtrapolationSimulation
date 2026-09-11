@@ -4,169 +4,102 @@
 \alias{BinomialSeparate}
 \title{BinomialSeparate class}
 \description{
-This class represents a Truncated Gaussian model using the CPP (Conditional Power Prior) approach with power parameter set to 0.
-It inherits from the BinomialCPP class.
+This class analyses the target study on its own, with a uniform
+prior on each arm response rate. The posterior is available in closed form,
+so it inherits from the \code{BinomialConjugate} class rather than sampling.
 }
 \section{Super classes}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{\link[RBExT:MCMCModel]{RBExT::MCMCModel}} -> \code{BinomialSeparate}
+\code{\link[BExTE:Model]{Model}} -> \code{BinomialConjugate} -> \code{BinomialSeparate}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{method}}{Method name}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{method}}{Method name}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BinomialSeparate-new}{\code{BinomialSeparate$new()}}
-\item \href{#method-BinomialSeparate-prepare_data}{\code{BinomialSeparate$prepare_data()}}
-\item \href{#method-BinomialSeparate-sample_prior}{\code{BinomialSeparate$sample_prior()}}
-\item \href{#method-BinomialSeparate-prior_pdf}{\code{BinomialSeparate$prior_pdf()}}
-\item \href{#method-BinomialSeparate-prior_cdf}{\code{BinomialSeparate$prior_cdf()}}
-\item \href{#method-BinomialSeparate-clone}{\code{BinomialSeparate$clone()}}
+  \itemize{
+    \item \href{#method-BinomialSeparate-prepare_data}{\code{BinomialSeparate$prepare_data()}}
+    \item \href{#method-BinomialSeparate-clone}{\code{BinomialSeparate$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="empirical_bayes_update"><a href='../../RBExT/html/Model.html#method-Model-empirical_bayes_update'><code>RBExT::Model$empirical_bayes_update()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_mean"><a href='../../RBExT/html/Model.html#method-Model-posterior_mean'><code>RBExT::Model$posterior_mean()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_moments"><a href='../../RBExT/html/Model.html#method-Model-posterior_moments'><code>RBExT::Model$posterior_moments()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../RBExT/html/Model.html#method-Model-posterior_to_RBesT'><code>RBExT::Model$posterior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_to_RBesT"><a href='../../RBExT/html/Model.html#method-Model-prior_to_RBesT'><code>RBExT::Model$prior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="test_decision"><a href='../../RBExT/html/Model.html#method-Model-test_decision'><code>RBExT::Model$test_decision()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="check_data"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-check_data'><code>RBExT::MCMCModel$check_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="check_mcmc_config"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-check_mcmc_config'><code>RBExT::MCMCModel$check_mcmc_config()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="compute_posterior_parameters"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-compute_posterior_parameters'><code>RBExT::MCMCModel$compute_posterior_parameters()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="credible_interval"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-credible_interval'><code>RBExT::MCMCModel$credible_interval()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="draw_mcmc_prior"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-draw_mcmc_prior'><code>RBExT::MCMCModel$draw_mcmc_prior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="inference"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-inference'><code>RBExT::MCMCModel$inference()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="posterior_cdf"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-posterior_cdf'><code>RBExT::MCMCModel$posterior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="posterior_median"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-posterior_median'><code>RBExT::MCMCModel$posterior_median()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="posterior_pdf"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-posterior_pdf'><code>RBExT::MCMCModel$posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="MCMCModel" data-id="sample_posterior"><a href='../../RBExT/html/MCMCModel.html#method-MCMCModel-sample_posterior'><code>RBExT::MCMCModel$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href='../../BExTE/html/Model.html#method-Model-empirical_bayes_update'><code>Model$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference"><a href='../../BExTE/html/Model.html#method-Model-inference'><code>Model$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_mean"><a href='../../BExTE/html/Model.html#method-Model-posterior_mean'><code>Model$posterior_mean()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-posterior_to_RBesT'><code>Model$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_to_RBesT"><a href='../../BExTE/html/Model.html#method-Model-prior_to_RBesT'><code>Model$prior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/Model.html#method-Model-vectorised_replicate_inference'><code>Model$vectorised_replicate_inference()</code></a></span></li>
+  <li><code>BinomialConjugate$credible_interval()</code></li>
+  <li><code>BinomialConjugate$initialize()</code></li>
+  <li><code>BinomialConjugate$posterior_cdf()</code></li>
+  <li><code>BinomialConjugate$posterior_ess()</code></li>
+  <li><code>BinomialConjugate$posterior_median()</code></li>
+  <li><code>BinomialConjugate$posterior_moments()</code></li>
+  <li><code>BinomialConjugate$posterior_pdf()</code></li>
+  <li><code>BinomialConjugate$posterior_quantile()</code></li>
+  <li><code>BinomialConjugate$prior_cdf()</code></li>
+  <li><code>BinomialConjugate$prior_pdf()</code></li>
+  <li><code>BinomialConjugate$sample_posterior()</code></li>
+  <li><code>BinomialConjugate$sample_prior()</code></li>
 </ul>
-</details>
-}}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialSeparate-new"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialSeparate-new}{}}}
-\subsection{Method \code{new()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinomialSeparate$new(prior, mcmc_config)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{Prior}
-
-\item{\code{mcmc_config}}{MCMC configuration}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A Model object.
-}
-}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinomialSeparate-prepare_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BinomialSeparate-prepare_data}{}}}
-\subsection{Method \code{prepare_data()}}{
-Prepare the data for the Stan model
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinomialSeparate$prepare_data(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{BinomialSeparate$prepare_data()}}{
+  Assemble the event counts of the target study
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialSeparate$prepare_data(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data for the analysis.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of event counts the posterior conditions on
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{The target data for the analysis.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List containing the input to the Stan model
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialSeparate-sample_prior"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialSeparate-sample_prior}{}}}
-\subsection{Method \code{sample_prior()}}{
-Sample from the prior
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinomialSeparate$sample_prior(n_samples)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_samples}}{Number of samples from the prior}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialSeparate-prior_pdf"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialSeparate-prior_pdf}{}}}
-\subsection{Method \code{prior_pdf()}}{
-Prior PDF
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinomialSeparate$prior_pdf(target_treatment_effect)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{Point at which to evaluate the prior PDF}
-}
-\if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinomialSeparate-prior_cdf"></a>}}
-\if{latex}{\out{\hypertarget{method-BinomialSeparate-prior_cdf}{}}}
-\subsection{Method \code{prior_cdf()}}{
-Prior CDF
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinomialSeparate$prior_cdf(target_treatment_effect)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_treatment_effect}}{Point at which to evaluate the prior CDF}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinomialSeparate-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BinomialSeparate-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinomialSeparate$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BinomialSeparate$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinomialSeparate$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

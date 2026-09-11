@@ -14,7 +14,7 @@ paper_replication_coverage(results_df, ids, case_studies_config_dir)
 \item{case_studies_config_dir}{Directory holding the case study YAMLs.}
 }
 \value{
-A data frame with columns `id`, `covered` and `reason`.
+A data frame with columns \code{id}, \code{covered} and \code{reason}.
 }
 \description{
 Check a results frame against a set of paper figures

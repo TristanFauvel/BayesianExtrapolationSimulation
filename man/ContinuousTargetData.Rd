@@ -7,31 +7,30 @@
 A class for continuous target data objects.
 }
 \section{Super class}{
-\code{\link[RBExT:TargetData]{RBExT::TargetData}} -> \code{ContinuousTargetData}
+\code{\link[BExTE:TargetData]{TargetData}} -> \code{ContinuousTargetData}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ContinuousTargetData-new}{\code{ContinuousTargetData$new()}}
-\item \href{#method-ContinuousTargetData-generate}{\code{ContinuousTargetData$generate()}}
-\item \href{#method-ContinuousTargetData-to_dict}{\code{ContinuousTargetData$to_dict()}}
-\item \href{#method-ContinuousTargetData-clone}{\code{ContinuousTargetData$clone()}}
+  \itemize{
+    \item \href{#method-ContinuousTargetData-initialize}{\code{ContinuousTargetData$new()}}
+    \item \href{#method-ContinuousTargetData-generate}{\code{ContinuousTargetData$generate()}}
+    \item \href{#method-ContinuousTargetData-to_dict}{\code{ContinuousTargetData$to_dict()}}
+    \item \href{#method-ContinuousTargetData-clone}{\code{ContinuousTargetData$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TargetData" data-id="plot_sample"><a href='../../RBExT/html/TargetData.html#method-TargetData-plot_sample'><code>RBExT::TargetData$plot_sample()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TargetData" data-id="plot_sample"><a href='../../BExTE/html/TargetData.html#method-TargetData-plot_sample'><code>TargetData$plot_sample()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ContinuousTargetData-new"></a>}}
-\if{latex}{\out{\hypertarget{method-ContinuousTargetData-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the continuous target data object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ContinuousTargetData$new(
+\if{html}{\out{<a id="method-ContinuousTargetData-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-ContinuousTargetData-initialize}{}}}
+\subsection{\code{ContinuousTargetData$new()}}{
+  Initializes the continuous target data object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ContinuousTargetData$new(
   source_data,
   sampling_approximation,
   target_sample_size_per_arm,
@@ -39,77 +38,78 @@ Initializes the continuous target data object.
   treatment_drift,
   summary_measure_likelihood,
   target_to_source_std_ratio
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{source_data}}{The source data object.}
+      \item{\code{sampling_approximation}}{The sampling approximation flag.}
+      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{control_drift}}{The control drift.}
+      \item{\code{treatment_drift}}{The treatment drift.}
+      \item{\code{summary_measure_likelihood}}{The summary measure}
+      \item{\code{target_to_source_std_ratio}}{Ratio between the target and source studies standard deviation}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{source_data}}{The source data object.}
-
-\item{\code{sampling_approximation}}{The sampling approximation flag.}
-
-\item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
-
-\item{\code{control_drift}}{The control drift.}
-
-\item{\code{treatment_drift}}{The treatment drift.}
-
-\item{\code{summary_measure_likelihood}}{The summary measure}
-
-\item{\code{target_to_source_std_ratio}}{Ratio between the target and source studies standard deviation}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ContinuousTargetData-generate"></a>}}
 \if{latex}{\out{\hypertarget{method-ContinuousTargetData-generate}{}}}
-\subsection{Method \code{generate()}}{
-Generates samples for the continuous target data object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ContinuousTargetData$generate(n_replicates)}\if{html}{\out{</div>}}
+\subsection{\code{ContinuousTargetData$generate()}}{
+  Generates samples for the continuous target data object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ContinuousTargetData$generate(n_replicates)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_replicates}}{The number of replicates to generate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame containing the generated samples.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_replicates}}{The number of replicates to generate.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A data frame containing the generated samples.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ContinuousTargetData-to_dict"></a>}}
 \if{latex}{\out{\hypertarget{method-ContinuousTargetData-to_dict}{}}}
-\subsection{Method \code{to_dict()}}{
-Converts the target data object to a dictionary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ContinuousTargetData$to_dict()}\if{html}{\out{</div>}}
+\subsection{\code{ContinuousTargetData$to_dict()}}{
+  Converts the target data object to a dictionary.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ContinuousTargetData$to_dict()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list representing the target data object.
+  }
 }
 
-\subsection{Returns}{
-A list representing the target data object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ContinuousTargetData-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ContinuousTargetData-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ContinuousTargetData$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ContinuousTargetData$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ContinuousTargetData$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

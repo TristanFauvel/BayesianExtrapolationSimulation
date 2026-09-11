@@ -7,115 +7,116 @@
 A class for binary target data objects.
 }
 \section{Super class}{
-\code{\link[RBExT:TargetData]{RBExT::TargetData}} -> \code{BinaryTargetData}
+\code{\link[BExTE:TargetData]{TargetData}} -> \code{BinaryTargetData}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{control_rate}}{Rate in the control arm of the target study}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{control_rate}}{Rate in the control arm of the target study}
 
-\item{\code{treatment_rate}}{Rate in the treatment arm of the target study}
-}
-\if{html}{\out{</div>}}
+    \item{\code{treatment_rate}}{Rate in the treatment arm of the target study}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BinaryTargetData-new}{\code{BinaryTargetData$new()}}
-\item \href{#method-BinaryTargetData-generate}{\code{BinaryTargetData$generate()}}
-\item \href{#method-BinaryTargetData-to_dict}{\code{BinaryTargetData$to_dict()}}
-\item \href{#method-BinaryTargetData-clone}{\code{BinaryTargetData$clone()}}
+  \itemize{
+    \item \href{#method-BinaryTargetData-initialize}{\code{BinaryTargetData$new()}}
+    \item \href{#method-BinaryTargetData-generate}{\code{BinaryTargetData$generate()}}
+    \item \href{#method-BinaryTargetData-to_dict}{\code{BinaryTargetData$to_dict()}}
+    \item \href{#method-BinaryTargetData-clone}{\code{BinaryTargetData$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="TargetData" data-id="plot_sample"><a href='../../RBExT/html/TargetData.html#method-TargetData-plot_sample'><code>RBExT::TargetData$plot_sample()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="TargetData" data-id="plot_sample"><a href='../../BExTE/html/TargetData.html#method-TargetData-plot_sample'><code>TargetData$plot_sample()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BinaryTargetData-new"></a>}}
-\if{latex}{\out{\hypertarget{method-BinaryTargetData-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the binary target data object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinaryTargetData$new(
+\if{html}{\out{<a id="method-BinaryTargetData-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-BinaryTargetData-initialize}{}}}
+\subsection{\code{BinaryTargetData$new()}}{
+  Initializes the binary target data object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinaryTargetData$new(
   source_data,
   sampling_approximation,
   target_sample_size_per_arm,
   control_drift,
   treatment_drift,
   summary_measure_likelihood
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{source_data}}{The source data object.}
+      \item{\code{sampling_approximation}}{The sampling approximation flag.}
+      \item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
+      \item{\code{control_drift}}{The control drift.}
+      \item{\code{treatment_drift}}{The treatment drift.}
+      \item{\code{summary_measure_likelihood}}{The summary measure distribution.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{source_data}}{The source data object.}
-
-\item{\code{sampling_approximation}}{The sampling approximation flag.}
-
-\item{\code{target_sample_size_per_arm}}{The target sample size per arm.}
-
-\item{\code{control_drift}}{The control drift.}
-
-\item{\code{treatment_drift}}{The treatment drift.}
-
-\item{\code{summary_measure_likelihood}}{The summary measure distribution.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinaryTargetData-generate"></a>}}
 \if{latex}{\out{\hypertarget{method-BinaryTargetData-generate}{}}}
-\subsection{Method \code{generate()}}{
-Generates samples for the binary target data object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinaryTargetData$generate(n_replicates)}\if{html}{\out{</div>}}
+\subsection{\code{BinaryTargetData$generate()}}{
+  Generates samples for the binary target data object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinaryTargetData$generate(n_replicates)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{n_replicates}}{The number of replicates to generate.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame containing the generated samples.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{n_replicates}}{The number of replicates to generate.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A data frame containing the generated samples.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinaryTargetData-to_dict"></a>}}
 \if{latex}{\out{\hypertarget{method-BinaryTargetData-to_dict}{}}}
-\subsection{Method \code{to_dict()}}{
-Converts the target data object to a dictionary.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinaryTargetData$to_dict()}\if{html}{\out{</div>}}
+\subsection{\code{BinaryTargetData$to_dict()}}{
+  Converts the target data object to a dictionary.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinaryTargetData$to_dict()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list representing the target data object.
+  }
 }
 
-\subsection{Returns}{
-A list representing the target data object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BinaryTargetData-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BinaryTargetData-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BinaryTargetData$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BinaryTargetData$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BinaryTargetData$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

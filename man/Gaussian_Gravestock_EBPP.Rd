@@ -10,120 +10,155 @@ R6Class object.
 This class inherits from Gaussian_empirical_Bayes_PP and implements the Gravestock's EBPP method.
 }
 \section{Super classes}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{\link[RBExT:ConjugateGaussian]{RBExT::ConjugateGaussian}} -> \code{\link[RBExT:StaticBorrowingGaussian]{RBExT::StaticBorrowingGaussian}} -> \code{\link[RBExT:Gaussian_empirical_Bayes_PP]{RBExT::Gaussian_empirical_Bayes_PP}} -> \code{ Gaussian_gravestock_EBPP}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:ConjugateGaussian]{ConjugateGaussian}} -> \code{\link[BExTE:StaticBorrowingGaussian]{StaticBorrowingGaussian}} -> \code{\link[BExTE:Gaussian_empirical_Bayes_PP]{Gaussian_empirical_Bayes_PP}} -> \code{ Gaussian_gravestock_EBPP}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{method}}{Method name}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{method}}{Method name}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method- Gaussian_gravestock_EBPP-new}{\code{Gaussian_Gravestock_EBPP$new()}}
-\item \href{#method- Gaussian_gravestock_EBPP-power_parameter_estimation}{\code{Gaussian_Gravestock_EBPP$power_parameter_estimation()}}
-\item \href{#method- Gaussian_gravestock_EBPP-clone}{\code{Gaussian_Gravestock_EBPP$clone()}}
+  \itemize{
+    \item \href{#method- Gaussian_gravestock_EBPP-initialize}{\code{ Gaussian_gravestock_EBPP$new()}}
+    \item \href{#method- Gaussian_gravestock_EBPP-power_parameter_estimation}{\code{ Gaussian_gravestock_EBPP$power_parameter_estimation()}}
+    \item \href{#method- Gaussian_gravestock_EBPP-vectorised_power_parameter}{\code{ Gaussian_gravestock_EBPP$vectorised_power_parameter()}}
+    \item \href{#method- Gaussian_gravestock_EBPP-clone}{\code{ Gaussian_gravestock_EBPP$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="test_decision"><a href='../../RBExT/html/Model.html#method-Model-test_decision'><code>RBExT::Model$test_decision()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="credible_interval"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-credible_interval'><code>RBExT::ConjugateGaussian$credible_interval()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_cdf"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_cdf'><code>RBExT::ConjugateGaussian$posterior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_mean"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_mean'><code>RBExT::ConjugateGaussian$posterior_mean()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_median"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_median'><code>RBExT::ConjugateGaussian$posterior_median()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_moments"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_moments'><code>RBExT::ConjugateGaussian$posterior_moments()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_pdf"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_pdf'><code>RBExT::ConjugateGaussian$posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_to_RBesT"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_to_RBesT'><code>RBExT::ConjugateGaussian$posterior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="posterior_variance"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_variance'><code>RBExT::ConjugateGaussian$posterior_variance()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="prior_cdf"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-prior_cdf'><code>RBExT::ConjugateGaussian$prior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="prior_to_RBesT"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-prior_to_RBesT'><code>RBExT::ConjugateGaussian$prior_to_RBesT()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="sample_posterior"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-sample_posterior'><code>RBExT::ConjugateGaussian$sample_posterior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="ConjugateGaussian" data-id="sample_prior"><a href='../../RBExT/html/ConjugateGaussian.html#method-ConjugateGaussian-sample_prior'><code>RBExT::ConjugateGaussian$sample_prior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Gaussian_empirical_Bayes_PP" data-id="empirical_bayes_update"><a href='../../RBExT/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-empirical_bayes_update'><code>RBExT::Gaussian_empirical_Bayes_PP$empirical_bayes_update()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Gaussian_empirical_Bayes_PP" data-id="hypothesis_space_transformation"><a href='../../RBExT/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-hypothesis_space_transformation'><code>RBExT::Gaussian_empirical_Bayes_PP$hypothesis_space_transformation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Gaussian_empirical_Bayes_PP" data-id="inference"><a href='../../RBExT/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-inference'><code>RBExT::Gaussian_empirical_Bayes_PP$inference()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Gaussian_empirical_Bayes_PP" data-id="plot_power_parameter_vs_drift"><a href='../../RBExT/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-plot_power_parameter_vs_drift'><code>RBExT::Gaussian_empirical_Bayes_PP$plot_power_parameter_vs_drift()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Gaussian_empirical_Bayes_PP" data-id="prior_pdf"><a href='../../RBExT/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-prior_pdf'><code>RBExT::Gaussian_empirical_Bayes_PP$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="credible_interval"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-credible_interval'><code>ConjugateGaussian$credible_interval()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_cdf"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_cdf'><code>ConjugateGaussian$posterior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_mean"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_mean'><code>ConjugateGaussian$posterior_mean()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_median"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_median'><code>ConjugateGaussian$posterior_median()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_moments"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_moments'><code>ConjugateGaussian$posterior_moments()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_pdf"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_pdf'><code>ConjugateGaussian$posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_to_RBesT"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_to_RBesT'><code>ConjugateGaussian$posterior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="posterior_variance"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-posterior_variance'><code>ConjugateGaussian$posterior_variance()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="prior_cdf"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-prior_cdf'><code>ConjugateGaussian$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="prior_to_RBesT"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-prior_to_RBesT'><code>ConjugateGaussian$prior_to_RBesT()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="sample_posterior"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-sample_posterior'><code>ConjugateGaussian$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="sample_prior"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-sample_prior'><code>ConjugateGaussian$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="ConjugateGaussian" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/ConjugateGaussian.html#method-ConjugateGaussian-vectorised_replicate_inference'><code>ConjugateGaussian$vectorised_replicate_inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="empirical_bayes_update"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-empirical_bayes_update'><code>Gaussian_empirical_Bayes_PP$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="hypothesis_space_transformation"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-hypothesis_space_transformation'><code>Gaussian_empirical_Bayes_PP$hypothesis_space_transformation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="inference"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-inference'><code>Gaussian_empirical_Bayes_PP$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="plot_power_parameter_vs_drift"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-plot_power_parameter_vs_drift'><code>Gaussian_empirical_Bayes_PP$plot_power_parameter_vs_drift()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="prior_pdf"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-prior_pdf'><code>Gaussian_empirical_Bayes_PP$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_hypothesis_space_transformation"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_hypothesis_space_transformation'><code>Gaussian_empirical_Bayes_PP$vectorised_hypothesis_space_transformation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_posterior_parameters'><code>Gaussian_empirical_Bayes_PP$vectorised_posterior_parameters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Gaussian_empirical_Bayes_PP" data-id="vectorised_prior_variance"><a href='../../BExTE/html/Gaussian_empirical_Bayes_PP.html#method-Gaussian_empirical_Bayes_PP-vectorised_prior_variance'><code>Gaussian_empirical_Bayes_PP$vectorised_prior_variance()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method- Gaussian_gravestock_EBPP-new"></a>}}
-\if{latex}{\out{\hypertarget{method- Gaussian_gravestock_EBPP-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the Gaussian_Gravestock_EBPP object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Gaussian_Gravestock_EBPP$new(prior, null_space, theta_0)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method- Gaussian_gravestock_EBPP-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method- Gaussian_gravestock_EBPP-initialize}{}}}
+\subsection{\code{ Gaussian_gravestock_EBPP$new()}}{
+  Initialize the Gaussian_Gravestock_EBPP object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ Gaussian_gravestock_EBPP$new(prior, null_space, theta_0)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior}}{The prior object.}
+      \item{\code{null_space}}{Side of the null hypothesis space}
+      \item{\code{theta_0}}{Boundary of the null hypothesis space}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{The prior object.}
-
-\item{\code{null_space}}{Side of the null hypothesis space}
-
-\item{\code{theta_0}}{Boundary of the null hypothesis space}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method- Gaussian_gravestock_EBPP-power_parameter_estimation"></a>}}
 \if{latex}{\out{\hypertarget{method- Gaussian_gravestock_EBPP-power_parameter_estimation}{}}}
-\subsection{Method \code{power_parameter_estimation()}}{
-Estimate the power parameter using the Gravestock's EBPP method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Gaussian_Gravestock_EBPP$power_parameter_estimation(target_data)}\if{html}{\out{</div>}}
+\subsection{\code{ Gaussian_gravestock_EBPP$power_parameter_estimation()}}{
+  Estimate the power parameter using the Gravestock's EBPP method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ Gaussian_gravestock_EBPP$power_parameter_estimation(target_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data.}
+      \item{\code{source_treatment_effect_estimate}}{Treatment effect estimate in the source study}
+      \item{\code{target_treatment_effect_estimate}}{Treatment effect estimate in the target study}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The estimated power parameter.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{The target data.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method- Gaussian_gravestock_EBPP-vectorised_power_parameter"></a>}}
+\if{latex}{\out{\hypertarget{method- Gaussian_gravestock_EBPP-vectorised_power_parameter}{}}}
+\subsection{\code{ Gaussian_gravestock_EBPP$vectorised_power_parameter()}}{
+  Estimate the power parameter for every replicate at once.
 
-\item{\code{source_treatment_effect_estimate}}{Treatment effect estimate in the source study}
+Same closed form as \code{power_parameter_estimation()}, evaluated on vectors.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ Gaussian_gravestock_EBPP$vectorised_power_parameter(target_data, samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{The target data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A vector of power parameters.
+  }
+}
 
-\item{\code{target_treatment_effect_estimate}}{Treatment effect estimate in the target study}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The estimated power parameter.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method- Gaussian_gravestock_EBPP-clone"></a>}}
 \if{latex}{\out{\hypertarget{method- Gaussian_gravestock_EBPP-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Gaussian_Gravestock_EBPP$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ Gaussian_gravestock_EBPP$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ Gaussian_gravestock_EBPP$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

@@ -14,10 +14,10 @@ export_paper_outputs(
 )
 }
 \arguments{
-\item{results_dir}{A \code{results/<env>/} directory.}
+\item{results_dir}{A \verb{results/<env>/} directory.}
 
 \item{figures_dir}{Output directory for figures, trailing slash included -
-the plot generators append their own \code{<case_study>/} below it.}
+the plot generators append their own \verb{<case_study>/} below it.}
 
 \item{tables_dir}{Output directory for tables and the manifest.}
 
@@ -25,17 +25,17 @@ the plot generators append their own \code{<case_study>/} below it.}
 
 \item{case_studies_config_dir}{Directory holding the case study YAMLs.}
 
-\item{progress}{Optional \code{function(index, total, id)} progress callback.}
+\item{progress}{Optional \verb{function(index, total, id)} progress callback.}
 }
 \value{
 A status data frame, invisibly.
 }
 \description{
 Runs each selected manifest entry's generator against
-  \code{results_dir} and writes the results under \code{figures_dir} and \code{tables_dir},
-  keeping the generators' own filenames. \code{manifest.csv} records which paper
-  item each file belongs to.
+\code{results_dir} and writes the results under \code{figures_dir} and \code{tables_dir},
+keeping the generators' own filenames. \code{manifest.csv} records which paper
+item each file belongs to.
 
-  One entry failing does not abort the batch: it is recorded as \code{failed}
-  with its error message and the run continues.
+One entry failing does not abort the batch: it is recorded as \code{failed}
+with its error message and the run continues.
 }

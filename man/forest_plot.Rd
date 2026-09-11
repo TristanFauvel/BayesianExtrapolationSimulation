@@ -17,7 +17,7 @@ forest_plot(
 
 \item{x_metric}{Metric on the x-axis}
 
-\item{palette}{A colour scheme from rbext_palette() for the Shiny app's
+\item{palette}{A colour scheme from bexte_palette() for the Shiny app's
 dark mode, or NULL for the publication figure.}
 
 \item{relative_to_separate}{When TRUE, divide the metric and its confidence

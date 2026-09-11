@@ -14,7 +14,9 @@ forest_subplot(
   x_metric_label,
   methods_labels,
   legend = FALSE,
-  sort_by = FALSE
+  sort_by = FALSE,
+  palette = NULL,
+  reference_line = NULL
 )
 }
 \arguments{
@@ -31,6 +33,11 @@ forest_subplot(
 \item{x_metric_uncertainty_upper}{Upper limit of the metric on the x-axis}
 
 \item{x_metric_label}{Label of the metric on the x-axis}
+
+\item{palette}{A colour scheme from bexte_palette() for the Shiny app's
+dark mode, or NULL for the publication figure.}
+
+\item{reference_line}{x position of a dotted vertical reference line, or NULL for none.}
 }
 \value{
 A ggplot2::ggplot( object representing the forest plot.

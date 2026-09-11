@@ -7,131 +7,167 @@
 An R6 class representing a separate Gaussian model using RBesT.
 }
 \section{Super classes}{
-\code{\link[RBExT:Model]{RBExT::Model}} -> \code{\link[RBExT:Model_RBesT]{RBExT::Model_RBesT}} -> \code{SeparateGaussian_RBesT}
+\code{\link[BExTE:Model]{Model}} -> \code{\link[BExTE:Model_RBesT]{Model_RBesT}} -> \code{SeparateGaussian_RBesT}
 }
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{method}}{Method name}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{method}}{Method name}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-SeparateGaussian_RBesT-new}{\code{SeparateGaussian_RBesT$new()}}
-\item \href{#method-SeparateGaussian_RBesT-prior_to_RBesT}{\code{SeparateGaussian_RBesT$prior_to_RBesT()}}
-\item \href{#method-SeparateGaussian_RBesT-posterior_to_RBesT}{\code{SeparateGaussian_RBesT$posterior_to_RBesT()}}
-\item \href{#method-SeparateGaussian_RBesT-clone}{\code{SeparateGaussian_RBesT$clone()}}
+  \itemize{
+    \item \href{#method-SeparateGaussian_RBesT-initialize}{\code{SeparateGaussian_RBesT$new()}}
+    \item \href{#method-SeparateGaussian_RBesT-prior_to_RBesT}{\code{SeparateGaussian_RBesT$prior_to_RBesT()}}
+    \item \href{#method-SeparateGaussian_RBesT-posterior_to_RBesT}{\code{SeparateGaussian_RBesT$posterior_to_RBesT()}}
+    \item \href{#method-SeparateGaussian_RBesT-vectorised_prior_components}{\code{SeparateGaussian_RBesT$vectorised_prior_components()}}
+    \item \href{#method-SeparateGaussian_RBesT-clone}{\code{SeparateGaussian_RBesT$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="create"><a href='../../RBExT/html/Model.html#method-Model-create'><code>RBExT::Model$create()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="empirical_bayes_update"><a href='../../RBExT/html/Model.html#method-Model-empirical_bayes_update'><code>RBExT::Model$empirical_bayes_update()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>RBExT::Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../RBExT/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>RBExT::Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="inference"><a href='../../RBExT/html/Model.html#method-Model-inference'><code>RBExT::Model$inference()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_pdfs"><a href='../../RBExT/html/Model.html#method-Model-plot_pdfs'><code>RBExT::Model$plot_pdfs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_posterior_pdf'><code>RBExT::Model$plot_posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="plot_prior_pdf"><a href='../../RBExT/html/Model.html#method-Model-plot_prior_pdf'><code>RBExT::Model$plot_prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="posterior_quantile"><a href='../../RBExT/html/Model.html#method-Model-posterior_quantile'><code>RBExT::Model$posterior_quantile()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_ESS"><a href='../../RBExT/html/Model.html#method-Model-prior_ESS'><code>RBExT::Model$prior_ESS()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../RBExT/html/Model.html#method-Model-prior_treatment_benefit'><code>RBExT::Model$prior_treatment_benefit()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../RBExT/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>RBExT::Model$simulation_for_given_treatment_effect()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model" data-id="test_decision"><a href='../../RBExT/html/Model.html#method-Model-test_decision'><code>RBExT::Model$test_decision()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="credible_interval"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-credible_interval'><code>RBExT::Model_RBesT$credible_interval()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="posterior_cdf"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-posterior_cdf'><code>RBExT::Model_RBesT$posterior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="posterior_mean"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-posterior_mean'><code>RBExT::Model_RBesT$posterior_mean()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="posterior_median"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-posterior_median'><code>RBExT::Model_RBesT$posterior_median()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="posterior_moments"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-posterior_moments'><code>RBExT::Model_RBesT$posterior_moments()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="posterior_pdf"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-posterior_pdf'><code>RBExT::Model_RBesT$posterior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="posterior_variance"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-posterior_variance'><code>RBExT::Model_RBesT$posterior_variance()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="prior_cdf"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-prior_cdf'><code>RBExT::Model_RBesT$prior_cdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="prior_pdf"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-prior_pdf'><code>RBExT::Model_RBesT$prior_pdf()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="sample_posterior"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-sample_posterior'><code>RBExT::Model_RBesT$sample_posterior()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="RBExT" data-topic="Model_RBesT" data-id="sample_prior"><a href='../../RBExT/html/Model_RBesT.html#method-Model_RBesT-sample_prior'><code>RBExT::Model_RBesT$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="check_data"><a href='../../BExTE/html/Model.html#method-Model-check_data'><code>Model$check_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="create"><a href='../../BExTE/html/Model.html#method-Model-create'><code>Model$create()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="empirical_bayes_update"><a href='../../BExTE/html/Model.html#method-Model-empirical_bayes_update'><code>Model$empirical_bayes_update()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_bayesian_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_bayesian_operating_characteristics'><code>Model$estimate_bayesian_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="estimate_frequentist_operating_characteristics"><a href='../../BExTE/html/Model.html#method-Model-estimate_frequentist_operating_characteristics'><code>Model$estimate_frequentist_operating_characteristics()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference"><a href='../../BExTE/html/Model.html#method-Model-inference'><code>Model$inference()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="inference_cache_scope"><a href='../../BExTE/html/Model.html#method-Model-inference_cache_scope'><code>Model$inference_cache_scope()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_pdfs"><a href='../../BExTE/html/Model.html#method-Model-plot_pdfs'><code>Model$plot_pdfs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_posterior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_posterior_pdf'><code>Model$plot_posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="plot_prior_pdf"><a href='../../BExTE/html/Model.html#method-Model-plot_prior_pdf'><code>Model$plot_prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_beta_mixture"><a href='../../BExTE/html/Model.html#method-Model-posterior_beta_mixture'><code>Model$posterior_beta_mixture()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_ess"><a href='../../BExTE/html/Model.html#method-Model-posterior_ess'><code>Model$posterior_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="posterior_quantile"><a href='../../BExTE/html/Model.html#method-Model-posterior_quantile'><code>Model$posterior_quantile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_ESS"><a href='../../BExTE/html/Model.html#method-Model-prior_ESS'><code>Model$prior_ESS()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_elir_ess"><a href='../../BExTE/html/Model.html#method-Model-prior_elir_ess'><code>Model$prior_elir_ess()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="prior_treatment_benefit"><a href='../../BExTE/html/Model.html#method-Model-prior_treatment_benefit'><code>Model$prior_treatment_benefit()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="simulation_for_given_treatment_effect"><a href='../../BExTE/html/Model.html#method-Model-simulation_for_given_treatment_effect'><code>Model$simulation_for_given_treatment_effect()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model" data-id="test_decision"><a href='../../BExTE/html/Model.html#method-Model-test_decision'><code>Model$test_decision()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="credible_interval"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-credible_interval'><code>Model_RBesT$credible_interval()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="posterior_cdf"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-posterior_cdf'><code>Model_RBesT$posterior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="posterior_mean"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-posterior_mean'><code>Model_RBesT$posterior_mean()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="posterior_median"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-posterior_median'><code>Model_RBesT$posterior_median()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="posterior_moments"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-posterior_moments'><code>Model_RBesT$posterior_moments()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="posterior_pdf"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-posterior_pdf'><code>Model_RBesT$posterior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="posterior_variance"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-posterior_variance'><code>Model_RBesT$posterior_variance()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="prior_cdf"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-prior_cdf'><code>Model_RBesT$prior_cdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="prior_pdf"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-prior_pdf'><code>Model_RBesT$prior_pdf()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="sample_posterior"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-sample_posterior'><code>Model_RBesT$sample_posterior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="sample_prior"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-sample_prior'><code>Model_RBesT$sample_prior()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="vectorised_posterior_parameters"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-vectorised_posterior_parameters'><code>Model_RBesT$vectorised_posterior_parameters()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="BExTE" data-topic="Model_RBesT" data-id="vectorised_replicate_inference"><a href='../../BExTE/html/Model_RBesT.html#method-Model_RBesT-vectorised_replicate_inference'><code>Model_RBesT$vectorised_replicate_inference()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SeparateGaussian_RBesT-new"></a>}}
-\if{latex}{\out{\hypertarget{method-SeparateGaussian_RBesT-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the SeparateGaussian_RBesT object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SeparateGaussian_RBesT$new(prior)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-SeparateGaussian_RBesT-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-SeparateGaussian_RBesT-initialize}{}}}
+\subsection{\code{SeparateGaussian_RBesT$new()}}{
+  Initializes the SeparateGaussian_RBesT object.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SeparateGaussian_RBesT$new(prior)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{prior}}{Prior information for the analysis.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new SeparateGaussian_RBesT object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{prior}}{Prior information for the analysis.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new SeparateGaussian_RBesT object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SeparateGaussian_RBesT-prior_to_RBesT"></a>}}
 \if{latex}{\out{\hypertarget{method-SeparateGaussian_RBesT-prior_to_RBesT}{}}}
-\subsection{Method \code{prior_to_RBesT()}}{
-Converts the prior distribution to the RBesT format.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SeparateGaussian_RBesT$prior_to_RBesT(...)}\if{html}{\out{</div>}}
+\subsection{\code{SeparateGaussian_RBesT$prior_to_RBesT()}}{
+  Converts the prior distribution to the RBesT format.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SeparateGaussian_RBesT$prior_to_RBesT(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Additional arguments.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    None
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional arguments.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-None
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SeparateGaussian_RBesT-posterior_to_RBesT"></a>}}
 \if{latex}{\out{\hypertarget{method-SeparateGaussian_RBesT-posterior_to_RBesT}{}}}
-\subsection{Method \code{posterior_to_RBesT()}}{
-Converts the posterior distribution to the RBesT format.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SeparateGaussian_RBesT$posterior_to_RBesT(target_data, ...)}\if{html}{\out{</div>}}
+\subsection{\code{SeparateGaussian_RBesT$posterior_to_RBesT()}}{
+  Converts the posterior distribution to the RBesT format.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SeparateGaussian_RBesT$posterior_to_RBesT(target_data, ...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{...}}{Additional arguments.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    None
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{target_data}}{Target study data.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SeparateGaussian_RBesT-vectorised_prior_components"></a>}}
+\if{latex}{\out{\hypertarget{method-SeparateGaussian_RBesT-vectorised_prior_components}{}}}
+\subsection{\code{SeparateGaussian_RBesT$vectorised_prior_components()}}{
+  Prior mixture components for each replicate.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SeparateGaussian_RBesT$vectorised_prior_components(target_data, samples)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{target_data}}{Target study data.}
+      \item{\code{samples}}{Data frame of generated replicates.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with \code{weights}, \code{means} and \code{sds}.
+  }
+}
 
-\item{\code{...}}{Additional arguments.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-None
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SeparateGaussian_RBesT-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-SeparateGaussian_RBesT-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SeparateGaussian_RBesT$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{SeparateGaussian_RBesT$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SeparateGaussian_RBesT$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
