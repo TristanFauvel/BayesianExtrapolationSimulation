@@ -18,7 +18,7 @@
 - `tests/testthat/test-simulation_analysis.R:61` **already fails on a clean checkout.** It is unrelated to this work. Do not attempt to fix it; do not treat it as a regression.
 - Run tests with `Rscript -e "devtools::test(stop_on_failure = TRUE)"`; a single file with `Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-NAME.R")'`.
 - All app code addresses its output with paths relative to the **workspace** — `./results/<env>/`, `./logs/<env>/`, `./user_configs/<env>/`. `run_rbext_app()` picks it (`rbext_workspace()`: the checkout when there is one, `tools::R_user_dir("RBExT", "data")` otherwise), records it as `options(rbext.workspace=)`, and `app.R` restores it. Write the new page's outputs with workspace-relative paths, the same way, never an absolute path or one built from `system.file()`.
-- **The working tree has an in-flight workspace refactor** (`R/shiny_app.R`, `R/utils.R`, `app.R`, `inst/scripts/install.R`, `tests/testthat/test-rbext_workspace.R`, `renv.lock`). Do not revert or commit those files — every `git add` in this plan names its paths explicitly for that reason. If a rebase or merge is needed, stop and ask.
+- **Work happens directly on `main`**, based on 3faa2f1 ("Make the installed package work outside a source checkout"), which is where the workspace contract above comes from. Every `git add` in this plan names its paths explicitly; never `git add -A`, and never commit an unrelated file you find modified. If a rebase or merge is needed, stop and ask.
 - `renv` reports the project as out-of-sync. That is pre-existing; ignore the warning on every `Rscript` call.
 
 ## File Structure
