@@ -580,3 +580,104 @@ estimate_total_scenarios <- function(env) {
     nrow(cases)
   }, error = function(e) NA_integer_)
 }
+
+## ---- Plot globals -----------------------------------------------------------
+
+analyze_globals_ready <- new.env()
+
+ensure_plot_globals <- function() {
+  if (isTRUE(analyze_globals_ready$done)) {
+    return(invisible(NULL))
+  }
+  source(system.file("conf/plots_config.R", package = "RBExT"))
+  source(system.file("conf/methods_plots_config.R", package = "RBExT"))
+  source(system.file("conf/metrics_config.R", package = "RBExT"))
+  analyze_globals_ready$done <- TRUE
+  invisible(NULL)
+}
+
+#' Point every global the plot_*() functions expect at the right place for
+#' this results directory, best-effort: if the env's own methods_config.R /
+#' case studies can be found (because it was run through this app, or its
+#' config folder happens to sit alongside), use them for correct parameter
+#' labels; otherwise fall back to the package's default template so the
+#' plots still render, with generic labels.
+prepare_plot_globals_for_env <- function(env, figures_dir) {
+  ensure_plot_globals()
+  assign("figures_dir", figures_dir, envir = .GlobalEnv)
+  assign("remake_figures", TRUE, envir = .GlobalEnv)
+
+  methods_config_env <- new.env()
+  used_fallback <- TRUE
+  config_dir <- tryCatch(env_config_dir(env), error = function(e) "")
+  methods_config_path <- if (nzchar(config_dir)) file.path(config_dir, "methods_config.R") else ""
+  if (nzchar(methods_config_path) && file.exists(methods_config_path)) {
+    tryCatch({
+      source(methods_config_path, local = methods_config_env)
+      used_fallback <- is.null(methods_config_env$methods_dict)
+    }, error = function(e) NULL)
+  }
+  if (used_fallback) {
+    assign("methods_dict", read_methods_template(), envir = .GlobalEnv)
+  } else {
+    assign("methods_dict", methods_config_env$methods_dict, envir = .GlobalEnv)
+  }
+
+  tryCatch(ensure_case_studies_snapshot(env), error = function(e) NULL)
+  assign("case_studies_config_dir", paste0(USER_CASE_STUDIES_DIR, "/"), envir = .GlobalEnv)
+
+  invisible(used_fallback)
+}
+
+## ---- Simulation runs -------------------------------------------------------
+
+#' Start a simulation environment in a background process
+#'
+#' @description Shared by the Run page and the Replicate paper page. Loads the
+#'   package with devtools::load_all() in the child process rather than
+#'   requiring RBExT to be installed, so the app works from a source checkout.
+#'
+#' @param env An environment name known to `list_environments()`.
+#'
+#' @return A started `callr` process handle.
+launch_simulation_run <- function(env) {
+  ensure_case_studies_snapshot(env)
+  config_dir <- env_config_dir(env)
+  case_studies_config_dir <- paste0(USER_CASE_STUDIES_DIR, "/")
+
+  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
+  simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
+  metrics_env <- new.env()
+  source(system.file("conf/metrics_config.R", package = "RBExT"), local = metrics_env)
+
+  callr::r_bg(
+    func = function(pkg_root, wd, env, config_dir, case_studies_config_dir,
+                    simulation_config, analysis_config, frequentist_metrics,
+                    inference_metrics) {
+      setwd(wd)
+      devtools::load_all(pkg_root, quiet = TRUE)
+      run_simulation_env(
+        env = env,
+        config_dir = config_dir,
+        case_studies_config_dir = case_studies_config_dir,
+        simulation_config = simulation_config,
+        analysis_config = analysis_config,
+        frequentist_metrics = frequentist_metrics,
+        inference_metrics = inference_metrics
+      )
+    },
+    args = list(
+      pkg_root = find.package("RBExT"),
+      wd = getwd(),
+      env = env,
+      config_dir = config_dir,
+      case_studies_config_dir = case_studies_config_dir,
+      simulation_config = simulation_config,
+      analysis_config = analysis_config,
+      frequentist_metrics = metrics_env$frequentist_metrics,
+      inference_metrics = metrics_env$inference_metrics
+    ),
+    stdout = tempfile(fileext = ".out"),
+    stderr = tempfile(fileext = ".err")
+  )
+}

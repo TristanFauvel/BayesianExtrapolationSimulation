@@ -14,8 +14,6 @@
 ## PDF/PNG files are still written as a side effect - useful if you want a
 ## publication-quality static export - under the path shown below each chart.
 
-analyze_globals_ready <- new.env()
-
 ## The chart the user asks for, and the label it is shown under.
 ANALYZE_PLOT_KINDS <- c(
   "Metric vs drift" = "vs_drift",
@@ -108,54 +106,10 @@ forest_image_for_mode <- function(plot_kind, df, metric, mode) {
   )
 }
 
-ensure_plot_globals <- function() {
-  if (isTRUE(analyze_globals_ready$done)) {
-    return(invisible(NULL))
-  }
-  source(system.file("conf/plots_config.R", package = "RBExT"))
-  source(system.file("conf/methods_plots_config.R", package = "RBExT"))
-  source(system.file("conf/metrics_config.R", package = "RBExT"))
-  analyze_globals_ready$done <- TRUE
-  invisible(NULL)
-}
-
 analyze_figures_dir <- function(session_token) {
   dir <- file.path(tempdir(), "rbext_shiny_figures", session_token, "")
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
   dir
-}
-
-#' Point every global the plot_*() functions expect at the right place for
-#' this results directory, best-effort: if the env's own methods_config.R /
-#' case studies can be found (because it was run through this app, or its
-#' config folder happens to sit alongside), use them for correct parameter
-#' labels; otherwise fall back to the package's default template so the
-#' plots still render, with generic labels.
-prepare_plot_globals_for_env <- function(env, figures_dir) {
-  ensure_plot_globals()
-  assign("figures_dir", figures_dir, envir = .GlobalEnv)
-  assign("remake_figures", TRUE, envir = .GlobalEnv)
-
-  methods_config_env <- new.env()
-  used_fallback <- TRUE
-  config_dir <- tryCatch(env_config_dir(env), error = function(e) "")
-  methods_config_path <- if (nzchar(config_dir)) file.path(config_dir, "methods_config.R") else ""
-  if (nzchar(methods_config_path) && file.exists(methods_config_path)) {
-    tryCatch({
-      source(methods_config_path, local = methods_config_env)
-      used_fallback <- is.null(methods_config_env$methods_dict)
-    }, error = function(e) NULL)
-  }
-  if (used_fallback) {
-    assign("methods_dict", read_methods_template(), envir = .GlobalEnv)
-  } else {
-    assign("methods_dict", methods_config_env$methods_dict, envir = .GlobalEnv)
-  }
-
-  tryCatch(ensure_case_studies_snapshot(env), error = function(e) NULL)
-  assign("case_studies_config_dir", paste0(USER_CASE_STUDIES_DIR, "/"), envir = .GlobalEnv)
-
-  invisible(used_fallback)
 }
 
 read_results <- function(results_dir) {
