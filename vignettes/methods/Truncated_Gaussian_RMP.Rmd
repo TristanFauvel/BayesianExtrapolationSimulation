@@ -277,11 +277,11 @@ draws_array <- as_draws_array(fit)
 
 ```{r}
 library(bayesplot)
-mcmc_trace(draws_array, pars = c("tau", "power_parameter", "target_treatment_effect"))
+mcmc_trace(draws_array, pars = c("control_rate", "treatment_effect"))
 ```
 
 ```{r}
-mcmc_acf(draws_array, pars = c("tau", "power_parameter", "target_treatment_effect"))
+mcmc_acf(draws_array, pars = c("control_rate", "treatment_effect"))
 ```
 
 
@@ -344,24 +344,56 @@ method_parameters <- list(
   empirical_bayes = FALSE # Corresponds to whether some parameters of the prior are based on observed data.
 )
 
+env <- "full"
+config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
+
 separate_model <- Model$new()
 
 separate_model <- separate_model$create(
   case_study_config = case_study_config,
   method = separate_method,
   method_parameters = method_parameters,
-  source_data = source_data
+  source_data = source_data,
+  mcmc_config = mcmc_config
+)
+
+target_sample_size_per_arm <- as.integer(case_study_config$target$total / 2)
+
+# The truncated RMP itself, which the simulation below compares against the
+# separate analysis. prior_weight is the weight on the informative component,
+# matching the w used for the prior samples above.
+method <- "RMP"
+rmp_method_parameters <- list(
+  initial_prior = "noninformative",
+  prior_weight = 0.5,
+  empirical_bayes = FALSE
+)
+
+model <- Model$new()
+
+model <- model$create(
+  case_study_config = case_study_config,
+  method = method,
+  method_parameters = rmp_method_parameters,
+  source_data = source_data,
+  mcmc_config = mcmc_config
 )
 ```
 
 ```{r}
-treatment_effect_values <- seq(-7, 2, length.out = 50)
+# The treatment effect is a difference of rates, so the grid has to keep both
+# arm rates inside [0, 1]. That caps it at roughly [-0.53, 0.47] for this case
+# study, unlike the unbounded log odds ratio grid the Gaussian RMP vignette uses.
+treatment_effect_values <- seq(-0.5, 0.45, length.out = 10)
 
 n <- length(treatment_effect_values)
 confidence_level <- simulation_config$confidence_level
 null_space <- case_study_config$null_space
 
-n_replicates <- 100
+# Each RMP replicate is a full MCMC fit, so this stays small to keep the
+# documentation build quick. Raise it for a smoother success-probability curve.
+n_replicates <- 20
 
 separate_test_decisions <- matrix(rep(0, n * n_replicates), nrow = n)
 separate_posterior_means <- matrix(rep(0, n * n_replicates), nrow = n)
