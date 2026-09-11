@@ -100,6 +100,17 @@ takes an explicit one:
 run_rbext_app(workspace = "~/rbext-studies")
 ```
 
+On Linux, `install.R` also adds an **RBExT** entry to the application menu, so
+the app can be started without an R session. `create_rbext_shortcut()` rewrites
+it, optionally pinned to a workspace:
+
+```r
+create_rbext_shortcut(workspace = "~/rbext-studies")
+```
+
+The entry opens a terminal, which is where the workspace path and the progress
+of a run appear, and where Ctrl+C stops the app.
+
 When developing against a checkout, `devtools::load_all()` replaces
 `library(RBExT)`.
 

@@ -57,8 +57,20 @@ if (cmdstan_installed) {
   cmdstanr::install_cmdstan()
 }
 
+## An application-menu entry, so the app can be started without an R session.
+## Desktop entries are a freedesktop.org convention, so this is Linux only.
+if (identical(tolower(Sys.info()[["sysname"]]), "linux")) {
+  RBExT::create_rbext_shortcut()
+  message("Added an \"RBExT\" entry to the application menu.")
+} else {
+  message(
+    "No application-menu entry was added: RBExT::create_rbext_shortcut() ",
+    "writes a freedesktop.org desktop entry, which only applies on Linux."
+  )
+}
+
 message(
-  "\nDone. Launch the browser interface with:\n",
+  "\nDone. Launch RBExT from the application menu, or from R with:\n",
   "  library(RBExT)\n",
   "  run_rbext_app()\n"
 )
