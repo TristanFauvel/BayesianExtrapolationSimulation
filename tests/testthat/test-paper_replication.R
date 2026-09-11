@@ -65,3 +65,63 @@ test_that("coverage accepts a slice that is present", {
 
   expect_true(coverage$covered[coverage$id == "1"])
 })
+
+test_that("export_paper_outputs records a row per entry and writes a manifest", {
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+  df$target_sample_size_per_arm <- 58
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    figures_dir <- file.path(getwd(), "figures", "")
+    tables_dir <- file.path(getwd(), "tables")
+
+    status <- export_paper_outputs(
+      results_dir = results_dir,
+      figures_dir = figures_dir,
+      tables_dir = tables_dir,
+      ids = c("1", "TS1"),
+      case_studies_config_dir = config_dir()
+    )
+
+    expect_equal(nrow(status), 2)
+    expect_true(all(c("id", "status", "outputs") %in% names(status)))
+    expect_true(file.exists(file.path(tables_dir, "manifest.csv")))
+    expect_true(file.exists(file.path(tables_dir, "README.md")))
+
+    ## The manifest recording two rows is not proof anything was actually
+    ## generated: without the plot globals sourced into .GlobalEnv, entry "1"'s
+    ## generator (forest_plot()) would abort with "object 'font' not found" (or
+    ## similar) and be recorded as "failed" while TS1 alone still produces a
+    ## manifest with the expected shape. So assert directly that figure 1 wrote
+    ## a real figure file under figures_dir.
+    expect_equal(status$status[status$id == "1"], "ok")
+    figure_files <- list.files(figures_dir, recursive = TRUE, full.names = TRUE)
+    expect_true(any(grepl("\\.(pdf|png)$", figure_files)))
+  })
+})
+
+test_that("export_paper_outputs marks an entry failed rather than aborting the batch", {
+  df <- readRDS(testthat::test_path("fixtures", "forest_plot_freq.rds"))
+
+  withr::with_tempdir({
+    results_dir <- file.path(getwd(), "results")
+    dir.create(results_dir)
+    readr::write_csv(df, file.path(results_dir, "results_frequentist.csv"))
+
+    status <- export_paper_outputs(
+      results_dir = results_dir,
+      figures_dir = file.path(getwd(), "figures", ""),
+      tables_dir = file.path(getwd(), "tables"),
+      ## S16 wants belimumab, which the botox fixture cannot supply.
+      ids = c("TS1", "S16"),
+      case_studies_config_dir = config_dir()
+    )
+
+    expect_equal(status$status[status$id == "TS1"], "ok")
+    expect_equal(status$status[status$id == "S16"], "failed")
+    expect_true(nzchar(status$message[status$id == "S16"]))
+  })
+})
