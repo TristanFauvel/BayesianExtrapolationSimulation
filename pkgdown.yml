@@ -1,0 +1,27 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  replications/Belimumab_replication: replications/Belimumab_replication.html
+  methods/Commensurate_Power_Prior: methods/Commensurate_Power_Prior.html
+  methods/Conditional_Power_Prior: methods/Conditional_Power_Prior.html
+  data_generation/Data_generation_aprepitant: data_generation/Data_generation_aprepitant.html
+  data_generation/Data_generation_belimumab: data_generation/Data_generation_belimumab.html
+  data_generation/Data_generation_botox: data_generation/Data_generation_botox.html
+  data_generation/Data_generation_mepolizumab: data_generation/Data_generation_mepolizumab.html
+  data_generation/Data_generation_teriflunomide: data_generation/Data_generation_teriflunomide.html
+  methods/Gaussian_RMP: methods/Gaussian_RMP.html
+  replications/Mepolizumab_replication: replications/Mepolizumab_replication.html
+  methods/NPP: methods/NPP.html
+  methods/PDCCPP: methods/PDCCPP.html
+  methods/Pooling_study: methods/Pooling_study.html
+  methods/Pooling: methods/Pooling.html
+  simulation/Precision_based_ESS: simulation/Precision_based_ESS.html
+  methods/Separate: methods/Separate.html
+  simulation/simulation_illustration_high_level: simulation/simulation_illustration_high_level.html
+  simulation/simulation_illustration_low_level: simulation/simulation_illustration_low_level.html
+  methods/Truncated_Gaussian_RMP: methods/Truncated_Gaussian_RMP.html
+last_built: 2026-09-11T07:37Z
+urls:
+  reference: https://quinten-health-os.github.io/BayesianExtrapolationSimulation/reference
+  article: https://quinten-health-os.github.io/BayesianExtrapolationSimulation/articles
