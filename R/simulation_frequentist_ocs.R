@@ -451,9 +451,7 @@ simulation_frequentist_ocs <- function(env,
       if (tolower(case_study) == "aprepitant" ||
           method == "commensurate_power_prior") {
         # remove remaining MCMC csv files related to the run
-        package_path <- system.file("", package = "RBExT")
-        stan_draws_path <- paste0(package_path, "/stan/draws/", tolower(case_study), "_", method, "/")
-        file.remove(list.files(stan_draws_path, full.names = TRUE))
+        clear_stan_draws(case_study, method)
       }
     }
   }

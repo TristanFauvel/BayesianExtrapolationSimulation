@@ -6,7 +6,7 @@ Version: 0.0.2
 Date: 2024-09-23
 Authors@R: c(person("Tristan", "Fauvel", email = "t.fauvel@quinten-health.com", role =  c("aut", "cre")), person("Pascal", "Godbillot", role=c("aut")) ) 
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.0.0)
 Imports: 
     dplyr, 
     tidyr,
@@ -54,6 +54,7 @@ Imports:
     statmod,
     tinytex,
     shiny,
+    tools,
     callr,
     plotly,
     DT,
@@ -70,7 +71,6 @@ Suggests:
     rmarkdown,
     testthat (>= 3.2.0),
     scales,
-    tools,
     broom,
     glue,
     ragg,

@@ -23,19 +23,53 @@ Copyright 2024 Quinten Health, under exclusive licence to the European Medicines
 
 ### Installation
 
-Download the latest release.
+RBExT needs R >= 4.0 and, for the MCMC-based methods, a C++ toolchain and a
+CmdStan installation - the Stan models are compiled to native binaries the
+first time they are used. `install.R` handles all three.
 
-You can then install the RBExT package by running :
-
-```
-install.packages("/path/to/RBExT_0.0.2.tar.gz", repos = NULL, type = "source")
-```
-
-and load it using:
+Download `RBExT_0.0.2.tar.gz` and `install.R` from the latest release into the
+same directory, then run:
 
 ```
+Rscript install.R
+```
+
+That installs the dependencies, RBExT itself, and CmdStan if it is missing.
+Load the package with:
+
+```r
 library(RBExT)
 ```
+
+<details>
+<summary>Installing by hand</summary>
+
+`cmdstanr` is not on CRAN, so its repository has to be declared before the
+dependencies will resolve:
+
+```r
+options(repos = c(
+  CRAN = "https://cloud.r-project.org",
+  stan = "https://stan-dev.r-universe.dev"
+))
+install.packages("/path/to/RBExT_0.0.2.tar.gz", repos = NULL, type = "source")
+cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+cmdstanr::install_cmdstan()
+```
+
+</details>
+
+<details>
+<summary>Working from a source checkout</summary>
+
+`renv.lock` pins every dependency. From the checkout:
+
+```r
+renv::restore()
+devtools::load_all()
+```
+
+</details>
 
 ### Running and analyzing simulations
 
@@ -47,14 +81,27 @@ library(RBExT)
 
 ### Browser-based interface
 
-Instead of hand-editing config files and running the scripts above, you can configure, run, and analyze a simulation study from a browser. From an R session with your working directory set to the repository root (the same requirement as running `main.R` above):
+Instead of hand-editing config files and running the scripts above, you can
+configure, run, and analyze a simulation study from a browser:
 
 ```r
-devtools::load_all() # if you haven't installed RBExT (the usual case for development - see inst/scripts/main.R)
+library(RBExT)
 run_rbext_app()
 ```
 
-If you installed RBExT from a release tarball instead (see Installation above), use `library(RBExT)` in place of `devtools::load_all()`.
+The app works out of a *workspace* directory, where `results/`, `logs/` and
+`user_configs/` live. Launched from a source checkout it uses the checkout, so
+results land next to the ones `main.R` produces; installed from a release
+tarball it uses a per-user directory under `tools::R_user_dir("RBExT", "data")`.
+Either way the path is reported when the app starts, and `run_rbext_app()`
+takes an explicit one:
+
+```r
+run_rbext_app(workspace = "~/rbext-studies")
+```
+
+When developing against a checkout, `devtools::load_all()` replaces
+`library(RBExT)`.
 
 This opens a local Shiny app with three tabs:
 

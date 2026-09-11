@@ -1,18 +1,19 @@
 ## RBExT Shiny app: configure a simulation study, run it locally, then
 ## analyze and visualize the results.
 ##
-## Launch with RBExT::run_rbext_app() - see R/shiny_app.R. The app assumes
-## the working directory is the repository root, exactly like
-## inst/scripts/main.R (it reads/writes "./results/<env>/", "./logs/<env>/",
-## "./user_configs/<env>/" relative to it).
+## Launch with RBExT::run_rbext_app() - see R/shiny_app.R. The app works out
+## of a workspace directory, exactly like inst/scripts/main.R works out of the
+## repository root (it reads/writes "./results/<env>/", "./logs/<env>/",
+## "./user_configs/<env>/" relative to it). run_rbext_app() picks the
+## workspace - the checkout when there is one, a per-user directory otherwise.
 
 ## shiny::runApp() changes the process's working directory to this app's own
 ## directory (inst/shiny_app/) for as long as it runs. Every RBExT function
 ## (and this app's helpers) expects the working directory to be the
-## repository root instead (relative paths like "./results/<env>/"), so
-## run_rbext_app() records that root before calling runApp() and we switch
-## back to it here, right after sourcing our own files (which still need to
-## be found relative to this app directory).
+## workspace instead (relative paths like "./results/<env>/"), so
+## run_rbext_app() records it before calling runApp() and we switch back to it
+## here, right after sourcing our own files (which still need to be found
+## relative to this app directory).
 app_dir <- getwd()
 source(file.path(app_dir, "helpers.R"))
 source(file.path(app_dir, "theme.R"))
@@ -24,8 +25,8 @@ source(file.path(app_dir, "modules", "mod_analyze.R"))
 ## directory still points at the app.
 app_theme <- rbext_theme(app_dir)
 
-repo_root <- getOption("rbext.repo_root", app_dir)
-setwd(repo_root)
+workspace <- getOption("rbext.workspace", app_dir)
+setwd(workspace)
 
 ui <- shiny::tagList(
   ## Served straight out of www/; without it the browser's automatic probe
@@ -48,7 +49,7 @@ ui <- shiny::tagList(
 )
 
 server <- function(input, output, session) {
-  setwd(repo_root)
+  setwd(workspace)
   just_finished_env <- shiny::reactiveVal(NULL)
   ## Bumped whenever an environment is saved, so the Run tab's environment
   ## picker can refresh itself instead of relying on a manual button.

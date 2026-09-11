@@ -26,13 +26,8 @@ source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
 closeAllConnections()
 
 if (delete_stan_files == TRUE) {
-  # Delete all Stan files (to make sure models are recompiled)
-  stan_files <- list.files(path = system.file("stan", package = "RBExT"), pattern = "\\.stan$", full.names = TRUE)
-  exe_files <- list.files(path = system.file("stan", package = "RBExT"), pattern = "\\.exe$", full.names = TRUE)
-
-  # Combine the lists of .stan and .exe files and remove them
-  files_to_delete <- c(stan_files, exe_files)
-  file.remove(files_to_delete)
+  # Empty the model cache, to make sure the models are recompiled
+  clear_stan_model_cache()
 }
 
 outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))

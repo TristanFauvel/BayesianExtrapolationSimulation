@@ -1,8 +1,8 @@
 rm(list = ls())
 
+## When working from a source checkout, run devtools::load_all() before this
+## script to pick up changes that are not installed yet.
 library(RBExT)
-
-devtools::load_all() # FIXME
 
 # If the envs variable is not defined as an environment variable, define it.
 envs <- ifelse(Sys.getenv("envs") != "", Sys.getenv("envs"), c("fast_cases_config"))
@@ -28,13 +28,8 @@ source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
 closeAllConnections()
 
 if (delete_stan_files == TRUE) {
-  # Delete all Stan files (to make sure models are recompiled)
-  stan_files <- list.files(path = system.file("stan", package = "RBExT"), pattern = "\\.stan$", full.names = TRUE)
-  exe_files <- list.files(path = system.file("stan", package = "RBExT"), pattern = "\\.exe$", full.names = TRUE)
-
-  # Combine the lists of .stan and .exe files and remove them
-  files_to_delete <- c(stan_files, exe_files)
-  file.remove(files_to_delete)
+  # Empty the model cache, to make sure the models are recompiled
+  clear_stan_model_cache()
 }
 
 for (env in envs) {

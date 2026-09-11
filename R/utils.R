@@ -1001,10 +1001,75 @@ stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) 
   )
 }
 
+#' Remove the Stan draws of one model across every process
+#'
+#' @description Each process writes to its own directory, so one run leaves
+#'   a directory per worker behind. They hold intermediate MCMC output that
+#'   runs to gigabytes for the larger case studies, so a finished run clears
+#'   them. The prefix is taken from `stan_draws_directory()` rather than
+#'   rebuilt here, so the two cannot drift apart.
+#'
+#' @param case_study Case study name.
+#' @param method Method name.
+#' @param root Directory the per-process directories sit in.
+#'
+#' @return Paths of the directories that were removed, invisibly.
+#' @export
+clear_stan_draws <- function(case_study,
+                             method,
+                             root = dirname(stan_draws_directory(case_study, method))) {
+  prefix <- basename(stan_draws_directory(case_study, method, process_id = ""))
+  entries <- list.files(root, full.names = TRUE)
+  names <- basename(entries)
+
+  # A method whose name extends another's shares its prefix, so require the
+  # remainder to be the process id and nothing else.
+  suffix <- substring(names, nchar(prefix) + 1L)
+  mine <- startsWith(names, prefix) & grepl("^[0-9]+$", suffix)
+
+  unlink(entries[mine], recursive = TRUE)
+  invisible(entries[mine])
+}
+
+
+#' Directory holding the compiled Stan models
+#'
+#' @description `inst/stan` is excluded from the built package, so
+#'   `system.file("stan", package = "RBExT")` returns `""` once RBExT is
+#'   installed and every model path would resolve to the filesystem root.
+#'   Compiled models are build artifacts rather than package contents, so
+#'   they belong in the user cache directory, which stays writable even when
+#'   the library does not.
+#'
+#' @return Path of the directory, created if it does not exist.
+#' @noRd
+stan_model_directory <- function() {
+  directory <- file.path(tools::R_user_dir("RBExT", "cache"), "stan")
+  dir.create(directory, showWarnings = FALSE, recursive = TRUE)
+  directory
+}
+
+#' Remove the compiled Stan models
+#'
+#' @description The models are compiled on first use and cached in
+#'   `stan_model_directory()`. Clearing the cache forces the next run to
+#'   recompile them, which is what `inst/scripts/main.R` does when its
+#'   `delete_stan_files` switch is set.
+#'
+#' @param directory Directory holding the cached models.
+#'
+#' @return Paths of the files that were removed, invisibly.
+#' @export
+clear_stan_model_cache <- function(directory = stan_model_directory()) {
+  cached <- list.files(directory, full.names = TRUE)
+  file.remove(cached)
+  invisible(cached)
+}
+
 compile_stan_model <- function(model_name, stan_model_code) {
-  stan_directory <- paste0(system.file("stan", package = "RBExT"), "/")
-  stan_model_file_path <- paste0(stan_directory, model_name, ".stan")
-  stan_exe_file_path <- paste0(stan_directory, model_name, ".exe")
+  stan_directory <- stan_model_directory()
+  stan_model_file_path <- file.path(stan_directory, paste0(model_name, ".stan"))
+  stan_exe_file_path <- file.path(stan_directory, paste0(model_name, ".exe"))
 
   stan_file_changed <- write_stan_file_if_changed(
     stan_model_file_path,
