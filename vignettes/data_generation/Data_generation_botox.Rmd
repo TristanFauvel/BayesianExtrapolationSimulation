@@ -12,7 +12,7 @@ vignette: >
   %\VignetteIndexEntry{Data Generation : Botox case study}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{RBExT, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2}
 ---
 
 
@@ -20,14 +20,14 @@ vignette: >
 root <- dirname(dirname(getwd()))
 knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 ```
  
 ```{r}
 set.seed(42)
 
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/botox.yml", package = "BExTE"))
 format_case_study_config(case_study_config)
 ```
 

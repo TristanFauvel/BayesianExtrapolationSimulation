@@ -1,24 +1,24 @@
 
-library(RBExT)
+library(BExTE)
 devtools::load_all()
 
-source(system.file(paste0("conf/plots_config.R"), package = "RBExT"))
+source(system.file(paste0("conf/plots_config.R"), package = "BExTE"))
 
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
+source(system.file(paste0("conf/metrics_config.R"), package = "BExTE"))
 
 env <- "combined"
 
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 source(paste0(config_dir, "methods_config.R"))
 
 results_dir <- paste0("./results/", env)
 
 tables_dir <<- paste0("./tables/", env, "_tables")
 
-case_studies_config_dir <- paste0(system.file(paste0("conf/case_studies"), package = "RBExT"), "/")
-source(system.file(paste0("conf/plots_config.R"), package = "RBExT"))
-source(system.file(paste0("conf/methods_plots_config.R"), package = "RBExT"))
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
+case_studies_config_dir <- paste0(system.file(paste0("conf/case_studies"), package = "BExTE"), "/")
+source(system.file(paste0("conf/plots_config.R"), package = "BExTE"))
+source(system.file(paste0("conf/methods_plots_config.R"), package = "BExTE"))
+source(system.file(paste0("conf/metrics_config.R"), package = "BExTE"))
 
 source(paste0(config_dir, "methods_config.R"))
 

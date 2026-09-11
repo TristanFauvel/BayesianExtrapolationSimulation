@@ -3,7 +3,7 @@
 ## HPC-scale and most of its grid is never plotted.
 
 config_dir <- function() {
-  paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 }
 
 test_that("the four main figures need only botox at factors 2 and 4", {

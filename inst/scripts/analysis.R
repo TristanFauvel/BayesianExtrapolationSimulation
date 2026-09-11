@@ -1,6 +1,6 @@
 rm(list = ls())
 
-library(RBExT)
+library(BExTE)
 
 devtools::load_all()
 
@@ -15,13 +15,13 @@ concat_all_results <- TRUE
 delete_stan_files <- FALSE
 check_results_completeness <- TRUE
 
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 
-analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
+analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
 
-simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
+simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "BExTE"))
 
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
+source(system.file(paste0("conf/metrics_config.R"), package = "BExTE"))
 
 closeAllConnections()
 
@@ -30,7 +30,7 @@ if (delete_stan_files == TRUE) {
   clear_stan_model_cache()
 }
 
-outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
 ocs_filename <- outputs_config$frequentist_ocs_results_filename
 
 for (env in envs) {
@@ -44,7 +44,7 @@ for (env in envs) {
   LOGGING_FILE_PATH <- generate_log_filename(base_name = paste0("./logs/", env, "/error_logs/error_log.log"), suffix_type = "timestamp")
 
   # We must add trailing slashes manually as otherwise system.file will drop them.
-  config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+  config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 
   results_dir <- paste0("./results/", env, "/")
   scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))

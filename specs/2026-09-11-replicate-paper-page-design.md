@@ -162,7 +162,7 @@ it. `mod_run_server()` is refactored to call it; its behaviour is unchanged.
 
 ### `inst/shiny_app/modules/mod_replicate.R`
 
-Three steps, following the existing `rbext_step()` layout:
+Three steps, following the existing `bexte_step()` layout:
 
 1. **Select** — checklist of the 42 paper items (39 figures, 3 tables) grouped
    Main / Supplementary and sub-grouped by case study, with select-all. One

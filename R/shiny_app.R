@@ -12,10 +12,10 @@
 #'
 #' @return Path of the workspace, with its output directories created.
 #' @noRd
-rbext_workspace <- function(workspace = NULL,
-                            default = tools::R_user_dir("RBExT", "data")) {
+bexte_workspace <- function(workspace = NULL,
+                            default = tools::R_user_dir("BExTE", "data")) {
   if (is.null(workspace)) {
-    workspace <- if (is_rbext_checkout(getwd())) getwd() else default
+    workspace <- if (is_bexte_checkout(getwd())) getwd() else default
   }
 
   for (output in c("results", "logs", "user_configs")) {
@@ -30,24 +30,24 @@ rbext_workspace <- function(workspace = NULL,
 }
 
 
-#' Is this directory an RBExT source checkout?
+#' Is this directory an BExTE source checkout?
 #'
 #' @param directory Directory to test.
 #'
-#' @return `TRUE` when the directory holds RBExT's own DESCRIPTION.
+#' @return `TRUE` when the directory holds BExTE's own DESCRIPTION.
 #' @noRd
-is_rbext_checkout <- function(directory) {
+is_bexte_checkout <- function(directory) {
   description <- file.path(directory, "DESCRIPTION")
   if (!file.exists(description)) {
     return(FALSE)
   }
 
   package <- read.dcf(description, fields = "Package")[1, 1]
-  identical(unname(package), "RBExT")
+  identical(unname(package), "BExTE")
 }
 
 
-#' Launch the RBExT Shiny app
+#' Launch the BExTE Shiny app
 #'
 #' @description Opens a browser-based app to configure a simulation study
 #'   (case studies, methods, parameter grids), run it locally, and then
@@ -62,22 +62,22 @@ is_rbext_checkout <- function(directory) {
 #'
 #' @param workspace Directory holding the simulation output. Defaults to the
 #'   repository root in a source checkout and to
-#'   `tools::R_user_dir("RBExT", "data")` otherwise.
+#'   `tools::R_user_dir("BExTE", "data")` otherwise.
 #' @param ... Passed on to `shiny::runApp()` (e.g. `port`, `launch.browser`).
 #'
 #' @return Does not return; runs the app until interrupted.
 #' @export
-run_rbext_app <- function(workspace = NULL, ...) {
-  app_dir <- system.file("shiny_app", package = "RBExT")
+run_bexte_app <- function(workspace = NULL, ...) {
+  app_dir <- system.file("shiny_app", package = "BExTE")
   if (app_dir == "") {
     stop("Could not find the Shiny app directory. If you are developing ",
          "the package, make sure devtools::load_all() has been run first.")
   }
 
-  workspace <- rbext_workspace(workspace)
-  message("RBExT workspace: ", workspace)
+  workspace <- bexte_workspace(workspace)
+  message("BExTE workspace: ", workspace)
 
-  options(rbext.workspace = workspace)
+  options(bexte.workspace = workspace)
   shiny::runApp(app_dir, ...)
 }
 
@@ -86,7 +86,7 @@ run_rbext_app <- function(workspace = NULL, ...) {
 #'
 #' @description Writes an application-menu entry that starts the Shiny app, so
 #'   the app can be launched without an R session. It shortens *launching*, not
-#'   *installing*: R, RBExT and CmdStan all still have to be present, which is
+#'   *installing*: R, BExTE and CmdStan all still have to be present, which is
 #'   what `inst/scripts/install.R` is for.
 #'
 #'   Two files are written. A shell script holds the R call, because the
@@ -99,7 +99,7 @@ run_rbext_app <- function(workspace = NULL, ...) {
 #'   the progress of a run, and Ctrl+C as the way to stop it.
 #'
 #' @param workspace Workspace to launch with, or `NULL` to let
-#'   [run_rbext_app()] choose one.
+#'   [run_bexte_app()] choose one.
 #' @param applications_dir Directory holding desktop entries. The default puts
 #'   the entry in the application menu, which, unlike one placed on the
 #'   desktop, needs no separate step to mark it trusted.
@@ -107,9 +107,9 @@ run_rbext_app <- function(workspace = NULL, ...) {
 #'
 #' @return Paths of the launcher and the desktop entry, invisibly.
 #' @export
-create_rbext_shortcut <- function(workspace = NULL,
+create_bexte_shortcut <- function(workspace = NULL,
                                   applications_dir = path.expand("~/.local/share/applications"),
-                                  script_dir = tools::R_user_dir("RBExT", "data")) {
+                                  script_dir = tools::R_user_dir("BExTE", "data")) {
   if (!is.null(workspace) && grepl("'", workspace, fixed = TRUE)) {
     stop(
       "The workspace path cannot contain a single quote, because the launcher ",
@@ -126,19 +126,19 @@ create_rbext_shortcut <- function(workspace = NULL,
     sprintf('workspace = "%s", launch.browser = TRUE', workspace)
   }
 
-  # Rscript searches only the default library, which is not where RBExT lives
+  # Rscript searches only the default library, which is not where BExTE lives
   # when it was installed into renv or a custom R_LIBS_USER, so record the
   # library it was actually found in.
-  library_path <- dirname(system.file(package = "RBExT"))
+  library_path <- dirname(system.file(package = "BExTE"))
 
-  launcher <- file.path(script_dir, "launch-rbext.sh")
+  launcher <- file.path(script_dir, "launch-bexte.sh")
   writeLines(
     c(
       "#!/bin/sh",
-      "# Written by RBExT::create_rbext_shortcut(). Re-run that rather than",
+      "# Written by BExTE::create_bexte_shortcut(). Re-run that rather than",
       "# editing this file, which is overwritten.",
       sprintf(
-        "exec \"%s\" -e '.libPaths(c(\"%s\", .libPaths())); RBExT::run_rbext_app(%s)'",
+        "exec \"%s\" -e '.libPaths(c(\"%s\", .libPaths())); BExTE::run_bexte_app(%s)'",
         file.path(R.home("bin"), "Rscript"),
         library_path,
         arguments
@@ -148,15 +148,15 @@ create_rbext_shortcut <- function(workspace = NULL,
   )
   Sys.chmod(launcher, "0755")
 
-  entry <- file.path(applications_dir, "rbext.desktop")
+  entry <- file.path(applications_dir, "bexte.desktop")
   writeLines(
     c(
       "[Desktop Entry]",
       "Type=Application",
-      "Name=RBExT",
+      "Name=BExTE",
       "Comment=Configure, run and analyse Bayesian extrapolation simulation studies",
       paste0("Exec=", launcher),
-      paste0("Icon=", system.file("shiny_app", "www", "favicon.svg", package = "RBExT")),
+      paste0("Icon=", system.file("shiny_app", "www", "favicon.svg", package = "BExTE")),
       "Terminal=true",
       "Categories=Science;"
     ),

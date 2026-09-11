@@ -1,17 +1,17 @@
-## RBExT Shiny app: configure a simulation study, run it locally, then
+## BExTE Shiny app: configure a simulation study, run it locally, then
 ## analyze and visualize the results.
 ##
-## Launch with RBExT::run_rbext_app() - see R/shiny_app.R. The app works out
+## Launch with BExTE::run_bexte_app() - see R/shiny_app.R. The app works out
 ## of a workspace directory, exactly like inst/scripts/main.R works out of the
 ## repository root (it reads/writes "./results/<env>/", "./logs/<env>/",
-## "./user_configs/<env>/" relative to it). run_rbext_app() picks the
+## "./user_configs/<env>/" relative to it). run_bexte_app() picks the
 ## workspace - the checkout when there is one, a per-user directory otherwise.
 
 ## shiny::runApp() changes the process's working directory to this app's own
-## directory (inst/shiny_app/) for as long as it runs. Every RBExT function
+## directory (inst/shiny_app/) for as long as it runs. Every BExTE function
 ## (and this app's helpers) expects the working directory to be the
 ## workspace instead (relative paths like "./results/<env>/"), so
-## run_rbext_app() records it before calling runApp() and we switch back to it
+## run_bexte_app() records it before calling runApp() and we switch back to it
 ## here, right after sourcing our own files (which still need to be found
 ## relative to this app directory).
 app_dir <- getwd()
@@ -22,11 +22,11 @@ source(file.path(app_dir, "modules", "mod_run.R"))
 source(file.path(app_dir, "modules", "mod_analyze.R"))
 source(file.path(app_dir, "modules", "mod_replicate.R"))
 
-## rbext_theme() compiles www/rbext.scss, so it has to run while the working
+## bexte_theme() compiles www/bexte.scss, so it has to run while the working
 ## directory still points at the app.
-app_theme <- rbext_theme(app_dir)
+app_theme <- bexte_theme(app_dir)
 
-workspace <- getOption("rbext.workspace", app_dir)
+workspace <- getOption("bexte.workspace", app_dir)
 setwd(workspace)
 
 ui <- shiny::tagList(
@@ -36,8 +36,8 @@ ui <- shiny::tagList(
     shiny::tags$link(rel = "icon", type = "image/svg+xml", href = "favicon.svg")
   ),
   bslib::page_navbar(
-    title = rbext_brand(),
-    window_title = "RBExT",
+    title = bexte_brand(),
+    window_title = "BExTE",
     theme = app_theme,
     id = "main_nav",
     fillable = "Analyze",

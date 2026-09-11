@@ -2,12 +2,12 @@
 #'
 #' @description The forest plots are the only charts the app renders as static
 #' images (they are multi-panel gtables, so they cannot go through
-#' rbext_plotly() like every other chart) and therefore cannot inherit the
-#' page's stylesheet. These helpers take one of rbext_palette()'s schemes and
+#' bexte_plotly() like every other chart) and therefore cannot inherit the
+#' page's stylesheet. These helpers take one of bexte_palette()'s schemes and
 #' recolour a subplot for it. `palette = NULL` is the publication figure,
 #' unchanged.
 #'
-#' @param palette A colour scheme from rbext_palette(), or NULL.
+#' @param palette A colour scheme from bexte_palette(), or NULL.
 #'
 #' @return A ggplot2 theme, or NULL when there is no palette.
 #' @keywords internal
@@ -39,7 +39,7 @@ forest_palette_theme <- function(palette) {
 #' values the publication figures use so that `palette = NULL` output is
 #' untouched.
 #'
-#' @param palette A colour scheme from rbext_palette(), or NULL.
+#' @param palette A colour scheme from bexte_palette(), or NULL.
 #'
 #' @return A list with `target`, `source` and `ink` colours.
 #' @keywords internal
@@ -54,7 +54,7 @@ forest_reference_colours <- function(palette) {
 #' colour argument is omitted altogether, leaving ggplot2's default.
 #'
 #' @param geom The ggplot2 layer constructor to call.
-#' @param palette A colour scheme from rbext_palette(), or NULL.
+#' @param palette A colour scheme from bexte_palette(), or NULL.
 #' @param ... Further arguments for `geom`.
 #'
 #' @return A ggplot2 layer.
@@ -138,7 +138,7 @@ scale_by_separate <- function(df, metric_columns) {
 #' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
 #' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
-#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for the Shiny app's
 #'   dark mode, or NULL for the publication figure.
 #' @param reference_line x position of a dotted vertical reference line, or NULL for none.
 #'
@@ -326,7 +326,7 @@ forest_subplot <- function(data,
 #' @param x_metric_uncertainty_lower Lower limit of the metric on the x-axis
 #' @param x_metric_uncertainty_upper Upper limit of the metric on the x-axis
 #' @param x_metric_label Label of the metric on the x-axis
-#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for the Shiny app's
 #'   dark mode, or NULL for the publication figure.
 #'
 #' @return A ggplot2::ggplot( object representing the forest plot.
@@ -492,7 +492,7 @@ forest_combined_plot <- function(data,
 #' @param selected_case_study The selected case study.
 #' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
-#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for the Shiny app's
 #'   dark mode, or NULL for the publication figure.
 #' @param relative_to_separate When TRUE, divide the metric and its confidence
 #'   bounds by the separate analysis's value in the same scenario, label the
@@ -798,7 +798,7 @@ forest_plot <- function(results_freq_df, x_metric, panels = TRUE, palette = NULL
 #' @param selected_case_study The selected case study.
 #' @param selected_target_sample_size_per_arm The selected target sample size per arm.
 #' @param x_metric Metric on the x-axis
-#' @param palette A colour scheme from rbext_palette() for the Shiny app's
+#' @param palette A colour scheme from bexte_palette() for the Shiny app's
 #'   dark mode, or NULL for the publication figure.
 #'
 #' @return None

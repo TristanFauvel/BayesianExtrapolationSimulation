@@ -12,7 +12,7 @@ vignette: >
   %\VignetteIndexEntry{Mepolizumab case study}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{RBExT, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2}
 ---
 
 ```{r setup, warning=F, message=F, include=FALSE}
@@ -20,7 +20,7 @@ root <- dirname(dirname(getwd()))
 knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 ```
 
@@ -49,7 +49,7 @@ So, the rate in the control group in adults is 1.74, and the rate in the treatme
 ```{r}
 set.seed(42)
 
-config_path <- system.file("conf/case_studies/mepolizumab.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/mepolizumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 format_case_study_config(case_study_config)
 ```

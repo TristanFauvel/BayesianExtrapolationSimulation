@@ -98,10 +98,10 @@ test_that("UnitInformationDesignPrior carries one patient's worth of information
   # result has to describe a single patient per arm. This pins the construction
   # end to end, including that it is handed a fit on the response rate scale.
   case_study_config <- yaml::read_yaml(
-    system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
+    system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
   )
   mcmc_config <- yaml::read_yaml(
-    system.file("conf/combined_aprepitant/mcmc_config.yml", package = "RBExT")
+    system.file("conf/combined_aprepitant/mcmc_config.yml", package = "BExTE")
   )
 
   set.seed(123)

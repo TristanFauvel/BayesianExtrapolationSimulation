@@ -1,10 +1,10 @@
-## One-shot setup for RBExT.
+## One-shot setup for BExTE.
 ##
 ##   Rscript install.R
 ##
 ## Run it either from a directory holding a release tarball
-## (RBExT_<version>.tar.gz) or from a source checkout. It installs RBExT's R
-## dependencies, RBExT itself, and CmdStan.
+## (BExTE_<version>.tar.gz) or from a source checkout. It installs BExTE's R
+## dependencies, BExTE itself, and CmdStan.
 ##
 ## CmdStan is the part that hand-rolled installs usually miss: cmdstanr is only
 ## the R interface, and the Stan models are compiled to native binaries at run
@@ -12,7 +12,7 @@
 ## before any MCMC method will run.
 
 if (getRversion() < "4.0.0") {
-  stop("RBExT needs R 4.0.0 or later; this is ", getRversion(), ".")
+  stop("BExTE needs R 4.0.0 or later; this is ", getRversion(), ".")
 }
 
 ## cmdstanr is not on CRAN. DESCRIPTION's Additional_repositories field is not
@@ -26,7 +26,7 @@ if (!requireNamespace("pak", quietly = TRUE)) {
   install.packages("pak")
 }
 
-tarballs <- sort(Sys.glob("RBExT_*.tar.gz"), decreasing = TRUE)
+tarballs <- sort(Sys.glob("BExTE_*.tar.gz"), decreasing = TRUE)
 
 if (length(tarballs) > 0) {
   message("Installing ", tarballs[[1]], " and its dependencies ...")
@@ -36,7 +36,7 @@ if (length(tarballs) > 0) {
   pak::local_install_deps(".", ask = FALSE)
 } else {
   stop(
-    "Found neither RBExT_<version>.tar.gz nor a DESCRIPTION in ", getwd(), ".\n",
+    "Found neither BExTE_<version>.tar.gz nor a DESCRIPTION in ", getwd(), ".\n",
     "Run this from the directory you downloaded the release into, or from a ",
     "source checkout."
   )
@@ -60,17 +60,17 @@ if (cmdstan_installed) {
 ## An application-menu entry, so the app can be started without an R session.
 ## Desktop entries are a freedesktop.org convention, so this is Linux only.
 if (identical(tolower(Sys.info()[["sysname"]]), "linux")) {
-  RBExT::create_rbext_shortcut()
-  message("Added an \"RBExT\" entry to the application menu.")
+  BExTE::create_bexte_shortcut()
+  message("Added an \"BExTE\" entry to the application menu.")
 } else {
   message(
-    "No application-menu entry was added: RBExT::create_rbext_shortcut() ",
+    "No application-menu entry was added: BExTE::create_bexte_shortcut() ",
     "writes a freedesktop.org desktop entry, which only applies on Linux."
   )
 }
 
 message(
-  "\nDone. Launch RBExT from the application menu, or from R with:\n",
-  "  library(RBExT)\n",
-  "  run_rbext_app()\n"
+  "\nDone. Launch BExTE from the application menu, or from R with:\n",
+  "  library(BExTE)\n",
+  "  run_bexte_app()\n"
 )

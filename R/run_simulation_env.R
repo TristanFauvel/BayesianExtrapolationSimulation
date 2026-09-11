@@ -82,7 +82,7 @@ run_simulation_env <- function(env,
     options(error = global_error_handler)
   }
 
-  outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+  outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
   ocs_filename <- outputs_config$frequentist_ocs_results_filename
 
   if (simulation_config$compute_frequentist_ocs == TRUE) {
@@ -111,7 +111,7 @@ run_simulation_env <- function(env,
     # package rather than crash; sweet_spot and bayesian_ocs (which do
     # thread case_studies_config_dir through) still run either way.
     all_case_studies_shipped <- all(vapply(scenarios_config$case_studies, function(cs) {
-      nzchar(system.file(file.path("conf", "case_studies", paste0(cs, ".yml")), package = "RBExT"))
+      nzchar(system.file(file.path("conf", "case_studies", paste0(cs, ".yml")), package = "BExTE"))
     }, logical(1)))
     analysis_to_compute <- if (all_case_studies_shipped) {
       c("frequentist_power_at_equivalent_tie", "frequentist_power_at_nominal_tie", "sweet_spot", "bayesian_ocs")

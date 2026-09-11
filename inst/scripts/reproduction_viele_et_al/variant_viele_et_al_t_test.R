@@ -1,6 +1,6 @@
 # Required Libraries
 library(ggplot2)
-library(RBExT)
+library(BExTE)
 
 # Parameters for the simulation
 historical_control_success_rate <- 0.65  # Historical control success rate

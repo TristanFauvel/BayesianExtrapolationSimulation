@@ -123,14 +123,14 @@ test_that("unwrap_scalar_list_columns leaves everything else alone", {
 })
 
 test_that("simulation_scenarios returns a grid of scalars, not list columns", {
-  config_dir <- paste0(system.file("conf/aprepitant_mcmc_config_light", package = "RBExT"), "/")
+  config_dir <- paste0(system.file("conf/aprepitant_mcmc_config_light", package = "BExTE"), "/")
   skip_if(config_dir == "/", "packaged configuration not available")
 
   scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
   cases <- simulation_scenarios(
     config_dir = config_dir,
     scenarios_config = scenarios_config,
-    case_studies_config_dir = paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+    case_studies_config_dir = paste0(system.file("conf/case_studies", package = "BExTE"), "/")
   )
 
   # `parameters` holds each row's method parameters and is deliberately

@@ -7,16 +7,16 @@
 
 mod_configure_ui <- function(id) {
   ns <- shiny::NS(id)
-  rbext_page(
+  bexte_page(
     shiny::tags$h1("Configure simulation", class = "visually-hidden"),
     shiny::p(
-      class = "rbext-lede",
+      class = "bexte-lede",
       "Define the trials to simulate, the borrowing methods to compare and the ",
       "grid of scenarios to run them over. Saving writes an environment under ",
       "user_configs/, ready to launch from the Run tab."
     ),
 
-    rbext_step(
+    bexte_step(
       1, "Case study",
       note = "Pick one of the case studies already available, or add your own. New case studies can use a binary or continuous endpoint.",
       shiny::radioButtons(
@@ -26,14 +26,14 @@ mod_configure_ui <- function(id) {
       ),
       shiny::conditionalPanel(
         "input.case_study_mode == 'new'", ns = ns,
-        rbext_fields(
-          rbext_name_input(ns("cs_name"), "Name"),
+        bexte_fields(
+          bexte_name_input(ns("cs_name"), "Name"),
           shiny::textInput(ns("cs_control_arm"), "Control arm name", value = "Placebo"),
           shiny::selectInput(ns("cs_endpoint"), "Endpoint", choices = c(
             "Binary" = "binary", "Continuous" = "continuous"
           ))
         ),
-        rbext_fields(
+        bexte_fields(
           shiny::selectInput(ns("cs_null_space"), "Null hypothesis direction", choices = c(
             "Effect at or below boundary" = "left",
             "Effect at or above boundary" = "right"
@@ -41,83 +41,83 @@ mod_configure_ui <- function(id) {
           shiny::numericInput(ns("cs_theta_0"), "Null hypothesis boundary (θ₀)", value = 0)
         ),
 
-        rbext_subhead("Target study"),
-        rbext_fields(
+        bexte_subhead("Target study"),
+        bexte_fields(
           shiny::numericInput(ns("cs_target_control_n"), "Control sample size", value = 50, min = 1, step = 1),
           shiny::numericInput(ns("cs_target_treatment_n"), "Treatment sample size", value = 50, min = 1, step = 1)
         ),
         shiny::conditionalPanel(
           "input.cs_endpoint == 'binary'", ns = ns,
-          rbext_fields(
+          bexte_fields(
             shiny::numericInput(ns("cs_target_control_resp"), "Control responses", value = 20, min = 0, max = 50, step = 1),
             shiny::numericInput(ns("cs_target_treatment_resp"), "Treatment responses", value = 30, min = 0, max = 50, step = 1)
           )
         ),
         shiny::conditionalPanel(
           "input.cs_endpoint == 'continuous'", ns = ns,
-          rbext_fields(
+          bexte_fields(
             shiny::numericInput(ns("cs_target_effect"), "Treatment effect", value = 0.1),
             shiny::numericInput(ns("cs_target_se"), "Standard error", value = 0.1, min = 1e-12)
           )
         ),
 
-        rbext_subhead("Source study"),
-        rbext_fields(
+        bexte_subhead("Source study"),
+        bexte_fields(
           shiny::numericInput(ns("cs_source_control_n"), "Control sample size", value = 200, min = 1, step = 1),
           shiny::numericInput(ns("cs_source_treatment_n"), "Treatment sample size", value = 200, min = 1, step = 1)
         ),
         shiny::conditionalPanel(
           "input.cs_endpoint == 'binary'", ns = ns,
-          rbext_fields(
+          bexte_fields(
             shiny::numericInput(ns("cs_source_control_resp"), "Control responses", value = 80, min = 0, max = 200, step = 1),
             shiny::numericInput(ns("cs_source_treatment_resp"), "Treatment responses", value = 110, min = 0, max = 200, step = 1)
           )
         ),
         shiny::conditionalPanel(
           "input.cs_endpoint == 'continuous'", ns = ns,
-          rbext_fields(
+          bexte_fields(
             shiny::numericInput(ns("cs_source_effect"), "Treatment effect", value = 0.1),
             shiny::numericInput(ns("cs_source_se"), "Standard error", value = 0.07, min = 1e-12)
           )
         ),
 
         shiny::div(
-          class = "rbext-actions",
-          rbext_action_button(ns("save_case_study"), "Save case study", class = "btn-primary")
+          class = "bexte-actions",
+          bexte_action_button(ns("save_case_study"), "Save case study", class = "btn-primary")
         ),
         shiny::uiOutput(ns("case_study_status"))
       )
     ),
 
-    rbext_step(
+    bexte_step(
       2, "Case studies and methods to compare",
       note = "Everything selected here is run against every scenario in the grid below.",
-      rbext_split(
+      bexte_split(
         shiny::uiOutput(ns("case_studies_picker")),
         shiny::checkboxGroupInput(ns("methods"), "Methods to compare", choices = NULL)
       ),
       shiny::uiOutput(ns("method_params_ui"))
     ),
 
-    rbext_step(
+    bexte_step(
       3, "Scenario grid",
       note = "The simulation runs every combination of these settings, for each case study and method.",
-      rbext_fields(
+      bexte_fields(
         shiny::numericInput(ns("n_replicates"), "Monte Carlo replicates", value = 1000, min = 1, step = 1),
         shiny::numericInput(ns("ndrift"), "Number of drift points", value = 15, min = 1, step = 1),
         shiny::textInput(ns("sample_size_factors"), "Sample size factors", value = "1, 2, 4"),
         shiny::textInput(ns("denominator_change_factor"), "Denominator change factor", value = "1"),
         shiny::textInput(ns("target_to_source_std_ratio_range"), "Target/source SD ratio range", value = "1")
       ),
-      shiny::p(class = "rbext-note", "Enter multiple factor or ratio values separated by commas."),
+      shiny::p(class = "bexte-note", "Enter multiple factor or ratio values separated by commas."),
       shiny::uiOutput(ns("workload_preview")),
       shiny::checkboxInput(ns("parallelization"), "Run scenarios in parallel", value = FALSE)
     ),
 
-    rbext_step(
+    bexte_step(
       4, "MCMC settings",
       note = "Used only by the methods that need sampling: RMP, NPP, commensurate power prior and friends.",
-      rbext_fields(
+      bexte_fields(
         shiny::numericInput(ns("num_chains"), "MCMC chains", value = 4, min = 1, step = 1),
         shiny::numericInput(ns("chain_length"), "Iterations per chain", value = 2000, min = 1, step = 1),
         shiny::numericInput(ns("tune"), "Warm-up iterations", value = 1000, min = 0, step = 1),
@@ -126,15 +126,15 @@ mod_configure_ui <- function(id) {
       )
     ),
 
-    rbext_step(
+    bexte_step(
       5, "Save the environment",
       note = "Saved environments live in user_configs/ and appear in the Run tab.",
-      rbext_fields(
-        rbext_name_input(ns("env_name"), "Environment name")
+      bexte_fields(
+        bexte_name_input(ns("env_name"), "Environment name")
       ),
       shiny::div(
-        class = "rbext-actions",
-        rbext_action_button(ns("save_env"), "Save environment", class = "btn-primary")
+        class = "bexte-actions",
+        bexte_action_button(ns("save_env"), "Save environment", class = "btn-primary")
       ),
       shiny::uiOutput(ns("env_status"))
     )
@@ -167,7 +167,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
     shiny::observe({
       methods <- names(methods_template)
       shiny::updateCheckboxGroupInput(
-        session, "methods", choices = rbext_method_choices(methods),
+        session, "methods", choices = bexte_method_choices(methods),
         selected = intersect(input$methods %||% character(), methods)
       )
     })
@@ -180,7 +180,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
     })
 
     validate_case_study_form <- function() {
-      rbext_validate_name(input$cs_name, "case study")
+      bexte_validate_name(input$cs_name, "case study")
       if (is.null(input$cs_control_arm) || !nzchar(trimws(input$cs_control_arm))) {
         stop("Control arm name cannot be empty.", call. = FALSE)
       }
@@ -191,9 +191,9 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
         "Source treatment sample size" = input$cs_source_treatment_n
       )
       invisible(Map(function(value, label) {
-        rbext_validate_number(value, label, min = 1, whole = TRUE)
+        bexte_validate_number(value, label, min = 1, whole = TRUE)
       }, sample_sizes, names(sample_sizes)))
-      rbext_validate_number(input$cs_theta_0, "Null hypothesis boundary")
+      bexte_validate_number(input$cs_theta_0, "Null hypothesis boundary")
 
       if (identical(input$cs_endpoint, "binary")) {
         response_specs <- list(
@@ -203,13 +203,13 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
           list(input$cs_source_treatment_resp, "Source treatment responses", input$cs_source_treatment_n)
         )
         invisible(lapply(response_specs, function(spec) {
-          rbext_validate_number(spec[[1]], spec[[2]], min = 0, max = spec[[3]], whole = TRUE)
+          bexte_validate_number(spec[[1]], spec[[2]], min = 0, max = spec[[3]], whole = TRUE)
         }))
       } else {
-        rbext_validate_number(input$cs_target_effect, "Target treatment effect")
-        rbext_validate_number(input$cs_source_effect, "Source treatment effect")
-        rbext_validate_number(input$cs_target_se, "Target standard error", min = 0, strict_min = TRUE)
-        rbext_validate_number(input$cs_source_se, "Source standard error", min = 0, strict_min = TRUE)
+        bexte_validate_number(input$cs_target_effect, "Target treatment effect")
+        bexte_validate_number(input$cs_source_effect, "Source treatment effect")
+        bexte_validate_number(input$cs_target_se, "Target standard error", min = 0, strict_min = TRUE)
+        bexte_validate_number(input$cs_source_se, "Source standard error", min = 0, strict_min = TRUE)
       }
       invisible(TRUE)
     }
@@ -224,7 +224,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
             sprintf("A case study named '%s' already exists. Saving will replace it with these values.", input$cs_name),
             footer = shiny::tagList(
               shiny::modalButton("Keep existing"),
-              rbext_action_button(ns("confirm_case_study_overwrite"), "Replace case study", class = "btn-danger")
+              bexte_action_button(ns("confirm_case_study_overwrite"), "Replace case study", class = "btn-danger")
             ),
             easyClose = FALSE
           ))
@@ -257,7 +257,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
         list(ok = TRUE, message = sprintf("Saved and selected '%s' for this environment.", input$cs_name))
       }, error = function(e) list(ok = FALSE, message = conditionMessage(e)))
       if (is.null(status)) return(invisible(NULL))
-      output$case_study_status <- shiny::renderUI(rbext_status(status$message, ok = status$ok))
+      output$case_study_status <- shiny::renderUI(bexte_status(status$message, ok = status$ok))
       invisible(NULL)
     }
 
@@ -345,13 +345,13 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
           }
         })
         bslib::card(
-          bslib::card_header(rbext_method_label(method)),
+          bslib::card_header(bexte_method_label(method)),
           bslib::card_body(rows)
         )
       })
       shiny::tagList(
-        rbext_subhead("Parameter ranges to test"),
-        shiny::div(class = "rbext-card-grid", panels)
+        bexte_subhead("Parameter ranges to test"),
+        shiny::div(class = "bexte-card-grid", panels)
       )
     })
 
@@ -386,7 +386,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
 
     build_environment_form <- function(require_name = TRUE) {
       if (require_name) {
-        rbext_validate_name(input$env_name, "environment")
+        bexte_validate_name(input$env_name, "environment")
       }
       if (is.null(input$case_studies) || length(input$case_studies) == 0) {
         stop("Select at least one case study in step 2.", call. = FALSE)
@@ -395,19 +395,19 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
         stop("Select at least one method in step 2.", call. = FALSE)
       }
 
-      rbext_validate_number(input$n_replicates, "Monte Carlo replicates", min = 1, whole = TRUE)
-      rbext_validate_number(input$ndrift, "Number of drift points", min = 1, whole = TRUE)
-      rbext_validate_number(input$num_chains, "MCMC chains", min = 1, whole = TRUE)
-      rbext_validate_number(input$chain_length, "Iterations per chain", min = 1, whole = TRUE)
-      rbext_validate_number(input$tune, "Warm-up iterations", min = 0, whole = TRUE)
-      rbext_validate_number(input$target_ess, "Target effective sample size", min = 1, whole = TRUE)
-      rbext_validate_number(input$rhat_threshold, "Rhat threshold", min = 1)
+      bexte_validate_number(input$n_replicates, "Monte Carlo replicates", min = 1, whole = TRUE)
+      bexte_validate_number(input$ndrift, "Number of drift points", min = 1, whole = TRUE)
+      bexte_validate_number(input$num_chains, "MCMC chains", min = 1, whole = TRUE)
+      bexte_validate_number(input$chain_length, "Iterations per chain", min = 1, whole = TRUE)
+      bexte_validate_number(input$tune, "Warm-up iterations", min = 0, whole = TRUE)
+      bexte_validate_number(input$target_ess, "Target effective sample size", min = 1, whole = TRUE)
+      bexte_validate_number(input$rhat_threshold, "Rhat threshold", min = 1)
 
-      sample_sizes <- rbext_parse_number_list(input$sample_size_factors, "Sample size factors")
-      denominator_changes <- rbext_parse_number_list(
+      sample_sizes <- bexte_parse_number_list(input$sample_size_factors, "Sample size factors")
+      denominator_changes <- bexte_parse_number_list(
         input$denominator_change_factor, "Denominator change factor"
       )
-      std_ratios <- rbext_parse_number_list(
+      std_ratios <- bexte_parse_number_list(
         input$target_to_source_std_ratio_range, "Target/source SD ratio range"
       )
       methods <- build_methods_dict_selected()
@@ -446,7 +446,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
     output$workload_preview <- shiny::renderUI({
       if (length(input$case_studies %||% character()) == 0 ||
           length(input$methods %||% character()) == 0) {
-        return(shiny::p(class = "rbext-note", "Select case studies and methods to preview the workload."))
+        return(shiny::p(class = "bexte-note", "Select case studies and methods to preview the workload."))
       }
       tryCatch({
         values <- build_environment_form(require_name = FALSE)
@@ -456,11 +456,11 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
           values$parsed$std_ratios, input$n_replicates
         )
         shiny::div(
-          class = "rbext-workload", role = "status", `aria-live` = "polite",
+          class = "bexte-workload", role = "status", `aria-live` = "polite",
           shiny::strong(sprintf("About %s scenarios", format(workload$scenarios, big.mark = ","))),
           shiny::span(sprintf(" · %s Monte Carlo evaluations", format(workload$evaluations, big.mark = ",")))
         )
-      }, error = function(e) rbext_status(conditionMessage(e), ok = FALSE))
+      }, error = function(e) bexte_status(conditionMessage(e), ok = FALSE))
     })
 
     save_environment_form <- function(overwrite = FALSE) {
@@ -473,7 +473,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
             sprintf("An environment named '%s' already exists. Saving will replace its configuration.", input$env_name),
             footer = shiny::tagList(
               shiny::modalButton("Keep existing"),
-              rbext_action_button(ns("confirm_env_overwrite"), "Replace environment", class = "btn-danger")
+              bexte_action_button(ns("confirm_env_overwrite"), "Replace environment", class = "btn-danger")
             ),
             easyClose = FALSE
           ))
@@ -487,7 +487,7 @@ mod_configure_server <- function(id, on_env_saved = NULL) {
         list(ok = TRUE, message = sprintf("Saved '%s'. Launch it from the Run tab.", input$env_name))
       }, error = function(e) list(ok = FALSE, message = conditionMessage(e)))
       if (is.null(status)) return(invisible(NULL))
-      output$env_status <- shiny::renderUI(rbext_status(status$message, ok = status$ok))
+      output$env_status <- shiny::renderUI(bexte_status(status$message, ok = status$ok))
       invisible(NULL)
     }
 

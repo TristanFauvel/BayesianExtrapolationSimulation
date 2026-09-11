@@ -1,7 +1,7 @@
 # R Bayesian Extrapolation Tool
 
-[![R Package Build](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/build.yml)
-[![pkgdown](https://github.com/TristanFauvel/BayesianExtrapolationSimulation/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BayesianExtrapolationSimulation/)
+[![R Package Build](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml/badge.svg)](https://github.com/TristanFauvel/BExTE/actions/workflows/build.yml)
+[![pkgdown](https://github.com/TristanFauvel/BExTE/actions/workflows/pkgdown.yml/badge.svg)](https://tristanfauvel.github.io/BExTE/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.0.2-blue.svg)](DESCRIPTION)
 [![R >= 3.5.0](https://img.shields.io/badge/R-%3E%3D3.5.0-276DC3.svg)](https://www.r-project.org/)
@@ -30,22 +30,22 @@ Copyright 2024 Quinten Health, under exclusive licence to the European Medicines
 
 ### Installation
 
-RBExT needs R >= 4.0 and, for the MCMC-based methods, a C++ toolchain and a
+BExTE needs R >= 4.0 and, for the MCMC-based methods, a C++ toolchain and a
 CmdStan installation - the Stan models are compiled to native binaries the
 first time they are used. `install.R` handles all three.
 
-Download `RBExT_0.0.2.tar.gz` and `install.R` from the latest release into the
+Download `BExTE_0.0.2.tar.gz` and `install.R` from the latest release into the
 same directory, then run:
 
 ```
 Rscript install.R
 ```
 
-That installs the dependencies, RBExT itself, and CmdStan if it is missing.
+That installs the dependencies, BExTE itself, and CmdStan if it is missing.
 Load the package with:
 
 ```r
-library(RBExT)
+library(BExTE)
 ```
 
 <details>
@@ -59,7 +59,7 @@ options(repos = c(
   CRAN = "https://cloud.r-project.org",
   stan = "https://stan-dev.r-universe.dev"
 ))
-install.packages("/path/to/RBExT_0.0.2.tar.gz", repos = NULL, type = "source")
+install.packages("/path/to/BExTE_0.0.2.tar.gz", repos = NULL, type = "source")
 cmdstanr::check_cmdstan_toolchain(fix = TRUE)
 cmdstanr::install_cmdstan()
 ```
@@ -92,34 +92,34 @@ Instead of hand-editing config files and running the scripts above, you can
 configure, run, and analyze a simulation study from a browser:
 
 ```r
-library(RBExT)
-run_rbext_app()
+library(BExTE)
+run_bexte_app()
 ```
 
 The app works out of a *workspace* directory, where `results/`, `logs/` and
 `user_configs/` live. Launched from a source checkout it uses the checkout, so
 results land next to the ones `main.R` produces; installed from a release
-tarball it uses a per-user directory under `tools::R_user_dir("RBExT", "data")`.
-Either way the path is reported when the app starts, and `run_rbext_app()`
+tarball it uses a per-user directory under `tools::R_user_dir("BExTE", "data")`.
+Either way the path is reported when the app starts, and `run_bexte_app()`
 takes an explicit one:
 
 ```r
-run_rbext_app(workspace = "~/rbext-studies")
+run_bexte_app(workspace = "~/bexte-studies")
 ```
 
-On Linux, `install.R` also adds an **RBExT** entry to the application menu, so
-the app can be started without an R session. `create_rbext_shortcut()` rewrites
+On Linux, `install.R` also adds an **BExTE** entry to the application menu, so
+the app can be started without an R session. `create_bexte_shortcut()` rewrites
 it, optionally pinned to a workspace:
 
 ```r
-create_rbext_shortcut(workspace = "~/rbext-studies")
+create_bexte_shortcut(workspace = "~/bexte-studies")
 ```
 
 The entry opens a terminal, which is where the workspace path and the progress
 of a run appear, and where Ctrl+C stops the app.
 
 When developing against a checkout, `devtools::load_all()` replaces
-`library(RBExT)`.
+`library(BExTE)`.
 
 This opens a local Shiny app with three tabs:
 
@@ -134,7 +134,7 @@ Source data are defined based on the case study configuration. Target data depen
 
 ## Access documentation
 
-The full documentation website is available at [tristanfauvel.github.io/BayesianExtrapolationSimulation](https://tristanfauvel.github.io/BayesianExtrapolationSimulation/).
+The full documentation website is available at [tristanfauvel.github.io/BExTE](https://tristanfauvel.github.io/BExTE/).
 
 To access it locally instead :
 browseURL("docs/index.html")

@@ -4,7 +4,7 @@
 # config_dir <- paste0("../../inst/conf/", env, "/")
 # case_studies_config_dir <- "../../inst/conf/case_studies/"
 # results_dir <- paste0("../../results/", env, "/")
-# outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+# outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
 # ocs_filename_frequentist <- outputs_config$csv_filenames[1]
 # test_results_metrics_df <- read_csv(paste0(results_dir, "/", ocs_filename_frequentist))
 

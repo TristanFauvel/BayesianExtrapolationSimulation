@@ -1,4 +1,4 @@
-library(RBExT)
+library(BExTE)
 
 devtools::load_all()
 results_dir <- "./results/combined"

@@ -7,7 +7,7 @@
 
 mod_run_ui <- function(id) {
   ns <- shiny::NS(id)
-  rbext_page(
+  bexte_page(
     shiny::tags$h1("Run simulation", class = "visually-hidden"),
     bslib::layout_sidebar(
       sidebar = bslib::sidebar(
@@ -19,7 +19,7 @@ mod_run_ui <- function(id) {
         shiny::uiOutput(ns("run_workload")),
         shiny::uiOutput(ns("run_actions")),
         shiny::p(
-          class = "rbext-note",
+          class = "bexte-note",
           "The run happens in a separate R process, so you can keep working in ",
           "the other tabs while it goes."
         )
@@ -67,14 +67,14 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
     output$run_workload <- shiny::renderUI({
       env <- input$env
       if (is.null(env) || !nzchar(env)) {
-        return(shiny::p(class = "rbext-note", "No runnable environments are available."))
+        return(shiny::p(class = "bexte-note", "No runnable environments are available."))
       }
       total <- estimate_total_scenarios(env)
       if (is.na(total)) {
-        return(shiny::p(class = "rbext-note", "Workload estimate unavailable for this environment."))
+        return(shiny::p(class = "bexte-note", "Workload estimate unavailable for this environment."))
       }
       shiny::div(
-        class = "rbext-workload",
+        class = "bexte-workload",
         shiny::strong(sprintf("About %s scenarios", format(total, big.mark = ",")))
       )
     })
@@ -103,7 +103,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
     shiny::observeEvent(input$launch, {
       env <- input$env
       if (is.null(env) || !nzchar(env)) return(NULL)
-      if (rbext_has_results(env)) {
+      if (bexte_has_results(env)) {
         pending_launch_env(env)
         total <- estimate_total_scenarios(env)
         estimate_text <- if (is.na(total)) "" else sprintf(" The new run contains about %s scenarios.", format(total, big.mark = ","))
@@ -112,7 +112,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
           sprintf("Results already exist for '%s'. Launching will permanently replace them.%s", env, estimate_text),
           footer = shiny::tagList(
             shiny::modalButton("Keep existing results"),
-            rbext_action_button(session$ns("confirm_launch"), "Replace and launch", class = "btn-danger")
+            bexte_action_button(session$ns("confirm_launch"), "Replace and launch", class = "btn-danger")
           ),
           easyClose = FALSE
         ))
@@ -135,7 +135,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
           "Completed work from the current run may be incomplete and will not be available for analysis.",
           footer = shiny::tagList(
             shiny::modalButton("Continue running"),
-            rbext_action_button(session$ns("confirm_cancel"), "Cancel run", class = "btn-danger")
+            bexte_action_button(session$ns("confirm_cancel"), "Cancel run", class = "btn-danger")
           ),
           easyClose = FALSE
         ))
@@ -226,7 +226,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
     output$status <- shiny::renderUI({
       p <- poll()
       if (is.null(p)) {
-        return(rbext_empty("Pick an environment and launch it to see progress here."))
+        return(bexte_empty("Pick an environment and launch it to see progress here."))
       }
       elapsed <- difftime(Sys.time(), state$start_time, units = "secs")
       progress_pct <- if (is.na(p$total) || p$total == 0) {
@@ -236,11 +236,11 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
       }
 
       state_pill <- if (p$alive) {
-        rbext_state("Running", "live")
+        bexte_state("Running", "live")
       } else if (identical(p$exit_status, 0L)) {
-        rbext_state("Finished", "done")
+        bexte_state("Finished", "done")
       } else {
-        rbext_state("Failed", "failed")
+        bexte_state("Failed", "failed")
       }
 
       caption <- if (p$alive) {
@@ -253,16 +253,16 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
 
       shiny::tagList(
         shiny::div(
-          class = "rbext-readout",
+          class = "bexte-readout",
           state_pill,
-          shiny::span(class = "rbext-muted", caption)
+          shiny::span(class = "bexte-muted", caption)
         ),
         shiny::div(
-          class = "rbext-readout",
+          class = "bexte-readout",
           style = "margin-top: 1rem;",
-          rbext_metric(format_elapsed(elapsed), "Elapsed"),
-          rbext_metric(format(p$rows, big.mark = ","), "Scenarios simulated"),
-          rbext_metric(
+          bexte_metric(format_elapsed(elapsed), "Elapsed"),
+          bexte_metric(format(p$rows, big.mark = ","), "Scenarios simulated"),
+          bexte_metric(
             if (is.na(progress_pct)) "--" else paste0(progress_pct, "%"),
             if (is.na(progress_pct)) "Share of run" else sprintf("of ~%s expected", format(p$total, big.mark = ","))
           )
@@ -285,7 +285,7 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
           )
         },
         if (!p$alive && !identical(p$exit_status, 0L) && !is.null(p$error_message)) {
-          shiny::tags$pre(class = "rbext-trace", p$error_message)
+          shiny::tags$pre(class = "bexte-trace", p$error_message)
         }
       )
     })
@@ -300,12 +300,12 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
         candidates <- candidates[file.mtime(candidates) >= state$start_time]
       }
       if (length(candidates) == 0) {
-        return(rbext_empty("The log appears once a run starts writing to it."))
+        return(bexte_empty("The log appears once a run starts writing to it."))
       }
       log_file <- candidates[which.max(file.mtime(candidates))]
       lines <- tryCatch(readLines(log_file, warn = FALSE), error = function(e) character(0))
       shiny::tags$pre(
-        class = "rbext-log", `aria-label` = "Latest simulation log", `aria-live` = "polite",
+        class = "bexte-log", `aria-label` = "Latest simulation log", `aria-live` = "polite",
         paste(utils::tail(lines, 25), collapse = "\n")
       )
     })
@@ -315,10 +315,10 @@ mod_run_server <- function(id, on_run_complete = NULL, env_saved = NULL) {
       alive <- !is.null(p) && isTRUE(p$alive)
       no_env <- is.null(input$env) || !nzchar(input$env)
       shiny::div(
-        class = "rbext-actions",
-        rbext_action_button(session$ns("launch"), "Launch run", class = "btn-primary",
+        class = "bexte-actions",
+        bexte_action_button(session$ns("launch"), "Launch run", class = "btn-primary",
                             disabled = alive || no_env),
-        rbext_action_button(session$ns("cancel"), "Cancel run", class = "btn-danger",
+        bexte_action_button(session$ns("cancel"), "Cancel run", class = "btn-danger",
                             disabled = !alive)
       )
     })

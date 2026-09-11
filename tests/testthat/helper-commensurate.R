@@ -21,7 +21,7 @@ commensurate_model <- function(prior, mcmc_config = commensurate_mcmc_config()) 
   model <- testthat::with_mocked_bindings(
     GaussianCommensuratePowerPrior$new(prior = prior, mcmc_config = mcmc_config),
     compile_stan_model = function(...) NULL,
-    .package = "RBExT"
+    .package = "BExTE"
   )
   # Model$create() normally installs the prior after constructing the subclass.
   model$prior <- prior

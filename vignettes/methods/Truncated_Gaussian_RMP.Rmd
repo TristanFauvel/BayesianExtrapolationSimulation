@@ -14,7 +14,7 @@ vignette: >
   %\VignetteIndexEntry{Introduction to MyPackage}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{RBExT, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2}
 ---
 
 ## Introduction
@@ -29,7 +29,7 @@ root <- dirname(dirname(getwd()))
 knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 library(cmdstanr)
 ```
@@ -38,11 +38,11 @@ library(cmdstanr)
 
 ```{r} 
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 case_study <- "aprepitant"
-config_path <- system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 
 source_data <- ObservedSourceData$new(case_study_config)
@@ -345,7 +345,7 @@ method_parameters <- list(
 )
 
 env <- "full"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 mcmc_config <- yaml::read_yaml(paste0(config_dir, "/mcmc_config.yml"))
 
 separate_model <- Model$new()

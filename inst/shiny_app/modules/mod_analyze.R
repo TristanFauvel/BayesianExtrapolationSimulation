@@ -10,7 +10,7 @@
 ## (exactly as inst/scripts/plots.R does). They also now return the ggplot
 ## object(s) they built (a single plot, or a named list when a function loops
 ## over several parameter combinations), which this module wraps with
-## rbext_plotly() for interactive zoom/hover/pan in the app's colours. The
+## bexte_plotly() for interactive zoom/hover/pan in the app's colours. The
 ## PDF/PNG files are still written as a side effect - useful if you want a
 ## publication-quality static export - under the path shown below each chart.
 
@@ -27,7 +27,7 @@ ANALYZE_PLOT_KINDS <- c(
 
 ## Plot kinds rendered as a static image (forest_plot()/forest_plot_bayesian()
 ## build a multi-panel gtable via gridExtra::grid.arrange(), not a single
-## ggplot object, so they can't go through rbext_plotly() like the other
+## ggplot object, so they can't go through bexte_plotly() like the other
 ## plot_*() functions) rather than through the interactive plotly pipeline.
 ANALYZE_IMAGE_PLOT_KINDS <- c("forest_plot", "bayes_forest_plot")
 
@@ -57,7 +57,7 @@ metric_choices_for_kind <- function(plot_kind) {
   fallback_labels <- vapply(metrics_list, function(m) m$label, character(1))
   stats::setNames(
     metric_names,
-    mapply(function(name, fallback) rbext_metric_label(name, fallback), metric_names, fallback_labels,
+    mapply(function(name, fallback) bexte_metric_label(name, fallback), metric_names, fallback_labels,
            USE.NAMES = FALSE)
   )
 }
@@ -99,7 +99,7 @@ narrow_for_forest_plot <- function(df, case_study, sample_size) {
 #' the light/dark toggle moves, not only when the user asks for a new plot:
 #' unlike the plotly charts, a PNG cannot be recoloured after the fact.
 forest_image_for_mode <- function(plot_kind, df, metric, mode) {
-  palette <- rbext_plot_palette(mode)
+  palette <- bexte_plot_palette(mode)
   switch(plot_kind,
     forest_plot = forest_plot(df, metric, palette = palette),
     bayes_forest_plot = forest_plot_bayesian(df, metric, palette = palette)
@@ -107,7 +107,7 @@ forest_image_for_mode <- function(plot_kind, df, metric, mode) {
 }
 
 analyze_figures_dir <- function(session_token) {
-  dir <- file.path(tempdir(), "rbext_shiny_figures", session_token, "")
+  dir <- file.path(tempdir(), "bexte_shiny_figures", session_token, "")
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
   dir
 }
@@ -170,8 +170,8 @@ mod_analyze_ui <- function(id) {
       open = list(desktop = "always", mobile = "always-above"),
       shiny::selectInput(ns("results_dir"), "Results set", choices = NULL, width = "100%"),
       shiny::div(
-        class = "rbext-actions",
-        rbext_action_button(ns("refresh_dirs"), "Refresh results")
+        class = "bexte-actions",
+        bexte_action_button(ns("refresh_dirs"), "Refresh results")
       ),
       shiny::uiOutput(ns("loaded_status")),
       shiny::uiOutput(ns("plot_kind_input")),
@@ -186,7 +186,7 @@ mod_analyze_ui <- function(id) {
       bslib::nav_panel(
         "Table",
         shiny::div(
-          class = "rbext-actions",
+          class = "bexte-actions",
           style = "margin-bottom: 0.75rem;",
           shiny::uiOutput(ns("download_action"))
         ),
@@ -210,7 +210,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
     load_error <- shiny::reactiveVal(NULL)
     plot_busy <- shiny::reactiveVal(FALSE)
     has_plot <- shiny::reactiveVal(FALSE)
-    plot_content <- shiny::reactiveVal(rbext_empty("Choose a plot and generate it to see it here."))
+    plot_content <- shiny::reactiveVal(bexte_empty("Choose a plot and generate it to see it here."))
     ## What the on-screen forest PNG was built from, so it can be rebuilt in the
     ## other colour scheme when the theme toggle moves.
     forest_spec <- shiny::reactiveVal(NULL)
@@ -243,7 +243,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
       loaded(NULL)
       load_error(NULL)
       has_plot(FALSE)
-      plot_content(rbext_empty("Choose a plot and generate it to see it here."))
+      plot_content(bexte_empty("Choose a plot and generate it to see it here."))
       if (is.null(rd) || rd == "") {
         return(invisible(NULL))
       }
@@ -261,15 +261,15 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
     })
 
     output$loaded_status <- shiny::renderUI({
-      if (!is.null(load_error())) return(rbext_status(load_error(), ok = FALSE))
+      if (!is.null(load_error())) return(bexte_status(load_error(), ok = FALSE))
       l <- loaded()
       if (is.null(l)) {
-        return(shiny::p(class = "rbext-note", "Choose a results set to begin."))
+        return(shiny::p(class = "bexte-note", "Choose a results set to begin."))
       }
       files <- "Frequentist results"
       if (!is.null(l$data$bayes_simpson)) files <- paste(files, "and Bayesian results")
       shiny::div(
-        class = "rbext-loaded", role = "status",
+        class = "bexte-loaded", role = "status",
         shiny::strong(sprintf("Loaded %s", l$env)),
         shiny::span(files)
       )
@@ -286,7 +286,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
     output$filters <- shiny::renderUI({
       l <- loaded()
       if (is.null(l)) {
-        return(shiny::p(class = "rbext-note", "Load a results directory to filter it."))
+        return(shiny::p(class = "bexte-note", "Load a results directory to filter it."))
       }
       plot_kind <- input$plot_kind %||% ANALYZE_PLOT_KINDS[[1]]
       spec <- PLOT_KIND_FILTERS[[plot_kind]] %||% PLOT_KIND_FILTERS[[1]]
@@ -297,7 +297,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
       shiny::tagList(
         shiny::selectInput(ns("f_case_study"), "Case study", choices = unique(df$case_study)),
         if (spec$method) {
-          shiny::selectInput(ns("f_method"), "Method", choices = rbext_method_choices(unique(df$method)))
+          shiny::selectInput(ns("f_method"), "Method", choices = bexte_method_choices(unique(df$method)))
         },
         shiny::selectInput(ns("f_metric"), "Metric", choices = metric_choices),
         if (spec$sample_size) {
@@ -333,12 +333,12 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
       }
       DT::datatable(
         transform(df, method = if ("method" %in% names(df)) {
-          vapply(method, rbext_method_label, character(1))
+          vapply(method, bexte_method_label, character(1))
         } else NULL),
         style = "bootstrap5",
         class = "table table-sm",
         rownames = FALSE,
-        colnames = unname(vapply(names(df), rbext_column_label, character(1))),
+        colnames = unname(vapply(names(df), bexte_column_label, character(1))),
         options = list(scrollX = TRUE, pageLength = 15)
       )
     })
@@ -359,7 +359,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
     })
 
     output$plot_action <- shiny::renderUI({
-      rbext_action_button(
+      bexte_action_button(
         session$ns("make_plot"),
         if (plot_busy()) "Generating…" else "Generate plot",
         class = "btn-primary",
@@ -368,7 +368,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
     })
 
     output$download_action <- shiny::renderUI({
-      rbext_download_button(
+      bexte_download_button(
         session$ns("download_table"), "Download as CSV", class = "btn-default",
         disabled = is.null(loaded())
       )
@@ -379,7 +379,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
       {
         if (!plot_busy() && !is.null(loaded()) && has_plot()) {
           has_plot(FALSE)
-          plot_content(rbext_empty("Controls changed. Generate the plot to update this view."))
+          plot_content(bexte_empty("Controls changed. Generate the plot to update this view."))
         }
       },
       ignoreInit = TRUE
@@ -424,12 +424,12 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
       shiny::req(case_study, metric)
       if (spec$method) shiny::req(method)
       if (spec$sample_size) shiny::req(sample_size)
-      analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
+      analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
       metric_labels <- metric_choices_for_kind(input$plot_kind)
       metric_label <- names(metric_labels)[match(metric, metric_labels)]
       if (length(metric_label) == 0 || is.na(metric_label)) metric_label <- metric
       context <- paste(
-        c(case_study, if (!is.null(method)) rbext_method_label(method), metric_label),
+        c(case_study, if (!is.null(method)) bexte_method_label(method), metric_label),
         collapse = " · "
       )
       plot_busy(TRUE)
@@ -455,7 +455,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
 
           if (is.null(image_path) || !file.exists(image_path)) {
             shiny::showNotification("No plot produced for this combination of filters (often because too few values vary).", type = "warning")
-            plot_content(rbext_empty("Nothing to plot for these filters. Try another method or metric."))
+            plot_content(bexte_empty("Nothing to plot for these filters. Try another method or metric."))
             forest_spec(NULL)
             has_plot(FALSE)
             return(NULL)
@@ -471,7 +471,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
               bslib::card(
                 style = "margin-bottom: 1rem;",
                 bslib::card_header(
-                  shiny::div(kind_label, shiny::span(class = "rbext-plot-context", context))
+                  shiny::div(kind_label, shiny::span(class = "bexte-plot-context", context))
                 ),
                 bslib::card_body(shiny::imageOutput(ns("forest_image")))
               )
@@ -480,7 +480,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
           has_plot(TRUE)
         }, error = function(e) {
           shiny::showNotification(paste("Plot error:", conditionMessage(e)), type = "error", duration = NULL)
-          plot_content(rbext_empty("The plot could not be generated. Review the filters and try again."))
+          plot_content(bexte_empty("The plot could not be generated. Review the filters and try again."))
           forest_spec(NULL)
           has_plot(FALSE)
         })
@@ -542,17 +542,17 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
             ii <- i
             ## Reading the colour scheme here (rather than baking it in) is
             ## what makes the charts follow the light/dark toggle.
-            output[[plot_ids[ii]]] <- plotly::renderPlotly(rbext_plotly(plots[[ii]], current_mode()))
+            output[[plot_ids[ii]]] <- plotly::renderPlotly(bexte_plotly(plots[[ii]], current_mode()))
           })
         })
 
         plot_content(
-          if (length(plots) == 0) rbext_empty("Nothing to plot for these filters. Try another method or metric.") else shiny::tagList(
+          if (length(plots) == 0) bexte_empty("Nothing to plot for these filters. Try another method or metric.") else shiny::tagList(
             lapply(seq_along(plots), function(i) {
               bslib::card(
                 style = "margin-bottom: 1rem;",
                 bslib::card_header(
-                  shiny::div(plot_names[i], shiny::span(class = "rbext-plot-context", context))
+                  shiny::div(plot_names[i], shiny::span(class = "bexte-plot-context", context))
                 ),
                 bslib::card_body(plotly::plotlyOutput(ns(plot_ids[i])))
               )
@@ -562,7 +562,7 @@ mod_analyze_server <- function(id, just_finished_env = NULL, color_mode = NULL) 
         has_plot(length(plots) > 0)
       }, error = function(e) {
         shiny::showNotification(paste("Plot error:", conditionMessage(e)), type = "error", duration = NULL)
-        plot_content(rbext_empty("The plot could not be generated. Review the filters and try again."))
+        plot_content(bexte_empty("The plot could not be generated. Review the filters and try again."))
         has_plot(FALSE)
       })
       })

@@ -11,7 +11,7 @@
 ## run_progress_path() is relative to the working directory the simulation
 ## runs in, the same convention as ./results/<env>/ and ./logs/<env>/.
 local_run_root <- function(env = parent.frame()) {
-  root <- tempfile("rbext-run")
+  root <- tempfile("bexte-run")
   dir.create(root, recursive = TRUE)
   old <- setwd(root)
   withr::defer(setwd(old), envir = env)

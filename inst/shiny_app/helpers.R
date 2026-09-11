@@ -1,8 +1,8 @@
-## Shared helpers for the RBExT Shiny app.
+## Shared helpers for the BExTE Shiny app.
 ##
 ## Convention: every path here is relative to the repository root, matching
 ## the convention already used by inst/scripts/main.R ("./results/<env>/",
-## "./logs/<env>/"). run_rbext_app() is responsible for making sure the app
+## "./logs/<env>/"). run_bexte_app() is responsible for making sure the app
 ## (and any callr background process it spawns) runs with that as its
 ## working directory.
 
@@ -11,9 +11,9 @@ USER_CASE_STUDIES_DIR <- file.path(USER_CONFIGS_DIR, "case_studies")
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-RBEXT_NAME_PATTERN <- "^[a-z0-9][a-z0-9_-]*$"
+BEXTE_NAME_PATTERN <- "^[a-z0-9][a-z0-9_-]*$"
 
-RBEXT_METHOD_LABELS <- c(
+BEXTE_METHOD_LABELS <- c(
   RMP = "Robust mixture prior (RMP)",
   NPP = "Normalized power prior (NPP)",
   separate = "Separate analysis",
@@ -27,7 +27,7 @@ RBEXT_METHOD_LABELS <- c(
   commensurate_power_prior = "Commensurate power prior"
 )
 
-RBEXT_METRIC_LABELS <- c(
+BEXTE_METRIC_LABELS <- c(
   success_proba = "Study success probability",
   tie = "Type I error",
   coverage = "95% credible interval coverage",
@@ -44,21 +44,21 @@ RBEXT_METRIC_LABELS <- c(
   prior_proba_success = "Prior probability of study success"
 )
 
-rbext_method_label <- function(method) {
-  label <- unname(RBEXT_METHOD_LABELS[method])
+bexte_method_label <- function(method) {
+  label <- unname(BEXTE_METHOD_LABELS[method])
   if (length(label) == 0 || is.na(label)) method else label
 }
 
-rbext_method_choices <- function(methods) {
-  stats::setNames(methods, vapply(methods, rbext_method_label, character(1)))
+bexte_method_choices <- function(methods) {
+  stats::setNames(methods, vapply(methods, bexte_method_label, character(1)))
 }
 
-rbext_metric_label <- function(metric, fallback = metric) {
-  label <- unname(RBEXT_METRIC_LABELS[metric])
+bexte_metric_label <- function(metric, fallback = metric) {
+  label <- unname(BEXTE_METRIC_LABELS[metric])
   if (length(label) == 0 || is.na(label)) fallback else label
 }
 
-rbext_column_label <- function(name) {
+bexte_column_label <- function(name) {
   labels <- c(
     case_study = "Case study", method = "Method",
     target_sample_size_per_arm = "Target sample size per arm",
@@ -68,17 +68,17 @@ rbext_column_label <- function(name) {
   )
   explicit <- unname(labels[name])
   if (length(explicit) > 0 && !is.na(explicit)) return(explicit)
-  metric <- unname(RBEXT_METRIC_LABELS[name])
+  metric <- unname(BEXTE_METRIC_LABELS[name])
   if (length(metric) > 0 && !is.na(metric)) return(metric)
   if (startsWith(name, "mcse_")) {
     metric_name <- sub("^mcse_", "", name)
-    return(paste("Monte Carlo SE for", rbext_metric_label(metric_name, metric_name)))
+    return(paste("Monte Carlo SE for", bexte_metric_label(metric_name, metric_name)))
   }
   if (startsWith(name, "conf_int_")) {
     metric_name <- sub("^conf_int_", "", name)
     bound <- if (endsWith(metric_name, "_lower")) "lower" else if (endsWith(metric_name, "_upper")) "upper" else ""
     metric_name <- sub("_(lower|upper)$", "", metric_name)
-    return(trimws(paste("95% CI", bound, "for", rbext_metric_label(metric_name, metric_name))))
+    return(trimws(paste("95% CI", bound, "for", bexte_metric_label(metric_name, metric_name))))
   }
   label <- tools::toTitleCase(gsub("_", " ", name))
   for (token in c("Mse", "Ess", "Mcse", "Ci", "Fp", "Tp")) {
@@ -87,11 +87,11 @@ rbext_column_label <- function(name) {
   label
 }
 
-rbext_validate_name <- function(value, label) {
+bexte_validate_name <- function(value, label) {
   if (is.null(value) || length(value) != 1 || !nzchar(value)) {
     stop(sprintf("Give the %s a name.", label), call. = FALSE)
   }
-  if (!grepl(RBEXT_NAME_PATTERN, value)) {
+  if (!grepl(BEXTE_NAME_PATTERN, value)) {
     stop(sprintf(
       "%s must start with a lowercase letter or number and use only lowercase letters, numbers, hyphens or underscores.",
       tools::toTitleCase(label)
@@ -100,7 +100,7 @@ rbext_validate_name <- function(value, label) {
   invisible(value)
 }
 
-rbext_validate_number <- function(value, label, min = -Inf, max = Inf,
+bexte_validate_number <- function(value, label, min = -Inf, max = Inf,
                                   whole = FALSE, strict_min = FALSE) {
   if (length(value) != 1 || is.null(value) || is.na(value) || !is.finite(value)) {
     stop(sprintf("%s must be a number.", label), call. = FALSE)
@@ -117,7 +117,7 @@ rbext_validate_number <- function(value, label, min = -Inf, max = Inf,
   invisible(value)
 }
 
-rbext_parse_number_list <- function(text, label, positive = TRUE) {
+bexte_parse_number_list <- function(text, label, positive = TRUE) {
   if (is.null(text) || length(text) != 1 || !nzchar(trimws(text))) {
     stop(sprintf("%s needs at least one value.", label), call. = FALSE)
   }
@@ -135,12 +135,12 @@ rbext_parse_number_list <- function(text, label, positive = TRUE) {
   values
 }
 
-rbext_has_results <- function(env) {
+bexte_has_results <- function(env) {
   dir <- file.path("results", env)
   dir.exists(dir) && length(list.files(dir, all.files = TRUE, no.. = TRUE)) > 0
 }
 
-rbext_ensure_user_dirs <- function() {
+bexte_ensure_user_dirs <- function() {
   dir.create(USER_CASE_STUDIES_DIR, showWarnings = FALSE, recursive = TRUE)
 }
 
@@ -156,7 +156,7 @@ rbext_ensure_user_dirs <- function() {
 #' labelled "user" once its content actually diverges from the package
 #' original - otherwise it's still shown as "package".
 list_case_studies <- function() {
-  pkg_dir <- system.file("conf/case_studies", package = "RBExT")
+  pkg_dir <- system.file("conf/case_studies", package = "BExTE")
   pkg_files <- list.files(pkg_dir, pattern = "\\.yml$", full.names = FALSE)
   user_files <- if (dir.exists(USER_CASE_STUDIES_DIR)) {
     list.files(USER_CASE_STUDIES_DIR, pattern = "\\.yml$", full.names = FALSE)
@@ -196,7 +196,7 @@ case_study_path <- function(name) {
   if (file.exists(user_path)) {
     return(user_path)
   }
-  system.file(file.path("conf/case_studies", paste0(name, ".yml")), package = "RBExT")
+  system.file(file.path("conf/case_studies", paste0(name, ".yml")), package = "BExTE")
 }
 
 read_case_study <- function(name) {
@@ -218,7 +218,7 @@ build_and_save_case_study <- function(name, control_arm_name, endpoint, null_spa
                                        target_treatment_effect = NULL, target_standard_error = NULL,
                                        source_treatment_effect = NULL, source_standard_error = NULL,
                                        theta_0 = 0) {
-  rbext_validate_name(name, "case study")
+  bexte_validate_name(name, "case study")
   if (is.null(control_arm_name) || !nzchar(trimws(control_arm_name))) {
     stop("Control arm name cannot be empty.", call. = FALSE)
   }
@@ -228,22 +228,22 @@ build_and_save_case_study <- function(name, control_arm_name, endpoint, null_spa
   if (!(null_space %in% c("left", "right"))) {
     stop("Null space must be left or right.", call. = FALSE)
   }
-  rbext_validate_number(theta_0, "Null hypothesis boundary")
-  rbext_validate_number(target_control_n, "Target control sample size", min = 1, whole = TRUE)
-  rbext_validate_number(target_treatment_n, "Target treatment sample size", min = 1, whole = TRUE)
-  rbext_validate_number(source_control_n, "Source control sample size", min = 1, whole = TRUE)
-  rbext_validate_number(source_treatment_n, "Source treatment sample size", min = 1, whole = TRUE)
+  bexte_validate_number(theta_0, "Null hypothesis boundary")
+  bexte_validate_number(target_control_n, "Target control sample size", min = 1, whole = TRUE)
+  bexte_validate_number(target_treatment_n, "Target treatment sample size", min = 1, whole = TRUE)
+  bexte_validate_number(source_control_n, "Source control sample size", min = 1, whole = TRUE)
+  bexte_validate_number(source_treatment_n, "Source treatment sample size", min = 1, whole = TRUE)
 
-  rbext_ensure_user_dirs()
+  bexte_ensure_user_dirs()
 
   if (endpoint == "binary") {
-    rbext_validate_number(target_control_responses, "Target control responses", min = 0,
+    bexte_validate_number(target_control_responses, "Target control responses", min = 0,
                           max = target_control_n, whole = TRUE)
-    rbext_validate_number(target_treatment_responses, "Target treatment responses", min = 0,
+    bexte_validate_number(target_treatment_responses, "Target treatment responses", min = 0,
                           max = target_treatment_n, whole = TRUE)
-    rbext_validate_number(source_control_responses, "Source control responses", min = 0,
+    bexte_validate_number(source_control_responses, "Source control responses", min = 0,
                           max = source_control_n, whole = TRUE)
-    rbext_validate_number(source_treatment_responses, "Source treatment responses", min = 0,
+    bexte_validate_number(source_treatment_responses, "Source treatment responses", min = 0,
                           max = source_treatment_n, whole = TRUE)
     summary_measure_likelihood <- "binomial"
 
@@ -276,10 +276,10 @@ build_and_save_case_study <- function(name, control_arm_name, endpoint, null_spa
       standard_error = source_standard_error
     )
   } else if (endpoint == "continuous") {
-    rbext_validate_number(target_treatment_effect, "Target treatment effect")
-    rbext_validate_number(source_treatment_effect, "Source treatment effect")
-    rbext_validate_number(target_standard_error, "Target standard error", min = 0, strict_min = TRUE)
-    rbext_validate_number(source_standard_error, "Source standard error", min = 0, strict_min = TRUE)
+    bexte_validate_number(target_treatment_effect, "Target treatment effect")
+    bexte_validate_number(source_treatment_effect, "Source treatment effect")
+    bexte_validate_number(target_standard_error, "Target standard error", min = 0, strict_min = TRUE)
+    bexte_validate_number(source_standard_error, "Source standard error", min = 0, strict_min = TRUE)
     summary_measure_likelihood <- "normal"
 
     target <- list(
@@ -325,7 +325,7 @@ build_and_save_case_study <- function(name, control_arm_name, endpoint, null_spa
 #' List environments available to run: package-shipped (inst/conf/<env>/,
 #' read-only source, cloned on save) and user-authored (user_configs/<env>/).
 list_environments <- function() {
-  pkg_conf_dir <- system.file("conf", package = "RBExT")
+  pkg_conf_dir <- system.file("conf", package = "BExTE")
   pkg_envs <- list.dirs(pkg_conf_dir, full.names = FALSE, recursive = FALSE)
   pkg_envs <- pkg_envs[file.exists(file.path(pkg_conf_dir, pkg_envs, "scenarios_config.yml"))]
 
@@ -351,7 +351,7 @@ env_config_dir <- function(env) {
   if (file.exists(file.path(user_dir, "scenarios_config.yml"))) {
     return(paste0(user_dir, "/"))
   }
-  paste0(system.file(file.path("conf", env), package = "RBExT"), "/")
+  paste0(system.file(file.path("conf", env), package = "BExTE"), "/")
 }
 
 #' Copy every case study an environment references into
@@ -360,7 +360,7 @@ env_config_dir <- function(env) {
 #' run through the app - covers the whole environment, whether its case
 #' studies are package-shipped, user-authored, or a mix.
 ensure_case_studies_snapshot <- function(env) {
-  rbext_ensure_user_dirs()
+  bexte_ensure_user_dirs()
   config_dir <- env_config_dir(env)
   scenarios_config <- yaml::read_yaml(file.path(config_dir, "scenarios_config.yml"))
 
@@ -380,8 +380,8 @@ ensure_case_studies_snapshot <- function(env) {
 #' for a new user-authored environment, and snapshot the case studies it
 #' references (see ensure_case_studies_snapshot()).
 save_environment <- function(env, scenarios_config, mcmc_config, methods_dict_selected) {
-  rbext_validate_name(env, "environment")
-  rbext_ensure_user_dirs()
+  bexte_validate_name(env, "environment")
+  bexte_ensure_user_dirs()
   dir <- file.path(USER_CONFIGS_DIR, env)
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -405,7 +405,7 @@ save_environment <- function(env, scenarios_config, mcmc_config, methods_dict_se
 #' .GlobalEnv (unlike when the simulation itself runs and needs it there).
 read_methods_template <- function() {
   e <- new.env()
-  source(system.file("conf/full/methods_config.R", package = "RBExT"), local = e)
+  source(system.file("conf/full/methods_config.R", package = "BExTE"), local = e)
   e$methods_dict
 }
 
@@ -475,7 +475,7 @@ estimate_configured_workload <- function(case_studies, methods_dict, ndrift,
 #' that falls back to counting rows beats one that errors.
 read_run_progress <- function(env, since = NULL) {
   ## Spelled out rather than taken from run_progress_path(), which is
-  ## internal to the package: the app only ever sees what RBExT exports. The
+  ## internal to the package: the app only ever sees what BExTE exports. The
   ## last test in test-shiny_app_run_progress.R reads what the package's own
   ## tracker writes, so the two cannot drift apart unnoticed.
   path <- file.path("logs", env, "progress.json")
@@ -589,9 +589,9 @@ ensure_plot_globals <- function() {
   if (isTRUE(analyze_globals_ready$done)) {
     return(invisible(NULL))
   }
-  source(system.file("conf/plots_config.R", package = "RBExT"))
-  source(system.file("conf/methods_plots_config.R", package = "RBExT"))
-  source(system.file("conf/metrics_config.R", package = "RBExT"))
+  source(system.file("conf/plots_config.R", package = "BExTE"))
+  source(system.file("conf/methods_plots_config.R", package = "BExTE"))
+  source(system.file("conf/metrics_config.R", package = "BExTE"))
   analyze_globals_ready$done <- TRUE
   invisible(NULL)
 }
@@ -635,7 +635,7 @@ prepare_plot_globals_for_env <- function(env, figures_dir) {
 #'
 #' @description Shared by the Run page and the Replicate paper page. Loads the
 #'   package with devtools::load_all() in the child process rather than
-#'   requiring RBExT to be installed, so the app works from a source checkout.
+#'   requiring BExTE to be installed, so the app works from a source checkout.
 #'
 #' @param env An environment name known to `list_environments()`.
 #'
@@ -645,10 +645,10 @@ launch_simulation_run <- function(env) {
   config_dir <- env_config_dir(env)
   case_studies_config_dir <- paste0(USER_CASE_STUDIES_DIR, "/")
 
-  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
-  simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
+  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+  simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "BExTE"))
   metrics_env <- new.env()
-  source(system.file("conf/metrics_config.R", package = "RBExT"), local = metrics_env)
+  source(system.file("conf/metrics_config.R", package = "BExTE"), local = metrics_env)
 
   callr::r_bg(
     func = function(pkg_root, wd, env, config_dir, case_studies_config_dir,
@@ -667,7 +667,7 @@ launch_simulation_run <- function(env) {
       )
     },
     args = list(
-      pkg_root = find.package("RBExT"),
+      pkg_root = find.package("BExTE"),
       wd = getwd(),
       env = env,
       config_dir = config_dir,

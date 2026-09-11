@@ -166,7 +166,7 @@ test_that("recurrent-event size parameter is used consistently", {
   set.seed(5821)
   expected_samples <- stats::rnbinom(n = 20, size = 0.4, mu = 1)
   set.seed(5821)
-  observed_samples <- RBExT:::sample_negative_binomial(n = 20, mu = 1, k = 0.4)
+  observed_samples <- BExTE:::sample_negative_binomial(n = 20, mu = 1, k = 0.4)
   expect_identical(observed_samples, expected_samples)
 })
 
@@ -203,7 +203,7 @@ test_that("recurrent-event size parameters must be positive", {
 test_that("sample_exponential_arm_statistics returns coherent sufficient statistics", {
   n_subjects <- 40
   max_follow_up_time <- 2
-  result <- RBExT:::sample_exponential_arm_statistics(
+  result <- BExTE:::sample_exponential_arm_statistics(
     n_subjects = n_subjects,
     rate = 0.534,
     max_follow_up_time = max_follow_up_time,
@@ -220,7 +220,7 @@ test_that("sample_exponential_arm_statistics returns coherent sufficient statist
 test_that("sample_exponential_arm_statistics censors every patient when no event can occur", {
   n_subjects <- 5
   max_follow_up_time <- 2
-  result <- RBExT:::sample_exponential_arm_statistics(
+  result <- BExTE:::sample_exponential_arm_statistics(
     n_subjects = n_subjects,
     rate = 1e-12,
     max_follow_up_time = max_follow_up_time,
@@ -244,7 +244,7 @@ test_that("sample_exponential_arm_statistics matches patient-level simulation", 
     c(sum(times <= max_follow_up_time), sum(pmin(times, max_follow_up_time)))
   })
 
-  result <- RBExT:::sample_exponential_arm_statistics(
+  result <- BExTE:::sample_exponential_arm_statistics(
     n_subjects = n_subjects,
     rate = rate,
     max_follow_up_time = max_follow_up_time,
@@ -303,7 +303,7 @@ test_that("negative_binomial_inverse_dispersion falls back to the Poisson limit"
   # Underdispersed data: the profile likelihood is maximised at 1 / theta = 0
   counts <- c(2, 2, 2, 3, 2, 2, 3, 2, 2, 2)
   expect_equal(
-    RBExT:::negative_binomial_inverse_dispersion(counts, mean(counts)),
+    BExTE:::negative_binomial_inverse_dispersion(counts, mean(counts)),
     0
   )
 
@@ -342,7 +342,7 @@ test_that("negative_binomial_inverse_dispersion beats a dense scan of the profil
     counts <- stats::rnbinom(n_observations, size = 0.8, mu = 1.74)
     if (all(counts == 0)) next
 
-    inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
+    inverse_dispersion <- BExTE:::negative_binomial_inverse_dispersion(
       counts, mean(counts)
     )
     chosen <- profile_loglikelihood(
@@ -365,7 +365,7 @@ test_that("negative_binomial_inverse_dispersion does not allocate on the largest
   # A sparse frequency representation keeps a single extreme count cheap
   counts <- c(0, 1, 3, 10000000)
   elapsed <- system.time(
-    inverse_dispersion <- RBExT:::negative_binomial_inverse_dispersion(
+    inverse_dispersion <- BExTE:::negative_binomial_inverse_dispersion(
       counts, mean(counts)
     )
   )[["elapsed"]]

@@ -12,7 +12,7 @@ vignette: >
   %\VignetteIndexEntry{Introduction to MyPackage}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{RBExT, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2}
 ---
 
 ## Introduction
@@ -27,7 +27,7 @@ The aim of this document is to illustrate the  implementation of the Robust Mixt
 root <- dirname(dirname(getwd()))
 knitr::opts_knit$set(root.dir = root)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 ```
 
@@ -37,10 +37,10 @@ Load the simulation configuration and the Belimumab case study configuration fro
 
 ```{r load_config}
 set.seed(42)
-simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "RBExT"))
+simulation_config <- yaml::yaml.load_file(system.file("conf/simulation_config.yml", package = "BExTE"))
 
 case_study = "belimumab"
-case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "RBExT"))
+case_study_config <- yaml::yaml.load_file(system.file("conf/case_studies/belimumab.yml", package = "BExTE"))
 ```
  
 ## Specific scenario

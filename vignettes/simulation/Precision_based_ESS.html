@@ -1493,7 +1493,7 @@ estimation</h1>
 knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-library(RBExT)
+library(BExTE)
 library(ggplot2) </code></pre>
 </div>
 <div id="introduction" class="section level2">
@@ -1684,10 +1684,10 @@ treatment effect distribution with a Gaussian.</p>
 <p>We compute the posterior distribution of the treatment effect in the
 target study, for a case study :</p>
 <pre class="r"><code>set.seed(42)
-config_path &lt;- system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;RBExT&quot;)
+config_path &lt;- system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;BExTE&quot;)
 simulation_config &lt;- yaml::yaml.load_file(config_path)
 
-config_path &lt;- system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;RBExT&quot;)
+config_path &lt;- system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;BExTE&quot;)
 case_study_config &lt;- yaml::yaml.load_file(config_path)
 
 

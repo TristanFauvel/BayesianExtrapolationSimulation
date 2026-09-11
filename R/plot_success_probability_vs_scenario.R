@@ -334,7 +334,7 @@ plot_success_proba_vs_scenario <- function(results_metrics_df, metrics) {
   for (case_study in case_studies) {
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
+      package = "BExTE"
     ))
 
     filtered_results_metrics_df <- results_metrics_df %>%

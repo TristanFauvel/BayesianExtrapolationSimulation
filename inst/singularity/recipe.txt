@@ -25,7 +25,7 @@ FROM: jstoropoli/cmdstanr
       ./NAMESPACE /
       ./NEWS.md /
       ./R /
-      ./RBExT_0.0.2.tar.gz /
+      ./BExTE_0.0.2.tar.gz /
       ./README.md /
       ./results /
       ./tables /
@@ -66,7 +66,7 @@ FROM: jstoropoli/cmdstanr
     rm -f ./inst/singularity/*.sif
 
 ## Install additional R packages globally
-    Rscript -e 'install.packages("devtools"); library(devtools); install.packages("./RBExT_0.0.1.tar.gz", repos = NULL, type = "source"); install.packages(c("dplyr", "tidyr", "readr", "zeallot", "tidyverse","foreach", "doParallel", "progress", "doSNOW", "extrafont", "latex2exp", "truncnorm", "RBesT", "HDInterval", "pwr", "ggplot2", "viridis", "webshot2", "assertions", "Bolstad2", "gridExtra", "binom", "kableExtra", "bayesplot", "BSDA", "scModels", "extraDistr", "pracma", "futile.logger", "ParallelLogger", "Hmisc")); update.packages(ask = FALSE);'
+    Rscript -e 'install.packages("devtools"); library(devtools); install.packages("./BExTE_0.0.1.tar.gz", repos = NULL, type = "source"); install.packages(c("dplyr", "tidyr", "readr", "zeallot", "tidyverse","foreach", "doParallel", "progress", "doSNOW", "extrafont", "latex2exp", "truncnorm", "RBesT", "HDInterval", "pwr", "ggplot2", "viridis", "webshot2", "assertions", "Bolstad2", "gridExtra", "binom", "kableExtra", "bayesplot", "BSDA", "scModels", "extraDistr", "pracma", "futile.logger", "ParallelLogger", "Hmisc")); update.packages(ask = FALSE);'
 
 %runscript
 	if [ $# -ne 1 ]; then

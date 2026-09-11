@@ -1,23 +1,23 @@
 test_that("configuration names are restricted to safe path components", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
 
-  expect_invisible(rbext_validate_name("trial_01-a", "environment"))
-  expect_error(rbext_validate_name("Trial 01", "environment"), "lowercase")
-  expect_error(rbext_validate_name("../trial", "environment"), "lowercase")
-  expect_error(rbext_validate_name("", "environment"), "Give the environment a name")
+  expect_invisible(bexte_validate_name("trial_01-a", "environment"))
+  expect_error(bexte_validate_name("Trial 01", "environment"), "lowercase")
+  expect_error(bexte_validate_name("../trial", "environment"), "lowercase")
+  expect_error(bexte_validate_name("", "environment"), "Give the environment a name")
 })
 
 test_that("numeric grid fields reject malformed and non-positive values", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
 
-  expect_equal(rbext_parse_number_list("1, 2.5, 4", "Factors"), c(1, 2.5, 4))
-  expect_error(rbext_parse_number_list("1, nope", "Factors"), "comma-separated")
-  expect_error(rbext_parse_number_list("1, 0", "Factors"), "greater than zero")
-  expect_error(rbext_parse_number_list("1,", "Factors"), "comma-separated")
+  expect_equal(bexte_parse_number_list("1, 2.5, 4", "Factors"), c(1, 2.5, 4))
+  expect_error(bexte_parse_number_list("1, nope", "Factors"), "comma-separated")
+  expect_error(bexte_parse_number_list("1, 0", "Factors"), "greater than zero")
+  expect_error(bexte_parse_number_list("1,", "Factors"), "comma-separated")
 })
 
 test_that("case study validation rejects impossible response counts", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
 
   expect_error(
     build_and_save_case_study(
@@ -33,16 +33,16 @@ test_that("case study validation rejects impossible response counts", {
 })
 
 test_that("method choices retain internal values and show readable labels", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
 
-  choices <- rbext_method_choices(c("pooling", "commensurate_power_prior"))
+  choices <- bexte_method_choices(c("pooling", "commensurate_power_prior"))
   expect_equal(unname(choices), c("pooling", "commensurate_power_prior"))
   expect_named(choices, c("Pooled analysis", "Commensurate power prior"))
 })
 
 test_that("Analyze only offers Bayesian plots when Bayesian results exist", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
-  source(system.file("shiny_app/modules/mod_analyze.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+  source(system.file("shiny_app/modules/mod_analyze.R", package = "BExTE"))
 
   frequentist_only <- available_plot_kinds(list(bayes_simpson = NULL))
   with_bayesian <- available_plot_kinds(list(bayes_simpson = data.frame(x = 1)))
@@ -52,8 +52,8 @@ test_that("Analyze only offers Bayesian plots when Bayesian results exist", {
 })
 
 test_that("Analyze table applies sample-size and metric controls", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
-  source(system.file("shiny_app/modules/mod_analyze.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+  source(system.file("shiny_app/modules/mod_analyze.R", package = "BExTE"))
 
   results <- data.frame(
     case_study = c("a", "a", "b"),
@@ -76,8 +76,8 @@ test_that("Analyze table applies sample-size and metric controls", {
 })
 
 test_that("results picker only lists directories Analyze can load", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
-  test_dir <- tempfile("rbext-results-")
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
+  test_dir <- tempfile("bexte-results-")
   dir.create(test_dir)
   withr::local_dir(test_dir)
   dir.create("results/ready", recursive = TRUE)
@@ -89,10 +89,10 @@ test_that("results picker only lists directories Analyze can load", {
 })
 
 test_that("status messages expose their urgency to assistive technology", {
-  source(system.file("shiny_app/theme.R", package = "RBExT"))
+  source(system.file("shiny_app/theme.R", package = "BExTE"))
 
-  ok <- as.character(rbext_status("Saved", ok = TRUE))
-  error <- as.character(rbext_status("Invalid", ok = FALSE))
+  ok <- as.character(bexte_status("Saved", ok = TRUE))
+  error <- as.character(bexte_status("Invalid", ok = FALSE))
   expect_match(ok, 'role="status"', fixed = TRUE)
   expect_match(ok, 'aria-live="polite"', fixed = TRUE)
   expect_match(error, 'role="alert"', fixed = TRUE)

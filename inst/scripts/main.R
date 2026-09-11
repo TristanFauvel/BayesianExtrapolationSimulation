@@ -2,7 +2,7 @@ rm(list = ls())
 
 ## When working from a source checkout, run devtools::load_all() before this
 ## script to pick up changes that are not installed yet.
-library(RBExT)
+library(BExTE)
 
 # If the envs variable is not defined as an environment variable, define it.
 envs <- ifelse(Sys.getenv("envs") != "", Sys.getenv("envs"), c("fast_cases_config"))
@@ -17,13 +17,13 @@ concat_all_results <- TRUE
 delete_stan_files <- FALSE
 check_results_completeness <- TRUE
 
-case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 
-analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
+analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
 
-simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
+simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "BExTE"))
 
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
+source(system.file(paste0("conf/metrics_config.R"), package = "BExTE"))
 
 closeAllConnections()
 
@@ -35,7 +35,7 @@ if (delete_stan_files == TRUE) {
 for (env in envs) {
   run_simulation_env(
     env = env,
-    config_dir = paste0(system.file(paste0("conf/", env), package = "RBExT"), "/"),
+    config_dir = paste0(system.file(paste0("conf/", env), package = "BExTE"), "/"),
     case_studies_config_dir = case_studies_config_dir,
     simulation_config = simulation_config,
     analysis_config = analysis_config,

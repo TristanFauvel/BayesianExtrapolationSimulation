@@ -83,7 +83,7 @@ rmp_weight_model <- function(prior_weight = 0.5) {
       mcmc_config = rmp_weight_mcmc_config()
     ),
     compile_stan_model = function(...) NULL,
-    .package = "RBExT"
+    .package = "BExTE"
   )
   model$stan_model <- list(sample = function(...) rmp_stub_fit())
   model

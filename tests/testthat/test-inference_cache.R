@@ -185,7 +185,7 @@ test_that("two models built from the same source study share the cache", {
   # source study says rather than on the identity of the object saying it.
   # Hashing an R6 object whole would key on its environment and never match.
   case_study_config <- yaml::read_yaml(
-    system.file("conf/case_studies/aprepitant.yml", package = "RBExT")
+    system.file("conf/case_studies/aprepitant.yml", package = "BExTE")
   )
   samples <- cache_samples(successes_control = 10, successes_treatment = 25)
   built <- function() {

@@ -12,7 +12,7 @@ vignette: >
   %\VignetteIndexEntry{Simulation study logic - high level}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{RBExT, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2}
 ---
 
 ## Introduction
@@ -30,7 +30,7 @@ root <- dirname(dirname(getwd()))
 knitr::opts_knit$set(root.dir = root)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 ```  
  
@@ -39,7 +39,7 @@ Source other scripts
 
 ```{r source} 
 env <- "full"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
 scenarios_config <- yaml::read_yaml(paste0(config_dir, "scenarios_config.yml"))
 ```
 
@@ -49,11 +49,11 @@ Load the simulation configuration and the Belimumab case study configuration fro
 
 ```{r load_config}
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
 case_study <- "botox"
-config_path <- system.file("conf/case_studies/botox.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/botox.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 ```
 The case study configuration file contains all necessary information about the case study, this includes: treatment effect distribution, endpoint type, side of the null hypothesis, sample sizes, treatment effect estimate in the source study, etc.

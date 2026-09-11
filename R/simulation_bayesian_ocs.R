@@ -304,7 +304,7 @@ simulation_bayesian_ocs <- function(env,
       )
       cases <- unique(cases)
 
-      outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+      outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
 
       bayes_filename <- paste0(
         results_dir,
@@ -380,10 +380,10 @@ simulation_bayesian_ocs <- function(env,
 
         # Export the library paths to each worker
         paths <- .libPaths()
-        # RBExT may not be an installed package at all (e.g. the Shiny app's
+        # BExTE may not be an installed package at all (e.g. the Shiny app's
         # dev-mode background process only ever `devtools::load_all()`s it),
         # so each worker needs the same source path to fall back to.
-        pkg_root <- find.package("RBExT")
+        pkg_root <- find.package("BExTE")
         parallel::clusterExport(
           cl,
           varlist = c(
@@ -397,15 +397,15 @@ simulation_bayesian_ocs <- function(env,
           envir = environment()
         )
 
-        # Evaluate the expression to load RBExT in each worker: library() for
+        # Evaluate the expression to load BExTE in each worker: library() for
         # an installed package (the common case), falling back to
         # devtools::load_all() when it is only loaded from source.
         parallel::clusterEvalQ(cl, {
           .libPaths(paths)
-          if (!requireNamespace("RBExT", quietly = TRUE)) {
+          if (!requireNamespace("BExTE", quietly = TRUE)) {
             devtools::load_all(pkg_root, quiet = TRUE)
           } else {
-            library(RBExT)
+            library(BExTE)
           }
         })
         # Parallel computation over cases

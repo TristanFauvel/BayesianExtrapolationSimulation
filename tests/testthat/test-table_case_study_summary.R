@@ -2,7 +2,7 @@
 ## output, so they can be generated before any run finishes.
 
 config_dir <- function() {
-  paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 }
 
 ## kableExtra's "striped" option wraps every cell of shaded rows in

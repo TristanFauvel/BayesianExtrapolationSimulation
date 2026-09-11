@@ -24,33 +24,33 @@ replicate_main_ids <- function() {
 
 mod_replicate_ui <- function(id) {
   ns <- shiny::NS(id)
-  rbext_page(
-    rbext_step(
+  bexte_page(
+    bexte_step(
       1, "Choose what to reproduce",
       note = "Each item names the generator call that produces it. Coverage is checked against the results directory you pick below.",
-      rbext_fields(
+      bexte_fields(
         shiny::selectInput(ns("results_dir"), "Results directory", choices = NULL),
         shiny::div(
-          rbext_action_button(ns("select_all"), "Select all"),
-          rbext_action_button(ns("select_main"), "Main figures only"),
-          rbext_action_button(ns("select_none"), "Clear")
+          bexte_action_button(ns("select_all"), "Select all"),
+          bexte_action_button(ns("select_main"), "Main figures only"),
+          bexte_action_button(ns("select_none"), "Clear")
         )
       ),
       shiny::checkboxGroupInput(ns("items"), NULL, choices = NULL),
       shiny::uiOutput(ns("coverage"))
     ),
-    rbext_step(
+    bexte_step(
       2, "Run the simulations the selection needs",
       note = "Only the case studies and sample sizes your selection plots are simulated. Anything the results directory already covers is skipped.",
       shiny::uiOutput(ns("workload")),
-      rbext_action_button(ns("run"), "Run required simulations"),
+      bexte_action_button(ns("run"), "Run required simulations"),
       shiny::uiOutput(ns("run_state")),
       shiny::verbatimTextOutput(ns("run_log"))
     ),
-    rbext_step(
+    bexte_step(
       3, "Produce the figures and tables",
       note = "Figures keep their generated filenames; manifest.csv maps each one to its paper number.",
-      rbext_action_button(ns("export"), "Produce figures and tables"),
+      bexte_action_button(ns("export"), "Produce figures and tables"),
       shiny::uiOutput(ns("export_status")),
       shiny::tableOutput(ns("export_table"))
     )
@@ -74,7 +74,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     refresh_results_dirs()
 
     case_studies_dir <- function() {
-      paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+      paste0(system.file("conf/case_studies", package = "BExTE"), "/")
     }
 
     shiny::observeEvent(input$select_all, {
@@ -103,21 +103,21 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     output$coverage <- shiny::renderUI({
       cov <- coverage()
       if (is.null(cov)) {
-        return(rbext_empty("Pick a results directory to check coverage."))
+        return(bexte_empty("Pick a results directory to check coverage."))
       }
       covered <- sum(cov$covered)
       ## A badge per checkbox row is not reachable through
       ## checkboxGroupInput(), so the uncovered items are named here instead.
       uncovered <- cov[!cov$covered, , drop = FALSE]
       shiny::tagList(
-        rbext_status(
+        bexte_status(
           sprintf("%d of %d selected items are covered by this results directory.",
                   covered, nrow(cov)),
           ok = covered == nrow(cov)
         ),
         if (nrow(uncovered) > 0) {
           shiny::p(
-            class = "rbext-note",
+            class = "bexte-note",
             paste0(
               "Not covered: ",
               paste(uncovered$id, " (", uncovered$reason, ")",
@@ -137,11 +137,11 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     output$workload <- shiny::renderUI({
       ids <- missing_ids()
       if (length(ids) == 0) {
-        return(rbext_status("Nothing to run - the results directory covers everything selected."))
+        return(bexte_status("Nothing to run - the results directory covers everything selected."))
       }
       requirements <- paper_replication_requirements(ids, case_studies_dir())
       shiny::div(
-        class = "rbext-workload",
+        class = "bexte-workload",
         shiny::strong(sprintf(
           "%d case studies, sample size factors %s, %d replicates, %d drift points",
           length(requirements$case_studies),
@@ -171,7 +171,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
         env = env,
         scenarios_config = requirements,
         mcmc_config = yaml::read_yaml(
-          file.path(system.file("conf/combined", package = "RBExT"), "mcmc_config.yml")
+          file.path(system.file("conf/combined", package = "BExTE"), "mcmc_config.yml")
         ),
         methods_dict_selected = methods_dict
       )
@@ -183,10 +183,10 @@ mod_replicate_server <- function(id, color_mode = NULL) {
 
     output$run_state <- shiny::renderUI({
       if (is.null(state$proc)) {
-        return(rbext_state("idle"))
+        return(bexte_state("idle"))
       }
       shiny::invalidateLater(2000, session)
-      if (state$proc$is_alive()) rbext_state("running", "live") else rbext_state("finished", "done")
+      if (state$proc$is_alive()) bexte_state("running", "live") else bexte_state("finished", "done")
     })
 
     output$run_log <- shiny::renderText({
@@ -226,10 +226,10 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     output$export_status <- shiny::renderUI({
       status <- state$export
       if (is.null(status)) {
-        return(rbext_empty("Nothing produced yet."))
+        return(bexte_empty("Nothing produced yet."))
       }
       ok <- sum(status$status == "ok")
-      rbext_status(
+      bexte_status(
         sprintf("%d of %d produced. Manifest written alongside the tables.",
                 ok, nrow(status)),
         ok = ok == nrow(status)

@@ -1501,10 +1501,10 @@ normal distribution.</p>
 <p>Load the simulation configuration and the Belimumab case study
 configuration from YAML files.</p>
 <pre class="r"><code>set.seed(42)
-config_path &lt;- system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;RBExT&quot;)
+config_path &lt;- system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;BExTE&quot;)
 simulation_config &lt;- yaml::yaml.load_file(config_path)
 
-config_path &lt;- system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;RBExT&quot;)
+config_path &lt;- system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;BExTE&quot;)
 case_study_config &lt;- yaml::yaml.load_file(config_path)</code></pre>
 </div>
 <div id="specific-scenario" class="section level2">
@@ -1872,7 +1872,7 @@ hist(samples, breaks = 60, col = &quot;skyblue&quot;, main = &quot;Samples from 
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] RBExT_0.0.1    styler_1.10.3  cmdstanr_0.7.1 ggplot2_3.4.2  binom_1.1-1.1 
+## [1] BExTE_0.0.1    styler_1.10.3  cmdstanr_0.7.1 ggplot2_3.4.2  binom_1.1-1.1 
 ## [6] testthat_3.2.1
 ## 
 ## loaded via a namespace (and not attached):

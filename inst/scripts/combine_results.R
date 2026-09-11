@@ -4,7 +4,7 @@ library(readr)
 library(stringr)
 library(ggnewscale)
 # Define the folder path (adjust based on your environment)
-folder_path <- paste0(system.file("results/simulation_runs", package = "RBExT"), "/")
+folder_path <- paste0(system.file("results/simulation_runs", package = "BExTE"), "/")
 
 # Function to extract date from folder name
 extract_date <- function(folder_name) {

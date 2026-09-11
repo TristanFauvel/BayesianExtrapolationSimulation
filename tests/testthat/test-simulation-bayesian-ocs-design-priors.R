@@ -46,7 +46,7 @@ test_simulation_config <- list(
 )
 
 run_estimate_bayesian_ocs <- function(model, design_prior_type) {
-  RBExT:::estimate_bayesian_ocs(
+  BExTE:::estimate_bayesian_ocs(
     scenario = test_scenario,
     case_study_config = list(name = "unit_test", null_space = "left"),
     source_data = test_source_data,
@@ -78,7 +78,7 @@ test_that("an empirical Bayes analysis prior yields missing OCs instead of abort
   expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 1)
   expect_equal(result$design_prior, "analysis_prior")
-  expect_true(all(is.na(result[, RBExT:::bayesian_ocs_metric_names()])))
+  expect_true(all(is.na(result[, BExTE:::bayesian_ocs_metric_names()])))
 })
 
 test_that("the skipped analysis prior row matches the layout of a computed row", {

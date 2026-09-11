@@ -1,8 +1,8 @@
 ## The post-processing analysis used to run single-threaded whatever the
 ## environment asked for: simulation_analysis() called
 ## frequentist_power_at_equivalent_tie() with parallelization = FALSE
-## hardcoded, and that function's workers loaded RBExT with a bare
-## library(RBExT), which fails when the package is only load_all()ed from
+## hardcoded, and that function's workers loaded BExTE with a bare
+## library(BExTE), which fails when the package is only load_all()ed from
 ## source (main.R and the Shiny app both do exactly that).
 
 test_that("analysis_runs_in_parallel reads both forms of the config entry", {
@@ -30,21 +30,21 @@ test_that("simulation_analysis takes parallelization from the scenarios config",
   expect_match(body_text, "parallelization = run_in_parallel", fixed = TRUE)
 })
 
-test_that("workers can call RBExT functions when it is only loaded from source", {
+test_that("workers can call BExTE functions when it is only loaded from source", {
   skip_on_cran()
   skip_if_not_installed("parallel")
 
   cl <- parallel::makeCluster(1L)
   on.exit(parallel::stopCluster(cl), add = TRUE)
 
-  load_rbext_in_workers(cl, packages = c("dplyr"))
+  load_bexte_in_workers(cl, packages = c("dplyr"))
 
-  # get_parallel_worker_count() is internal to RBExT, so it only resolves in
+  # get_parallel_worker_count() is internal to BExTE, so it only resolves in
   # the worker if the package itself really loaded there.
-  worker_sees_rbext <- parallel::clusterEvalQ(cl, {
-    is.function(RBExT:::get_parallel_worker_count) && is.function(dplyr::bind_rows)
+  worker_sees_bexte <- parallel::clusterEvalQ(cl, {
+    is.function(BExTE:::get_parallel_worker_count) && is.function(dplyr::bind_rows)
   })
-  expect_true(all(unlist(worker_sees_rbext)))
+  expect_true(all(unlist(worker_sees_bexte)))
 })
 
 test_that("a small run skips the cluster, which costs more than it saves", {
@@ -66,11 +66,11 @@ test_that("target data is validated once per row, not once per sampled alpha", {
   # compute_power_with_tie_ci() evaluates power at 1000 sampled alphas per
   # row; asserting inside compute_freq_power() made argument checking ~87% of
   # the analysis.
-  hot <- paste(deparse(body(RBExT:::compute_freq_power)), collapse = " ")
+  hot <- paste(deparse(body(BExTE:::compute_freq_power)), collapse = " ")
   expect_false(grepl("assert_target_data_numbers", hot, fixed = TRUE))
   expect_false(grepl("assert_number", hot, fixed = TRUE))
 
-  caller <- paste(deparse(body(RBExT:::compute_power_with_tie_ci)), collapse = " ")
+  caller <- paste(deparse(body(BExTE:::compute_power_with_tie_ci)), collapse = " ")
   expect_true(grepl("assert_target_data_numbers", caller, fixed = TRUE))
 })
 

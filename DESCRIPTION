@@ -1,7 +1,7 @@
-Package: RBExT
+Package: BExTE
 Type: Package
-Title: Bayesian extrapolation with R
-Description: This package provides tools for Bayesian extrapolation with R.
+Title: Bayesian Extrapolation of Treatment Effects
+Description: This package provides tools for Bayesian extrapolation of treatment effects.
 Version: 0.0.2
 Date: 2024-09-23
 Authors@R: c(person("Tristan", "Fauvel", email = "t.fauvel@quinten-health.com", role =  c("aut", "cre")), person("Pascal", "Godbillot", role=c("aut")) ) 
@@ -65,8 +65,8 @@ LazyData: true
 Biarch: true
 NeedsCompilation: yes
 UseLTO: true
-URL: https://github.com/TristanFauvel/BayesianExtrapolationSimulation, https://tristanfauvel.github.io/BayesianExtrapolationSimulation/
-BugReports: https://github.com/TristanFauvel/BayesianExtrapolationSimulation/issues
+URL: https://github.com/TristanFauvel/BExTE, https://tristanfauvel.github.io/BExTE/
+BugReports: https://github.com/TristanFauvel/BExTE/issues
 Suggests:
     rmarkdown,
     testthat (>= 3.2.0),
@@ -80,4 +80,4 @@ VignetteBuilder: knitr
 SystemRequirements: GNU make, pandoc (>= 1.12.3), pngquant, C++17
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.1.0

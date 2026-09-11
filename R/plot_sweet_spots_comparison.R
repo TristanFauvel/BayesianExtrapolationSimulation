@@ -589,7 +589,7 @@ plot_sweet_spot_width_vs_scenario <- function(sweet_spot_df, sweet_spots_metrics
   for (case_study in case_studies) {
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
+      package = "BExTE"
     ))
 
     sweet_spot_df1 <- sweet_spot_df %>%

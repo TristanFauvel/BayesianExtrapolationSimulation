@@ -1537,7 +1537,7 @@ and standard error on the treatment effect in the source study.</p>
 knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-# library(RBExT)
+# library(BExTE)
 devtools::load_all()
 library(ggplot2)</code></pre>
 </div>
@@ -1546,7 +1546,7 @@ library(ggplot2)</code></pre>
 <p>Load the simulation configuration and the Belimumab case study
 configuration from YAML files.</p>
 <pre class="r"><code>set.seed(42)
-case_study_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;RBExT&quot;))</code></pre>
+case_study_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;BExTE&quot;))</code></pre>
 <div id="create-data-objects" class="section level3">
 <h3>Create data objects</h3>
 <p>Create a source_data instance, where information about the source

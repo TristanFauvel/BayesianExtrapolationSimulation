@@ -661,11 +661,11 @@ frequentist_power_at_equivalent_tie <- function(results, analysis_config, simula
     on.exit(parallel::stopCluster(cl), add = TRUE)
     doParallel::registerDoParallel(cl)
 
-    # RBExT is often loaded from source rather than installed (main.R and
+    # BExTE is often loaded from source rather than installed (main.R and
     # the Shiny app both devtools::load_all() it), which a bare
-    # library(RBExT) in the workers cannot cope with - see
-    # load_rbext_in_workers().
-    load_rbext_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
+    # library(BExTE) in the workers cannot cope with - see
+    # load_bexte_in_workers().
+    load_bexte_in_workers(cl, packages = c("pwr", "dplyr", "yaml", "BSDA"))
 
     # Use foreach for parallel computation
     results_list <- foreach(i = seq_len(nrow(results)), .packages = c("dplyr", "yaml", "pwr", "BSDA")) %dopar% {

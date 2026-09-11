@@ -1,4 +1,4 @@
-library(RBExT)
+library(BExTE)
 library(tidyverse)
 library(readr)
 library(ggplot2)
@@ -15,14 +15,14 @@ devtools::load_all()
 env <- "combined"
 
 results_dir <- paste0("./results/", env)
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
-case_studies_config_dir <- paste0(system.file(paste0("conf/case_studies"), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
+case_studies_config_dir <- paste0(system.file(paste0("conf/case_studies"), package = "BExTE"), "/")
 
 figures_dir <<- paste0("./figures/", env, "_figures/")
 
-source(system.file(paste0("conf/plots_config.R"), package = "RBExT"))
-source(system.file(paste0("conf/methods_plots_config.R"), package = "RBExT"))
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
+source(system.file(paste0("conf/plots_config.R"), package = "BExTE"))
+source(system.file(paste0("conf/methods_plots_config.R"), package = "BExTE"))
+source(system.file(paste0("conf/metrics_config.R"), package = "BExTE"))
 
 source(paste0(config_dir, "methods_config.R"))
 

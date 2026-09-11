@@ -50,7 +50,7 @@ test_that("frequentist_power_at_equivalent_tie adds power estimates", {
     },
     load_data = mock_load_data,
     compute_power_with_tie_ci = mock_power_with_tie_ci,
-    .package = "RBExT"
+    .package = "BExTE"
   )
 })
 

@@ -29,7 +29,7 @@ test_that("simulation analysis carries results through sequential steps", {
     equivalent_source_sample_size_per_arm = 50
   )
   missing_columns <- setdiff(
-    names(RBExT:::frequentist_col_types$cols),
+    names(BExTE:::frequentist_col_types$cols),
     names(matching_result)
   )
   matching_result[missing_columns] <- NA
@@ -78,7 +78,7 @@ test_that("simulation analysis carries results through sequential steps", {
     frequentist_power_at_nominal_tie = mock_nominal_power,
     sweet_spot = mock_sweet_spot,
     compute_bayesian_ocs = mock_bayesian_ocs,
-    .package = "RBExT"
+    .package = "BExTE"
   )
 
   final_results <- readr::read_csv(results_path, show_col_types = FALSE)

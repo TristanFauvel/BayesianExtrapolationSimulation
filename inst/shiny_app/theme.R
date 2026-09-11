@@ -1,12 +1,12 @@
-## Look and feel for the RBExT app: the Bootstrap 5 theme object, plus the
+## Look and feel for the BExTE app: the Bootstrap 5 theme object, plus the
 ## small UI constructors the three modules share. The colours themselves live
-## in www/rbext.scss (both schemes), so anything here that needs a colour at
-## render time - the plotly charts, mainly - reads it from rbext_palette().
+## in www/bexte.scss (both schemes), so anything here that needs a colour at
+## render time - the plotly charts, mainly - reads it from bexte_palette().
 
 #' Bootstrap 5 theme for the app. `app_dir` is the directory holding this
 #' file, because the Sass has to be resolved before shiny::runApp() moves the
 #' working directory back to the repository root.
-rbext_theme <- function(app_dir) {
+bexte_theme <- function(app_dir) {
   bslib::bs_add_rules(
     bslib::bs_theme(
       version = 5,
@@ -16,14 +16,14 @@ rbext_theme <- function(app_dir) {
       "border-radius" = "6px",
       "enable-shadows" = FALSE
     ),
-    sass::sass_file(file.path(app_dir, "www", "rbext.scss"))
+    sass::sass_file(file.path(app_dir, "www", "bexte.scss"))
   )
 }
 
-#' The two colour schemes, mirroring the custom properties in rbext.scss.
+#' The two colour schemes, mirroring the custom properties in bexte.scss.
 #' Used for output that draws its own pixels (plotly) and so cannot inherit
 #' the page's CSS.
-rbext_palette <- function(mode = c("light", "dark")) {
+bexte_palette <- function(mode = c("light", "dark")) {
   mode <- match.arg(mode)
   ## ref_target/ref_source are the forest plots' sample-size reference lines,
   ## plain "black"/"red" in the publication figures. Black is invisible on the
@@ -44,50 +44,50 @@ rbext_palette <- function(mode = c("light", "dark")) {
 #' returns NULL on purpose: the builders then draw the publication figure
 #' untouched, so what the app shows is the same image that goes into the paper.
 #' Only dark mode needs a recoloured copy.
-rbext_plot_palette <- function(mode) {
-  if (identical(mode, "dark")) rbext_palette("dark") else NULL
+bexte_plot_palette <- function(mode) {
+  if (identical(mode, "dark")) bexte_palette("dark") else NULL
 }
 
 #' Wordmark for the navbar: two overlapping densities, which is what the
 #' package is about - borrowing a source posterior into a target trial.
-rbext_brand <- function() {
+bexte_brand <- function() {
   shiny::tags$span(
-    class = "rbext-brand",
+    class = "bexte-brand",
     shiny::tags$svg(
-      class = "rbext-mark", width = "22", height = "16", viewBox = "0 0 22 16",
+      class = "bexte-mark", width = "22", height = "16", viewBox = "0 0 22 16",
       fill = "none", stroke = "currentColor", `stroke-width` = "1.5",
       `stroke-linecap` = "round", `aria-hidden` = "true",
       shiny::tags$path(d = "M1 14c3.2 0 3.4-11 6.6-11S11 14 14.2 14", opacity = "0.45"),
       shiny::tags$path(d = "M7.8 14c3.2 0 3.4-9 6.6-9S21 14 21 14")
     ),
-    "RBExT"
+    "BExTE"
   )
 }
 
 ## ---- Page furniture --------------------------------------------------------
 
 #' The centred column each tab's content sits in.
-rbext_page <- function(...) {
-  shiny::div(class = "rbext-page", ...)
+bexte_page <- function(...) {
+  shiny::div(class = "bexte-page", ...)
 }
 
 #' One numbered step of the Configure worksheet. The index is part of the
 #' content - these five sections are a sequence ending in "Save environment" -
 #' rather than decoration, so nothing else in the app is numbered.
-rbext_step <- function(index, title, note = NULL, ...) {
+bexte_step <- function(index, title, note = NULL, ...) {
   bslib::card(
-    class = "rbext-step",
+    class = "bexte-step",
     fill = FALSE,
     bslib::card_header(
       shiny::div(
-        class = "rbext-step-header",
-        shiny::span(class = "rbext-step-index", index),
-        shiny::tags$h2(class = "rbext-step-title", title)
+        class = "bexte-step-header",
+        shiny::span(class = "bexte-step-index", index),
+        shiny::tags$h2(class = "bexte-step-title", title)
       )
     ),
     bslib::card_body(
       fillable = FALSE,
-      if (!is.null(note)) shiny::p(class = "rbext-note", note),
+      if (!is.null(note)) shiny::p(class = "bexte-note", note),
       ...
     )
   )
@@ -95,22 +95,22 @@ rbext_step <- function(index, title, note = NULL, ...) {
 
 #' A row of inputs that reflows to the available width instead of being pinned
 #' to a fixed 12-column grid.
-rbext_fields <- function(...) {
-  shiny::div(class = "rbext-field-grid", ...)
+bexte_fields <- function(...) {
+  shiny::div(class = "bexte-field-grid", ...)
 }
 
 #' Two panels of comparable weight, side by side.
-rbext_split <- function(...) {
-  shiny::div(class = "rbext-split", ...)
+bexte_split <- function(...) {
+  shiny::div(class = "bexte-split", ...)
 }
 
-rbext_subhead <- function(text) {
-  shiny::tags$h3(class = "rbext-subhead", text)
+bexte_subhead <- function(text) {
+  shiny::tags$h3(class = "bexte-subhead", text)
 }
 
 #' Text input carrying the filename-safe convention as a real browser
 #' constraint as well as explanatory placeholder text.
-rbext_name_input <- function(input_id, label) {
+bexte_name_input <- function(input_id, label) {
   htmltools::tagQuery(
     shiny::textInput(input_id, label, placeholder = "lowercase letters, numbers, - or _")
   )$find("input")$addAttrs(
@@ -121,7 +121,7 @@ rbext_name_input <- function(input_id, label) {
   )$allTags()
 }
 
-rbext_action_button <- function(input_id, label, ..., disabled = FALSE) {
+bexte_action_button <- function(input_id, label, ..., disabled = FALSE) {
   button <- shiny::actionButton(input_id, label, ...)
   if (isTRUE(disabled)) {
     button <- htmltools::tagAppendAttributes(
@@ -131,7 +131,7 @@ rbext_action_button <- function(input_id, label, ..., disabled = FALSE) {
   button
 }
 
-rbext_download_button <- function(output_id, label, ..., disabled = FALSE) {
+bexte_download_button <- function(output_id, label, ..., disabled = FALSE) {
   button <- shiny::downloadButton(output_id, label, ...)
   if (isTRUE(disabled)) {
     button <- htmltools::tagAppendAttributes(
@@ -144,12 +144,12 @@ rbext_download_button <- function(output_id, label, ..., disabled = FALSE) {
 #' Result of an action the user just took. `ok` picks the colour; the text is
 #' the message itself, so callers say what happened rather than passing a
 #' severity around.
-rbext_status <- function(message, ok = TRUE) {
+bexte_status <- function(message, ok = TRUE) {
   if (is.null(message) || !nzchar(message)) {
     return(NULL)
   }
   shiny::div(
-    class = paste("rbext-status", if (ok) "rbext-status-ok" else "rbext-status-error"),
+    class = paste("bexte-status", if (ok) "bexte-status-ok" else "bexte-status-error"),
     role = if (ok) "status" else "alert",
     `aria-live` = if (ok) "polite" else "assertive",
     message
@@ -157,24 +157,24 @@ rbext_status <- function(message, ok = TRUE) {
 }
 
 #' A single figure in the Run tab's readout.
-rbext_metric <- function(value, label) {
+bexte_metric <- function(value, label) {
   shiny::div(
-    class = "rbext-metric",
-    shiny::div(class = "rbext-metric-value", value),
-    shiny::div(class = "rbext-metric-label", label)
+    class = "bexte-metric",
+    shiny::div(class = "bexte-metric-value", value),
+    shiny::div(class = "bexte-metric-label", label)
   )
 }
 
 #' Run state as a pill: idle, live, finished or failed.
-rbext_state <- function(label, kind = c("idle", "live", "done", "failed")) {
+bexte_state <- function(label, kind = c("idle", "live", "done", "failed")) {
   kind <- match.arg(kind)
-  shiny::span(class = paste0("rbext-state rbext-state-", kind), label)
+  shiny::span(class = paste0("bexte-state bexte-state-", kind), label)
 }
 
 #' Placeholder for a panel that has nothing to show yet. Says what to do next,
 #' never just "no data".
-rbext_empty <- function(message) {
-  shiny::div(class = "rbext-empty", role = "status", message)
+bexte_empty <- function(message) {
+  shiny::div(class = "bexte-empty", role = "status", message)
 }
 
 ## ---- Themed output ---------------------------------------------------------
@@ -182,7 +182,7 @@ rbext_empty <- function(message) {
 #' The LaTeX the plot_*() labels are written in, and the character each
 #' command stands for. Whole alphabet rather than only the letters in use
 #' today, so a label added later renders instead of leaking its backslash.
-rbext_latex_symbols <- c(
+bexte_latex_symbols <- c(
   alpha = "\u03b1", beta = "\u03b2", gamma = "\u03b3", delta = "\u03b4",
   epsilon = "\u03b5", zeta = "\u03b6", eta = "\u03b7", theta = "\u03b8",
   iota = "\u03b9", kappa = "\u03ba", lambda = "\u03bb", mu = "\u03bc",
@@ -199,7 +199,7 @@ rbext_latex_symbols <- c(
 
 #' HTML-escape a label, so that a "<" in one reaches plotly as a "<" and not
 #' as the start of a tag it should honour.
-rbext_html_escape <- function(x) {
+bexte_html_escape <- function(x) {
   x <- gsub("&", "&amp;", x, fixed = TRUE)
   x <- gsub("<", "&lt;", x, fixed = TRUE)
   gsub(">", "&gt;", x, fixed = TRUE)
@@ -212,11 +212,11 @@ rbext_html_escape <- function(x) {
 #' parameters, the odd hat. A command with no character of its own keeps its
 #' name, so an unhandled label degrades to its own text and never to a stray
 #' backslash or brace.
-rbext_latex_math_html <- function(x) {
-  for (command in names(rbext_latex_symbols)) {
+bexte_latex_math_html <- function(x) {
+  for (command in names(bexte_latex_symbols)) {
     x <- gsub(
       paste0("\\\\", command, "(?![A-Za-z])"),
-      rbext_latex_symbols[[command]], x,
+      bexte_latex_symbols[[command]], x,
       perl = TRUE
     )
   }
@@ -238,17 +238,17 @@ rbext_latex_math_html <- function(x) {
 #' The delimiters themselves only ever leave a gap behind them ("$N_T/2 = $
 #' 58" has two spaces), which is why the spacing is closed up at the end.
 #' Vectorised, because a scale's labels arrive as one character vector.
-rbext_latex_html <- function(x) {
+bexte_latex_html <- function(x) {
   vapply(x, function(label) {
     if (is.na(label)) {
       return(NA_character_)
     }
-    parts <- rbext_html_escape(strsplit(label, "$", fixed = TRUE)[[1]])
+    parts <- bexte_html_escape(strsplit(label, "$", fixed = TRUE)[[1]])
     if (length(parts) == 0) {
       return("")
     }
     inside_math <- seq_along(parts) %% 2 == 0
-    parts[inside_math] <- rbext_latex_math_html(parts[inside_math])
+    parts[inside_math] <- bexte_latex_math_html(parts[inside_math])
     trimws(gsub(" {2,}", " ", paste(parts, collapse = "")))
   }, character(1), USE.NAMES = FALSE)
 }
@@ -258,7 +258,7 @@ rbext_latex_html <- function(x) {
 #' TeX() has turned it into plotmath; a symbol
 #' (`plot_metric_vs_drift()` does `labs(x = rlang::sym(xvar$label))`) is its
 #' own name; anything else reads as the expression it is.
-rbext_label_latex <- function(x) {
+bexte_label_latex <- function(x) {
   if (is.expression(x)) {
     latex <- attr(x, "latex")
     if (is.character(latex) && length(latex) == length(x)) {
@@ -272,8 +272,8 @@ rbext_label_latex <- function(x) {
   paste(deparse(x), collapse = "")
 }
 
-rbext_label_html <- function(x) {
-  rbext_latex_html(rbext_label_latex(x))
+bexte_label_html <- function(x) {
+  bexte_latex_html(bexte_label_latex(x))
 }
 
 #' Walk a layout and rewrite every label in it: the language objects and
@@ -282,36 +282,36 @@ rbext_label_html <- function(x) {
 #' string, so that the colours and font families alongside them are left as
 #' they are. Deliberately limited to the layout and to trace names: the rest
 #' of a plotly object holds quosures that it needs to keep.
-rbext_plain_layout <- function(x, key = "") {
+bexte_plain_layout <- function(x, key = "") {
   if (is.expression(x) || is.language(x)) {
-    return(rbext_label_html(x))
+    return(bexte_label_html(x))
   }
   if (is.list(x)) {
     keys <- names(x)
     if (is.null(keys)) {
       keys <- rep("", length(x))
     }
-    walked <- Map(rbext_plain_layout, x, keys)
+    walked <- Map(bexte_plain_layout, x, keys)
     names(walked) <- names(x)
     return(walked)
   }
   if (identical(key, "text") && is.character(x)) {
-    return(rbext_latex_html(x))
+    return(bexte_latex_html(x))
   }
   x
 }
 
 #' An axis title is either plain text or a list(text=, font=); normalising to
-#' the list form lets rbext_plotly() merge a colour in without dropping the
+#' the list form lets bexte_plotly() merge a colour in without dropping the
 #' text it is merging into.
-rbext_title_list <- function(x) {
+bexte_title_list <- function(x) {
   if (is.null(x) || is.list(x)) {
     return(x)
   }
   list(text = x)
 }
 
-rbext_trace_contrast <- function(trace, mode, ink) {
+bexte_trace_contrast <- function(trace, mode, ink) {
   if (!identical(mode, "dark")) return(trace)
   replace_black <- function(value) {
     if (!is.character(value)) return(value)
@@ -336,8 +336,8 @@ rbext_trace_contrast <- function(trace, mode, ink) {
 #' axes are set from the active scheme. Axis and legend titles need saying
 #' twice: ggplotly copies those colours out of the ggplot theme, where they
 #' are near-black whatever the page is doing.
-rbext_plotly <- function(plot, mode = "light") {
-  pal <- rbext_palette(if (identical(mode, "dark")) "dark" else "light")
+bexte_plotly <- function(plot, mode = "light") {
+  pal <- bexte_palette(if (identical(mode, "dark")) "dark" else "light")
 
   ## Unwrap the labels before the handover: ggplotly turns an expression label
   ## into the literal text "expression(w[0])" and passes a symbol through
@@ -351,23 +351,23 @@ rbext_plotly <- function(plot, mode = "light") {
     as.list(plot$labels)
   )
   if (length(plotmath_labels) > 0) {
-    plot <- plot + do.call(ggplot2::labs, lapply(plotmath_labels, rbext_label_latex))
+    plot <- plot + do.call(ggplot2::labs, lapply(plotmath_labels, bexte_label_latex))
   }
 
   fig <- plotly::ggplotly(plot)
-  fig$x$layout <- rbext_plain_layout(fig$x$layout)
+  fig$x$layout <- bexte_plain_layout(fig$x$layout)
   for (axis_name in c("xaxis", "yaxis")) {
     if (!is.null(fig$x$layout[[axis_name]])) {
-      fig$x$layout[[axis_name]]$title <- rbext_title_list(fig$x$layout[[axis_name]]$title)
+      fig$x$layout[[axis_name]]$title <- bexte_title_list(fig$x$layout[[axis_name]]$title)
     }
   }
   fig$x$data <- lapply(fig$x$data, function(trace) {
     if (is.expression(trace$name) || is.language(trace$name)) {
-      trace$name <- rbext_label_html(trace$name)
+      trace$name <- bexte_label_html(trace$name)
     } else if (is.character(trace$name)) {
-      trace$name <- rbext_latex_html(trace$name)
+      trace$name <- bexte_latex_html(trace$name)
     }
-    rbext_trace_contrast(trace, mode, pal$ink)
+    bexte_trace_contrast(trace, mode, pal$ink)
   })
 
   axis <- list(

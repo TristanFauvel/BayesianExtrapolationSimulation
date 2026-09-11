@@ -1615,7 +1615,7 @@ N_S}\right) \\
 # mod &lt;- cmdstanr::cmdstan_model(stan_file_path)
 
 # mod &lt;- compile_stan_model(&quot;commensurate_pp&quot;, stan_model_code)</code></pre>
-<pre class="r"><code>case_study_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;RBExT&quot;))
+<pre class="r"><code>case_study_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;BExTE&quot;))
 
 
 source_data &lt;- ObservedSourceData$new(case_study_config)
@@ -1635,7 +1635,7 @@ method_parameters &lt;- list(
     list(family = &quot;half_normal&quot;, std_dev = 5)
 )
 
-config_dir &lt;- paste0(system.file(paste0(&quot;conf/&quot;, env), package = &quot;RBExT&quot;), &quot;/&quot;)
+config_dir &lt;- paste0(system.file(paste0(&quot;conf/&quot;, env), package = &quot;BExTE&quot;), &quot;/&quot;)
 mcmc_config &lt;- yaml::read_yaml(paste0(config_dir, &quot;/mcmc_config.yml&quot;))
 
 model &lt;- Model$new()

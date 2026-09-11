@@ -36,7 +36,7 @@
 
 [] Change the TargetData class so that it can be defined without source data as input. 
 
-[] Solve warning of the form : replacing previous import ‘jsonlite::unbox’ by ‘rlang::unbox’ when loading ‘RBExT’
+[] Solve warning of the form : replacing previous import ‘jsonlite::unbox’ by ‘rlang::unbox’ when loading ‘BExTE’
 
 [] Change the drift range computation in the Aprepitant case to constrain the number of drift values (instead of filtering)
 

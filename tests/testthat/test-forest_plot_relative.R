@@ -66,11 +66,11 @@ test_that("scale_by_separate errors when there is no separate analysis to divide
 })
 
 setup_relative_plot_globals <- function(figures_dir) {
-  source(system.file("conf/plots_config.R", package = "RBExT"))
-  source(system.file("conf/methods_plots_config.R", package = "RBExT"))
-  source(system.file("conf/metrics_config.R", package = "RBExT"))
+  source(system.file("conf/plots_config.R", package = "BExTE"))
+  source(system.file("conf/methods_plots_config.R", package = "BExTE"))
+  source(system.file("conf/metrics_config.R", package = "BExTE"))
   methods_env <- new.env()
-  source(system.file("conf/full/methods_config.R", package = "RBExT"), local = methods_env)
+  source(system.file("conf/full/methods_config.R", package = "BExTE"), local = methods_env)
   assign("methods_dict", methods_env$methods_dict, envir = .GlobalEnv)
   assign("figures_dir", figures_dir, envir = .GlobalEnv)
   assign("remake_figures", TRUE, envir = .GlobalEnv)

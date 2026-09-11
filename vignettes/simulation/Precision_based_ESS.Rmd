@@ -12,7 +12,7 @@ vignette: >
   %\VignetteIndexEntry{Precision-based matching for prior ESS estimation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteDepends{RBExT, ggplot2}
+  %\VignetteDepends{BExTE, ggplot2}
 ---
 
 ```{r setup, warning=F, message=F, include=FALSE}
@@ -20,7 +20,7 @@ root <- dirname(dirname(getwd()))
 knitr::opts_knit$set(root.dir = root, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 library(RBesT)
 ```   
@@ -114,10 +114,10 @@ In this study, we will use the first approach, and match the treatment effect di
 We compute the posterior distribution of the treatment effect in the target study, for a case study : 
 ```{r case_study}
 set.seed(42)
-config_path <- system.file("conf/simulation_config.yml", package = "RBExT")
+config_path <- system.file("conf/simulation_config.yml", package = "BExTE")
 simulation_config <- yaml::yaml.load_file(config_path)
 
-config_path <- system.file("conf/case_studies/belimumab.yml", package = "RBExT")
+config_path <- system.file("conf/case_studies/belimumab.yml", package = "BExTE")
 case_study_config <- yaml::yaml.load_file(config_path)
 
 

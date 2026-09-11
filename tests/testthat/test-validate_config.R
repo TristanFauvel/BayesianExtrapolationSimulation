@@ -94,7 +94,7 @@ test_that("validate_config ignores keys the schema does not describe", {
 
 test_that("the shipped simulation and mcmc configs satisfy their schemas", {
   simulation_config <- yaml::read_yaml(
-    system.file("conf/simulation_config.yml", package = "RBExT")
+    system.file("conf/simulation_config.yml", package = "BExTE")
   )
   expect_silent(
     validate_config(simulation_config, simulation_config_schema, "simulation_config.yml")
@@ -134,7 +134,7 @@ test_that("validate_config rejects a negative non-negative count", {
 
 
 test_that("every shipped config satisfies its schema", {
-  conf_dir <- system.file("conf", package = "RBExT")
+  conf_dir <- system.file("conf", package = "BExTE")
 
   scenarios <- list.files(conf_dir, pattern = "^scenarios_config\\.yml$",
                           recursive = TRUE, full.names = TRUE)
@@ -155,7 +155,7 @@ test_that("every shipped config satisfies its schema", {
 
 
 test_that("read_config returns the parsed config when it is valid", {
-  path <- system.file("conf/simulation_config.yml", package = "RBExT")
+  path <- system.file("conf/simulation_config.yml", package = "BExTE")
 
   config <- read_config(path, simulation_config_schema)
 

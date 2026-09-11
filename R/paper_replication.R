@@ -115,12 +115,12 @@ paper_replication_coverage <- function(results_df, ids, case_studies_config_dir)
 ## inst/shiny_app/helpers.R), since the exporter has no results-environment
 ## methods_config.R of its own to prefer.
 ensure_paper_plot_globals <- function() {
-  source(system.file("conf/plots_config.R", package = "RBExT"))
-  source(system.file("conf/methods_plots_config.R", package = "RBExT"))
-  source(system.file("conf/metrics_config.R", package = "RBExT"))
+  source(system.file("conf/plots_config.R", package = "BExTE"))
+  source(system.file("conf/methods_plots_config.R", package = "BExTE"))
+  source(system.file("conf/metrics_config.R", package = "BExTE"))
 
   methods_template_env <- new.env()
-  source(system.file("conf/full/methods_config.R", package = "RBExT"), local = methods_template_env)
+  source(system.file("conf/full/methods_config.R", package = "BExTE"), local = methods_template_env)
   assign("methods_dict", methods_template_env$methods_dict, envir = .GlobalEnv)
 
   invisible(NULL)
@@ -284,7 +284,7 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
     show_col_types = FALSE
   )
   analysis_config <- yaml::read_yaml(
-    system.file("conf/analysis_config.yml", package = "RBExT")
+    system.file("conf/analysis_config.yml", package = "BExTE")
   )
 
   entries <- lapply(ids, paper_manifest_entry)

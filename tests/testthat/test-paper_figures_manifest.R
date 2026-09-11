@@ -31,14 +31,14 @@ test_that("every case study named in the manifest has a config", {
     if (is.na(entry$case_study)) next
     path <- system.file(
       file.path("conf/case_studies", paste0(entry$case_study, ".yml")),
-      package = "RBExT"
+      package = "BExTE"
     )
     expect_true(nzchar(path), info = entry$id)
   }
 })
 
 test_that("sample size factors resolve to the per-arm sizes the captions state", {
-  config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 
   expected <- list(
     list("botox", 2, 117), list("botox", 4, 58),

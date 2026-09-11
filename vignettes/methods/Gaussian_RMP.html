@@ -1498,9 +1498,9 @@ normal distribution.</p>
 <p>Load the simulation configuration and the Belimumab case study
 configuration from YAML files.</p>
 <pre class="r"><code>set.seed(42)
-simulation_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;RBExT&quot;))
+simulation_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;BExTE&quot;))
 
-case_study_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;RBExT&quot;))</code></pre>
+case_study_config &lt;- yaml::yaml.load_file(system.file(&quot;conf/case_studies/belimumab.yml&quot;, package = &quot;BExTE&quot;))</code></pre>
 </div>
 <div id="specific-scenario" class="section level2">
 <h2>Specific scenario</h2>
@@ -1956,7 +1956,7 @@ print(plt)</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] RBExT_0.0.1      tibble_3.2.1     kableExtra_1.4.0 dplyr_1.1.2     
+## [1] BExTE_0.0.1      tibble_3.2.1     kableExtra_1.4.0 dplyr_1.1.2     
 ## [5] RBesT_1.7-3      ggplot2_3.5.1    testthat_3.2.1.1 foreach_1.5.2   
 ## 
 ## loaded via a namespace (and not attached):

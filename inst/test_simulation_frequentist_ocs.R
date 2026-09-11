@@ -1,13 +1,13 @@
 rm(list = ls())
-library(RBExT)
+library(BExTE)
 
-source(system.file(paste0("conf/metrics_config.R"), package = "RBExT"))
+source(system.file(paste0("conf/metrics_config.R"), package = "BExTE"))
 
 env <- "pipeline_tests"
-config_dir <- paste0(system.file(paste0("conf/", env), package = "RBExT"), "/")
-case_studies_config_dir <- paste0(system.file(paste0("conf/case_studies"), package = "RBExT"), "/")
+config_dir <- paste0(system.file(paste0("conf/", env), package = "BExTE"), "/")
+case_studies_config_dir <- paste0(system.file(paste0("conf/case_studies"), package = "BExTE"), "/")
 results_dir <- paste0("./results/", env, "/")
-outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
+outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
 ocs_filename <- outputs_config$frequentist_ocs_results_filename
 
 analysis_config <- yaml::read_yaml(paste0(config_dir, "analysis_config.yml"))

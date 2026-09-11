@@ -705,7 +705,7 @@ plot_metric_vs_scenario_methods <- function(results_metrics_df, metrics) {
   for (case_study in case_studies) {
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
+      package = "BExTE"
     ))
 
     results_metrics_df1 <- results_metrics_df %>%

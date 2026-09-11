@@ -29,7 +29,7 @@ write_results_csv <- function(path, n_rows) {
 ## count_result_rows() reads paths relative to the repository root, the way
 ## the app itself runs (see the comment at the top of helpers.R).
 local_results_root <- function(env = parent.frame()) {
-  root <- file.path(tempfile("rbext-results"))
+  root <- file.path(tempfile("bexte-results"))
   dir.create(root, recursive = TRUE)
   old <- setwd(root)
   withr::defer(setwd(old), envir = env)
@@ -37,7 +37,7 @@ local_results_root <- function(env = parent.frame()) {
 }
 
 test_that("count_result_rows counts records, not the lines one record spans", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   write_results_csv("results/demo/results_frequentist.csv", 3)
@@ -46,7 +46,7 @@ test_that("count_result_rows counts records, not the lines one record spans", {
 })
 
 test_that("count_result_rows counts the per-method files a run writes as it goes", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   write_results_csv("results/demo/frequentist/botox/separate/results_frequentist.csv", 5)
@@ -56,7 +56,7 @@ test_that("count_result_rows counts the per-method files a run writes as it goes
 })
 
 test_that("count_result_rows does not count concatenated rows twice", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   write_results_csv("results/demo/frequentist/botox/separate/results_frequentist.csv", 5)
@@ -67,7 +67,7 @@ test_that("count_result_rows does not count concatenated rows twice", {
 })
 
 test_that("count_result_rows ignores results left over from an earlier run", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   stale <- c(
@@ -86,7 +86,7 @@ test_that("count_result_rows ignores results left over from an earlier run", {
 })
 
 test_that("count_result_rows counts the rows written since the run was launched", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   stale <- "results/demo/results_frequentist.csv"
@@ -106,7 +106,7 @@ test_that("count_result_rows counts the rows written since the run was launched"
 })
 
 test_that("count_result_rows reports no rows for an environment that has never run", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   expect_identical(count_result_rows("demo"), 0L)
@@ -132,7 +132,7 @@ write_progress_json <- function(env, done, total) {
 }
 
 test_that("read_run_progress reports the scenarios a run has simulated", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   write_progress_json("demo", done = 17, total = 108)
@@ -141,7 +141,7 @@ test_that("read_run_progress reports the scenarios a run has simulated", {
 })
 
 test_that("read_run_progress ignores progress left over from an earlier run", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   write_progress_json("demo", done = 108, total = 108)
@@ -152,14 +152,14 @@ test_that("read_run_progress ignores progress left over from an earlier run", {
 })
 
 test_that("read_run_progress reports nothing for a run that has not written yet", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   expect_null(read_run_progress("demo"))
 })
 
 test_that("read_run_progress reports nothing rather than failing on an unreadable file", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   dir.create(file.path("logs", "demo"), recursive = TRUE, showWarnings = FALSE)
@@ -169,7 +169,7 @@ test_that("read_run_progress reports nothing rather than failing on an unreadabl
 })
 
 test_that("the app reads the progress a run's own tracker writes", {
-  source(system.file("shiny_app/helpers.R", package = "RBExT"))
+  source(system.file("shiny_app/helpers.R", package = "BExTE"))
   local_results_root()
 
   tracker <- run_progress_tracker("demo", total = 108)

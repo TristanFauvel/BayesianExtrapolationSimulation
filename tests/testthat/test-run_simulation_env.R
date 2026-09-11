@@ -94,7 +94,7 @@ test_that("run_simulation_env dispatches to the frequentist pipeline when comput
       calls$analysis <- calls$analysis + 1L
       NULL
     },
-    .package = "RBExT"
+    .package = "BExTE"
   )
 
   expect_equal(calls$freq, 1L)
@@ -141,7 +141,7 @@ test_that("run_simulation_env dispatches to the Bayesian pipeline when compute_b
       calls$concat_filenames <- c(calls$concat_filenames, ocs_filename)
       NULL
     },
-    .package = "RBExT"
+    .package = "BExTE"
   )
 
   expect_equal(calls$bayesian, 1L)

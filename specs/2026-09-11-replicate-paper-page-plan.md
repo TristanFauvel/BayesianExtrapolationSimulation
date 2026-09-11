@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a "Replicate paper" page to the RBExT Shiny app that records which generator call produces each paper figure and table, derives and runs the minimal simulation config a chosen subset needs, and exports that subset to a dedicated folder with a manifest.
+**Goal:** Add a "Replicate paper" page to the BExTE Shiny app that records which generator call produces each paper figure and table, derives and runs the minimal simulation config a chosen subset needs, and exports that subset to a dedicated folder with a manifest.
 
 **Architecture:** A declarative manifest (`R/paper_figures_manifest.R`) maps each paper item to a direct call on an existing leaf plot/table generator — the leaf functions already take the scenario coordinates explicitly, so no plotting logic is reimplemented. `R/paper_replication.R` folds a selection into a minimal `scenarios_config`, checks an existing results directory for coverage, and runs the generators. `inst/shiny_app/modules/mod_replicate.R` is a thin three-step UI over those functions, reusing the Run page's background launcher.
 
@@ -17,7 +17,7 @@
 - **Report divergent or undefined quantities as `NA`/`Inf`, never a finite surrogate.** This is a house rule. In this plan it applies to `scale_by_separate()`: a zero or missing denominator drops the row with a warning rather than substituting a value.
 - `tests/testthat/test-simulation_analysis.R:61` **already fails on a clean checkout.** It is unrelated to this work. Do not attempt to fix it; do not treat it as a regression.
 - Run tests with `Rscript -e "devtools::test(stop_on_failure = TRUE)"`; a single file with `Rscript -e 'devtools::load_all(); testthat::test_file("tests/testthat/test-NAME.R")'`.
-- All app code addresses its output with paths relative to the **workspace** — `./results/<env>/`, `./logs/<env>/`, `./user_configs/<env>/`. `run_rbext_app()` picks it (`rbext_workspace()`: the checkout when there is one, `tools::R_user_dir("RBExT", "data")` otherwise), records it as `options(rbext.workspace=)`, and `app.R` restores it. Write the new page's outputs with workspace-relative paths, the same way, never an absolute path or one built from `system.file()`.
+- All app code addresses its output with paths relative to the **workspace** — `./results/<env>/`, `./logs/<env>/`, `./user_configs/<env>/`. `run_bexte_app()` picks it (`bexte_workspace()`: the checkout when there is one, `tools::R_user_dir("BExTE", "data")` otherwise), records it as `options(bexte.workspace=)`, and `app.R` restores it. Write the new page's outputs with workspace-relative paths, the same way, never an absolute path or one built from `system.file()`.
 - **Work happens directly on `main`**, based on 3faa2f1 ("Make the installed package work outside a source checkout"), which is where the workspace contract above comes from. Every `git add` in this plan names its paths explicitly; never `git add -A`, and never commit an unrelated file you find modified. If a rebase or merge is needed, stop and ask.
 - `renv` reports the project as out-of-sync. That is pre-existing; ignore the warning on every `Rscript` call.
 
@@ -269,11 +269,11 @@ Append to `tests/testthat/test-forest_plot_relative.R`:
 
 ```r
 setup_relative_plot_globals <- function(figures_dir) {
-  source(system.file("conf/plots_config.R", package = "RBExT"))
-  source(system.file("conf/methods_plots_config.R", package = "RBExT"))
-  source(system.file("conf/metrics_config.R", package = "RBExT"))
+  source(system.file("conf/plots_config.R", package = "BExTE"))
+  source(system.file("conf/methods_plots_config.R", package = "BExTE"))
+  source(system.file("conf/metrics_config.R", package = "BExTE"))
   methods_env <- new.env()
-  source(system.file("conf/full/methods_config.R", package = "RBExT"), local = methods_env)
+  source(system.file("conf/full/methods_config.R", package = "BExTE"), local = methods_env)
   assign("methods_dict", methods_env$methods_dict, envir = .GlobalEnv)
   assign("figures_dir", figures_dir, envir = .GlobalEnv)
   assign("remake_figures", TRUE, envir = .GlobalEnv)
@@ -388,14 +388,14 @@ test_that("every case study named in the manifest has a config", {
     if (is.na(entry$case_study)) next
     path <- system.file(
       file.path("conf/case_studies", paste0(entry$case_study, ".yml")),
-      package = "RBExT"
+      package = "BExTE"
     )
     expect_true(nzchar(path), info = entry$id)
   }
 })
 
 test_that("sample size factors resolve to the per-arm sizes the captions state", {
-  config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 
   expected <- list(
     list("botox", 2, 117), list("botox", 4, 58),
@@ -822,7 +822,7 @@ Create `tests/testthat/test-paper_replication.R`:
 ## HPC-scale and most of its grid is never plotted.
 
 config_dir <- function() {
-  paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 }
 
 test_that("the four main figures need only botox at factors 2 and 4", {
@@ -1041,7 +1041,7 @@ Create `tests/testthat/test-table_case_study_summary.R`:
 ## output, so they can be generated before any run finishes.
 
 config_dir <- function() {
-  paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+  paste0(system.file("conf/case_studies", package = "BExTE"), "/")
 }
 
 test_that("table_target_sample_sizes lists one row per case study and one column per factor", {
@@ -1355,7 +1355,7 @@ export_paper_outputs <- function(results_dir, figures_dir, tables_dir, ids,
     show_col_types = FALSE
   )
   analysis_config <- yaml::read_yaml(
-    system.file("conf/analysis_config.yml", package = "RBExT")
+    system.file("conf/analysis_config.yml", package = "BExTE")
   )
 
   entries <- lapply(ids, paper_manifest_entry)
@@ -1517,7 +1517,7 @@ Append to `inst/shiny_app/helpers.R`:
 #'
 #' @description Shared by the Run page and the Replicate paper page. Loads the
 #'   package with devtools::load_all() in the child process rather than
-#'   requiring RBExT to be installed, so the app works from a source checkout.
+#'   requiring BExTE to be installed, so the app works from a source checkout.
 #'
 #' @param env An environment name known to `list_environments()`.
 #'
@@ -1527,10 +1527,10 @@ launch_simulation_run <- function(env) {
   config_dir <- env_config_dir(env)
   case_studies_config_dir <- paste0(USER_CASE_STUDIES_DIR, "/")
 
-  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
-  simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "RBExT"))
+  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
+  simulation_config <- yaml::read_yaml(system.file("conf/simulation_config.yml", package = "BExTE"))
   metrics_env <- new.env()
-  source(system.file("conf/metrics_config.R", package = "RBExT"), local = metrics_env)
+  source(system.file("conf/metrics_config.R", package = "BExTE"), local = metrics_env)
 
   callr::r_bg(
     func = function(pkg_root, wd, env, config_dir, case_studies_config_dir,
@@ -1549,7 +1549,7 @@ launch_simulation_run <- function(env) {
       )
     },
     args = list(
-      pkg_root = find.package("RBExT"),
+      pkg_root = find.package("BExTE"),
       wd = getwd(),
       env = env,
       config_dir = config_dir,
@@ -1590,7 +1590,7 @@ Run:
 ```bash
 Rscript -e '
 devtools::load_all()
-app_dir <- system.file("shiny_app", package = "RBExT")
+app_dir <- system.file("shiny_app", package = "BExTE")
 source(file.path(app_dir, "helpers.R"))
 source(file.path(app_dir, "theme.R"))
 source(file.path(app_dir, "modules", "mod_configure.R"))
@@ -1664,33 +1664,33 @@ replicate_main_ids <- function() {
 
 mod_replicate_ui <- function(id) {
   ns <- shiny::NS(id)
-  rbext_page(
-    rbext_step(
+  bexte_page(
+    bexte_step(
       1, "Choose what to reproduce",
       note = "Each item names the generator call that produces it. Coverage is checked against the results directory you pick below.",
-      rbext_fields(
+      bexte_fields(
         shiny::selectInput(ns("results_dir"), "Results directory", choices = NULL),
         shiny::div(
-          rbext_action_button(ns("select_all"), "Select all"),
-          rbext_action_button(ns("select_main"), "Main figures only"),
-          rbext_action_button(ns("select_none"), "Clear")
+          bexte_action_button(ns("select_all"), "Select all"),
+          bexte_action_button(ns("select_main"), "Main figures only"),
+          bexte_action_button(ns("select_none"), "Clear")
         )
       ),
       shiny::checkboxGroupInput(ns("items"), NULL, choices = NULL),
       shiny::uiOutput(ns("coverage"))
     ),
-    rbext_step(
+    bexte_step(
       2, "Run the simulations the selection needs",
       note = "Only the case studies and sample sizes your selection plots are simulated. Anything the results directory already covers is skipped.",
       shiny::uiOutput(ns("workload")),
-      rbext_action_button(ns("run"), "Run required simulations"),
+      bexte_action_button(ns("run"), "Run required simulations"),
       shiny::uiOutput(ns("run_state")),
       shiny::verbatimTextOutput(ns("run_log"))
     ),
-    rbext_step(
+    bexte_step(
       3, "Produce the figures and tables",
       note = "Figures keep their generated filenames; manifest.csv maps each one to its paper number.",
-      rbext_action_button(ns("export"), "Produce figures and tables"),
+      bexte_action_button(ns("export"), "Produce figures and tables"),
       shiny::uiOutput(ns("export_status")),
       shiny::tableOutput(ns("export_table"))
     )
@@ -1720,7 +1720,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     refresh_results_dirs()
 
     case_studies_dir <- function() {
-      paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+      paste0(system.file("conf/case_studies", package = "BExTE"), "/")
     }
 
     shiny::observeEvent(input$select_all, {
@@ -1749,21 +1749,21 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     output$coverage <- shiny::renderUI({
       cov <- coverage()
       if (is.null(cov)) {
-        return(rbext_empty("Pick a results directory to check coverage."))
+        return(bexte_empty("Pick a results directory to check coverage."))
       }
       covered <- sum(cov$covered)
       ## A badge per checkbox row is not reachable through
       ## checkboxGroupInput(), so the uncovered items are named here instead.
       uncovered <- cov[!cov$covered, , drop = FALSE]
       shiny::tagList(
-        rbext_status(
+        bexte_status(
           sprintf("%d of %d selected items are covered by this results directory.",
                   covered, nrow(cov)),
           ok = covered == nrow(cov)
         ),
         if (nrow(uncovered) > 0) {
           shiny::p(
-            class = "rbext-note",
+            class = "bexte-note",
             paste0(
               "Not covered: ",
               paste(uncovered$id, " (", uncovered$reason, ")",
@@ -1783,11 +1783,11 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     output$workload <- shiny::renderUI({
       ids <- missing_ids()
       if (length(ids) == 0) {
-        return(rbext_status("Nothing to run - the results directory covers everything selected."))
+        return(bexte_status("Nothing to run - the results directory covers everything selected."))
       }
       requirements <- paper_replication_requirements(ids, case_studies_dir())
       shiny::div(
-        class = "rbext-workload",
+        class = "bexte-workload",
         shiny::strong(sprintf(
           "%d case studies, sample size factors %s, %d replicates, %d drift points",
           length(requirements$case_studies),
@@ -1817,7 +1817,7 @@ mod_replicate_server <- function(id, color_mode = NULL) {
         env = env,
         scenarios_config = requirements,
         mcmc_config = yaml::read_yaml(
-          file.path(system.file("conf/combined", package = "RBExT"), "mcmc_config.yml")
+          file.path(system.file("conf/combined", package = "BExTE"), "mcmc_config.yml")
         ),
         methods_dict_selected = methods_dict
       )
@@ -1829,10 +1829,10 @@ mod_replicate_server <- function(id, color_mode = NULL) {
 
     output$run_state <- shiny::renderUI({
       if (is.null(state$proc)) {
-        return(rbext_state("idle"))
+        return(bexte_state("idle"))
       }
       shiny::invalidateLater(2000, session)
-      if (state$proc$is_alive()) rbext_state("running", "live") else rbext_state("finished", "done")
+      if (state$proc$is_alive()) bexte_state("running", "live") else bexte_state("finished", "done")
     })
 
     output$run_log <- shiny::renderText({
@@ -1872,10 +1872,10 @@ mod_replicate_server <- function(id, color_mode = NULL) {
     output$export_status <- shiny::renderUI({
       status <- state$export
       if (is.null(status)) {
-        return(rbext_empty("Nothing produced yet."))
+        return(bexte_empty("Nothing produced yet."))
       }
       ok <- sum(status$status == "ok")
-      rbext_status(
+      bexte_status(
         sprintf("%d of %d produced. Manifest written alongside the tables.",
                 ok, nrow(status)),
         ok = ok == nrow(status)
@@ -1919,7 +1919,7 @@ Run:
 ```bash
 Rscript -e '
 devtools::load_all()
-app_dir <- system.file("shiny_app", package = "RBExT")
+app_dir <- system.file("shiny_app", package = "BExTE")
 source(file.path(app_dir, "helpers.R"))
 source(file.path(app_dir, "theme.R"))
 source(file.path(app_dir, "modules", "mod_replicate.R"))
@@ -1934,7 +1934,7 @@ Expected: `replicate page builds, 42 items`.
 
 - [ ] **Step 5: Launch the app and confirm the page renders**
 
-Run: `Rscript -e 'devtools::load_all(); RBExT::run_rbext_app(port = 8111, launch.browser = FALSE)'`
+Run: `Rscript -e 'devtools::load_all(); BExTE::run_bexte_app(port = 8111, launch.browser = FALSE)'`
 Open `http://127.0.0.1:8111`, click "Replicate paper", and confirm: the checklist lists 42 items with the main four preselected, the results-directory picker is populated, and the three buttons render. Stop the app.
 
 - [ ] **Step 6: Commit**

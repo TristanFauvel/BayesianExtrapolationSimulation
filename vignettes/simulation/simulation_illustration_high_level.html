@@ -1508,11 +1508,11 @@ components used at each step.</p>
 <p>Load the simulation configuration and the Belimumab case study
 configuration from YAML files.</p>
 <pre class="r"><code>set.seed(42)
-config_path &lt;- system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;RBExT&quot;)
+config_path &lt;- system.file(&quot;conf/full/simulation_config.yml&quot;, package = &quot;BExTE&quot;)
 simulation_config &lt;- yaml::yaml.load_file(config_path)
 
 case_study &lt;- &quot;botox&quot;
-config_path &lt;- system.file(&quot;conf/case_studies/botox.yml&quot;, package = &quot;RBExT&quot;)
+config_path &lt;- system.file(&quot;conf/case_studies/botox.yml&quot;, package = &quot;BExTE&quot;)
 case_study_config &lt;- yaml::yaml.load_file(config_path)</code></pre>
 <p>The case study configuration file contains all necessary information
 about the case study, this includes: treatment effect distribution,
@@ -1697,7 +1697,7 @@ methods, the results table is then used to make figures</p>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] kableExtra_1.4.0 RBExT_0.0.1      bayesplot_1.11.1 posterior_1.6.0 
+##  [1] kableExtra_1.4.0 BExTE_0.0.1      bayesplot_1.11.1 posterior_1.6.0 
 ##  [5] cmdstanr_0.8.1   RBesT_1.7-3      lubridate_1.9.3  forcats_1.0.0   
 ##  [9] stringr_1.5.1    dplyr_1.1.4      purrr_1.0.2      readr_2.1.5     
 ## [13] tidyr_1.3.1      tibble_3.2.1     ggplot2_3.5.1    tidyverse_2.0.0 

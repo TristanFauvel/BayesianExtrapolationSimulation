@@ -186,7 +186,7 @@ plot_metrics_vs_ess <- function(results_metrics_df, frequentist_metrics, inferen
   for (case_study in case_studies) {
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
+      package = "BExTE"
     ))
 
     filtered_results_metrics_df <- results_metrics_df %>%

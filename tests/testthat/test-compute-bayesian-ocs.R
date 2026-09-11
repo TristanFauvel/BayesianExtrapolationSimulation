@@ -1,7 +1,7 @@
 test_that("deterministic Bayesian OC analysis handles an empty result set", {
   empty_results <- data.frame(case_study = character())
 
-  result <- RBExT:::compute_bayesian_ocs(
+  result <- BExTE:::compute_bayesian_ocs(
     results_freq_df = empty_results,
     env = "pipeline_tests"
   )

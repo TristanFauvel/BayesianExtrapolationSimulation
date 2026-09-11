@@ -1130,7 +1130,7 @@ plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
   )
 
 
-  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "RBExT"))
+  analysis_config <- yaml::read_yaml(system.file("conf/analysis_config.yml", package = "BExTE"))
 
   # Get the list of case studies
   case_studies <- unique(results_metrics_df$case_study)
@@ -1141,7 +1141,7 @@ plot_metric_vs_scenario <- function(results_metrics_df, metrics) {
   for (case_study in case_studies) {
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
+      package = "BExTE"
     ))
 
     filtered_results_metrics_df <- results_metrics_df %>%

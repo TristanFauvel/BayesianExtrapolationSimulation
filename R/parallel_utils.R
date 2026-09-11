@@ -140,11 +140,11 @@ analysis_uses_cluster <- function(parallelization, n_rows,
   isTRUE(parallelization) && n_rows >= min_rows
 }
 
-#' Make RBExT (and any other packages) available in every worker of a cluster
+#' Make BExTE (and any other packages) available in every worker of a cluster
 #'
-#' RBExT is not necessarily an installed package: both `inst/scripts/main.R`
+#' BExTE is not necessarily an installed package: both `inst/scripts/main.R`
 #' and the Shiny app's background process `devtools::load_all()` it from
-#' source, and a worker that only calls `library(RBExT)` fails outright there.
+#' source, and a worker that only calls `library(BExTE)` fails outright there.
 #' Each worker therefore falls back to loading the same source tree.
 #'
 #' @param cl A cluster from `parallel::makeCluster()`.
@@ -152,9 +152,9 @@ analysis_uses_cluster <- function(parallelization, n_rows,
 #'
 #' @return `NULL`, invisibly.
 #' @noRd
-load_rbext_in_workers <- function(cl, packages = character()) {
+load_bexte_in_workers <- function(cl, packages = character()) {
   paths <- .libPaths()
-  pkg_root <- find.package("RBExT")
+  pkg_root <- find.package("BExTE")
 
   parallel::clusterExport(
     cl,
@@ -164,8 +164,8 @@ load_rbext_in_workers <- function(cl, packages = character()) {
 
   parallel::clusterEvalQ(cl, {
     .libPaths(paths)
-    if (requireNamespace("RBExT", quietly = TRUE)) {
-      library(RBExT)
+    if (requireNamespace("BExTE", quietly = TRUE)) {
+      library(BExTE)
     } else {
       devtools::load_all(pkg_root, quiet = TRUE)
     }

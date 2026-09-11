@@ -1,5 +1,5 @@
 # Required Libraries
-library(RBExT)
+library(BExTE)
 library(ggplot2)
 library(gridExtra)
 

@@ -1,6 +1,6 @@
-// RBExT app theme: a quiet instrument panel for simulation work.
+// BExTE app theme: a quiet instrument panel for simulation work.
 //
-// Compiled on top of Bootstrap 5 by rbext_theme() (see ../theme.R). Both
+// Compiled on top of Bootstrap 5 by bexte_theme() (see ../theme.R). Both
 // colour schemes are defined here as custom properties: Bootstrap 5.3 sets
 // data-bs-theme on <html>, and bslib::input_dark_mode() in the navbar is what
 // flips it, so every rule below reads its colours through var() rather than
@@ -10,44 +10,44 @@
 // a run in progress. Nothing decorative uses it.
 
 :root {
-  --rbext-canvas: #f7f8fa;
-  --rbext-surface: #ffffff;
-  --rbext-sunken: #f1f3f6;
-  --rbext-hairline: #e3e7ec;
-  --rbext-hairline-strong: #cbd3dc;
-  --rbext-ink: #1e293b;
-  --rbext-ink-muted: #64748b;
-  --rbext-accent: #0f766e;
-  --rbext-accent-hover: #0b5d56;
-  --rbext-accent-ink: #ffffff;
-  --rbext-accent-quiet: #e6f2f1;
-  --rbext-focus-ring: rgba(15, 118, 110, 0.18);
-  --rbext-danger: #b91c1c;
-  --rbext-danger-quiet: #fdecec;
-  --rbext-warning: #b45309;
-  --rbext-warning-quiet: #fdf3e3;
+  --bexte-canvas: #f7f8fa;
+  --bexte-surface: #ffffff;
+  --bexte-sunken: #f1f3f6;
+  --bexte-hairline: #e3e7ec;
+  --bexte-hairline-strong: #cbd3dc;
+  --bexte-ink: #1e293b;
+  --bexte-ink-muted: #64748b;
+  --bexte-accent: #0f766e;
+  --bexte-accent-hover: #0b5d56;
+  --bexte-accent-ink: #ffffff;
+  --bexte-accent-quiet: #e6f2f1;
+  --bexte-focus-ring: rgba(15, 118, 110, 0.18);
+  --bexte-danger: #b91c1c;
+  --bexte-danger-quiet: #fdecec;
+  --bexte-warning: #b45309;
+  --bexte-warning-quiet: #fdf3e3;
 
-  --rbext-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --rbext-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --bexte-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bexte-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 [data-bs-theme="dark"] {
-  --rbext-canvas: #0f1419;
-  --rbext-surface: #171c22;
-  --rbext-sunken: #12171c;
-  --rbext-hairline: #2a3138;
-  --rbext-hairline-strong: #3b444e;
-  --rbext-ink: #e5e9ef;
-  --rbext-ink-muted: #94a3b8;
-  --rbext-accent: #2dd4bf;
-  --rbext-accent-hover: #5eead4;
-  --rbext-accent-ink: #06211e;
-  --rbext-accent-quiet: #12312f;
-  --rbext-focus-ring: rgba(45, 212, 191, 0.22);
-  --rbext-danger: #f87171;
-  --rbext-danger-quiet: #341a1a;
-  --rbext-warning: #fbbf24;
-  --rbext-warning-quiet: #33260d;
+  --bexte-canvas: #0f1419;
+  --bexte-surface: #171c22;
+  --bexte-sunken: #12171c;
+  --bexte-hairline: #2a3138;
+  --bexte-hairline-strong: #3b444e;
+  --bexte-ink: #e5e9ef;
+  --bexte-ink-muted: #94a3b8;
+  --bexte-accent: #2dd4bf;
+  --bexte-accent-hover: #5eead4;
+  --bexte-accent-ink: #06211e;
+  --bexte-accent-quiet: #12312f;
+  --bexte-focus-ring: rgba(45, 212, 191, 0.22);
+  --bexte-danger: #f87171;
+  --bexte-danger-quiet: #341a1a;
+  --bexte-warning: #fbbf24;
+  --bexte-warning-quiet: #33260d;
 }
 
 // ---- Bootstrap plumbing ----------------------------------------------------
@@ -57,18 +57,18 @@
 :root,
 [data-bs-theme="light"],
 [data-bs-theme="dark"] {
-  --bs-body-bg: var(--rbext-canvas);
-  --bs-body-color: var(--rbext-ink);
-  --bs-body-font-family: var(--rbext-font-sans);
-  --bs-emphasis-color: var(--rbext-ink);
-  --bs-secondary-color: var(--rbext-ink-muted);
-  --bs-tertiary-bg: var(--rbext-sunken);
-  --bs-border-color: var(--rbext-hairline);
-  --bs-border-color-translucent: var(--rbext-hairline);
-  --bs-link-color: var(--rbext-accent);
-  --bs-link-hover-color: var(--rbext-accent-hover);
-  --bs-code-color: var(--rbext-accent);
-  --bs-heading-color: var(--rbext-ink);
+  --bs-body-bg: var(--bexte-canvas);
+  --bs-body-color: var(--bexte-ink);
+  --bs-body-font-family: var(--bexte-font-sans);
+  --bs-emphasis-color: var(--bexte-ink);
+  --bs-secondary-color: var(--bexte-ink-muted);
+  --bs-tertiary-bg: var(--bexte-sunken);
+  --bs-border-color: var(--bexte-hairline);
+  --bs-border-color-translucent: var(--bexte-hairline);
+  --bs-link-color: var(--bexte-accent);
+  --bs-link-hover-color: var(--bexte-accent-hover);
+  --bs-code-color: var(--bexte-accent);
+  --bs-heading-color: var(--bexte-ink);
 }
 
 // ---- Typography ------------------------------------------------------------
@@ -76,9 +76,9 @@
 // numbers, and columns of them should line up.
 
 body {
-  background-color: var(--rbext-canvas);
-  color: var(--rbext-ink);
-  font-family: var(--rbext-font-sans);
+  background-color: var(--bexte-canvas);
+  color: var(--bexte-ink);
+  font-family: var(--bexte-font-sans);
   font-size: 0.9375rem;
   line-height: 1.55;
   font-variant-numeric: tabular-nums;
@@ -86,23 +86,23 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
   font-weight: 600;
   letter-spacing: -0.011em;
 }
 
-.rbext-muted {
-  color: var(--rbext-ink-muted);
+.bexte-muted {
+  color: var(--bexte-ink-muted);
 }
 
-.rbext-note {
-  color: var(--rbext-ink-muted);
+.bexte-note {
+  color: var(--bexte-ink-muted);
   font-size: 0.8125rem;
   margin: 0 0 0.9rem;
   max-width: 68ch;
 }
 
-.rbext-note:last-child {
+.bexte-note:last-child {
   margin-bottom: 0;
 }
 
@@ -110,26 +110,26 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 .navbar {
   --bs-navbar-padding-y: 0.45rem;
-  background-color: var(--rbext-surface) !important;
-  border-bottom: 1px solid var(--rbext-hairline);
+  background-color: var(--bexte-surface) !important;
+  border-bottom: 1px solid var(--bexte-hairline);
 }
 
 .navbar .navbar-brand,
-.rbext-brand {
+.bexte-brand {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.rbext-brand {
+.bexte-brand {
   font-size: 1.0625rem;
 }
 
-.navbar .navbar-brand .rbext-mark {
-  color: var(--rbext-accent);
+.navbar .navbar-brand .bexte-mark {
+  color: var(--bexte-accent);
   display: block;
 }
 
@@ -144,7 +144,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 
 .navbar .nav-link {
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
   font-weight: 500;
   padding: 0.3rem 0;
   border-bottom: 2px solid transparent;
@@ -152,16 +152,16 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 .navbar .nav-link:hover,
 .navbar .nav-link:focus {
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
 }
 
 // bslib gives the navbar Bootstrap's .nav-underline, which bolds the active
 // link to 700; holding the weight here keeps the row from re-flowing by a
 // pixel or two every time you change tab.
 .navbar .nav-link.active {
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
   font-weight: 500;
-  border-bottom-color: var(--rbext-accent);
+  border-bottom-color: var(--bexte-accent);
 }
 
 // Below 992px the tabs stack inside the collapsed panel, where each link
@@ -178,7 +178,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
   .navbar .nav-link.active {
     border-bottom-color: transparent;
-    border-left-color: var(--rbext-accent);
+    border-left-color: var(--bexte-accent);
   }
 }
 
@@ -188,19 +188,19 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .card,
 .bslib-value-box,
 .well {
-  --bs-card-bg: var(--rbext-surface);
-  --bs-card-border-color: var(--rbext-hairline);
+  --bs-card-bg: var(--bexte-surface);
+  --bs-card-border-color: var(--bexte-hairline);
   --bs-card-cap-bg: transparent;
-  background-color: var(--rbext-surface);
-  border: 1px solid var(--rbext-hairline);
+  background-color: var(--bexte-surface);
+  border: 1px solid var(--bexte-hairline);
   border-radius: 6px;
   box-shadow: none !important;
 }
 
 .card > .card-header {
   background-color: transparent;
-  border-bottom: 1px solid var(--rbext-hairline);
-  color: var(--rbext-ink);
+  border-bottom: 1px solid var(--bexte-hairline);
+  color: var(--bexte-ink);
   font-weight: 600;
   padding: 0.75rem 1rem;
 }
@@ -210,19 +210,19 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   padding: 1rem;
 }
 
-.rbext-page .card {
+.bexte-page .card {
   overflow: visible;
 }
 
 .bslib-sidebar-layout > .sidebar {
-  --bs-card-bg: var(--rbext-surface);
-  background-color: var(--rbext-surface);
+  --bs-card-bg: var(--bexte-surface);
+  background-color: var(--bexte-surface);
 }
 
 .bslib-sidebar-layout {
-  --_sidebar-bg: var(--rbext-surface);
-  --_main-bg: var(--rbext-canvas);
-  border-color: var(--rbext-hairline) !important;
+  --_sidebar-bg: var(--bexte-surface);
+  --_main-bg: var(--bexte-canvas);
+  border-color: var(--bexte-hairline) !important;
   border-radius: 6px;
 }
 
@@ -230,29 +230,29 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 // The index is here because the five sections really are a sequence that ends
 // in "Save environment"; it is deliberately quiet, not an accent badge.
 
-.rbext-step-header {
+.bexte-step-header {
   display: flex;
   align-items: baseline;
   gap: 0.65rem;
 }
 
-.rbext-step-index {
+.bexte-step-index {
   flex: none;
   min-width: 1.5rem;
   height: 1.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--rbext-hairline-strong);
+  border: 1px solid var(--bexte-hairline-strong);
   border-radius: 4px;
-  background-color: var(--rbext-sunken);
-  color: var(--rbext-ink-muted);
+  background-color: var(--bexte-sunken);
+  color: var(--bexte-ink-muted);
   font-size: 0.8125rem;
   font-weight: 600;
   align-self: center;
 }
 
-.rbext-step-title {
+.bexte-step-title {
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.011em;
@@ -260,27 +260,27 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   margin: 0;
 }
 
-.rbext-field-grid {
+.bexte-field-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 0 1rem;
 }
 
 /* Two panels of comparable weight, side by side while there is room. */
-.rbext-split {
+.bexte-split {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 360px));
   gap: 0 2.5rem;
   justify-content: start;
 }
 
-.rbext-subhead {
-  color: var(--rbext-ink-muted);
+.bexte-subhead {
+  color: var(--bexte-ink-muted);
   font-size: 0.8125rem;
   font-weight: 600;
   margin: 0.25rem 0 0.5rem;
   padding-bottom: 0.35rem;
-  border-bottom: 1px solid var(--rbext-hairline);
+  border-bottom: 1px solid var(--bexte-hairline);
   letter-spacing: 0;
   line-height: 1.55;
 }
@@ -290,7 +290,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .form-label,
 .shiny-input-container > label,
 .control-label {
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
   font-size: 0.8125rem;
   font-weight: 500;
   margin-bottom: 0.25rem;
@@ -298,10 +298,10 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 .form-control,
 .form-select {
-  background-color: var(--rbext-surface);
-  border-color: var(--rbext-hairline-strong);
+  background-color: var(--bexte-surface);
+  border-color: var(--bexte-hairline-strong);
   border-radius: 6px;
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
 }
 
 .form-control:focus,
@@ -309,45 +309,45 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .selectize-input.focus,
 .btn:focus-visible,
 a:focus-visible {
-  border-color: var(--rbext-accent);
-  box-shadow: 0 0 0 3px var(--rbext-focus-ring);
+  border-color: var(--bexte-accent);
+  box-shadow: 0 0 0 3px var(--bexte-focus-ring);
   outline: none;
 }
 
 .form-check-input:checked {
-  background-color: var(--rbext-accent);
-  border-color: var(--rbext-accent);
+  background-color: var(--bexte-accent);
+  border-color: var(--bexte-accent);
 }
 
 .form-check-input:focus {
-  border-color: var(--rbext-accent);
-  box-shadow: 0 0 0 3px var(--rbext-focus-ring);
+  border-color: var(--bexte-accent);
+  box-shadow: 0 0 0 3px var(--bexte-focus-ring);
 }
 
 .form-check-label {
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
 }
 
 // selectize.js draws its own widget, so it needs the tokens applied by hand.
 .selectize-input,
 .selectize-input.full {
-  background: var(--rbext-surface) !important;
-  border-color: var(--rbext-hairline-strong) !important;
+  background: var(--bexte-surface) !important;
+  border-color: var(--bexte-hairline-strong) !important;
   border-radius: 6px !important;
   box-shadow: none !important;
-  color: var(--rbext-ink) !important;
+  color: var(--bexte-ink) !important;
 }
 
 .selectize-dropdown,
 .selectize-dropdown.form-control {
-  background: var(--rbext-surface);
-  border-color: var(--rbext-hairline-strong);
-  color: var(--rbext-ink);
+  background: var(--bexte-surface);
+  border-color: var(--bexte-hairline-strong);
+  color: var(--bexte-ink);
 }
 
 .selectize-dropdown .active {
-  background: var(--rbext-accent-quiet);
-  color: var(--rbext-ink);
+  background: var(--bexte-accent-quiet);
+  color: var(--bexte-ink);
 }
 
 // ---- Buttons ---------------------------------------------------------------
@@ -359,54 +359,54 @@ a:focus-visible {
 }
 
 .btn-default {
-  --bs-btn-bg: var(--rbext-surface);
-  --bs-btn-color: var(--rbext-ink);
-  --bs-btn-border-color: var(--rbext-hairline-strong);
-  --bs-btn-hover-bg: var(--rbext-sunken);
-  --bs-btn-hover-color: var(--rbext-ink);
-  --bs-btn-hover-border-color: var(--rbext-hairline-strong);
-  --bs-btn-active-bg: var(--rbext-sunken);
-  --bs-btn-active-color: var(--rbext-ink);
-  --bs-btn-active-border-color: var(--rbext-hairline-strong);
-  --bs-btn-disabled-bg: var(--rbext-sunken);
-  --bs-btn-disabled-color: var(--rbext-ink-muted);
-  --bs-btn-disabled-border-color: var(--rbext-hairline);
+  --bs-btn-bg: var(--bexte-surface);
+  --bs-btn-color: var(--bexte-ink);
+  --bs-btn-border-color: var(--bexte-hairline-strong);
+  --bs-btn-hover-bg: var(--bexte-sunken);
+  --bs-btn-hover-color: var(--bexte-ink);
+  --bs-btn-hover-border-color: var(--bexte-hairline-strong);
+  --bs-btn-active-bg: var(--bexte-sunken);
+  --bs-btn-active-color: var(--bexte-ink);
+  --bs-btn-active-border-color: var(--bexte-hairline-strong);
+  --bs-btn-disabled-bg: var(--bexte-sunken);
+  --bs-btn-disabled-color: var(--bexte-ink-muted);
+  --bs-btn-disabled-border-color: var(--bexte-hairline);
 }
 
 .btn-primary {
-  --bs-btn-bg: var(--rbext-accent);
-  --bs-btn-border-color: var(--rbext-accent);
-  --bs-btn-color: var(--rbext-accent-ink);
-  --bs-btn-hover-bg: var(--rbext-accent-hover);
-  --bs-btn-hover-border-color: var(--rbext-accent-hover);
-  --bs-btn-hover-color: var(--rbext-accent-ink);
-  --bs-btn-active-bg: var(--rbext-accent-hover);
-  --bs-btn-active-border-color: var(--rbext-accent-hover);
-  --bs-btn-active-color: var(--rbext-accent-ink);
-  --bs-btn-disabled-bg: var(--rbext-accent);
-  --bs-btn-disabled-border-color: var(--rbext-accent);
-  --bs-btn-disabled-color: var(--rbext-accent-ink);
+  --bs-btn-bg: var(--bexte-accent);
+  --bs-btn-border-color: var(--bexte-accent);
+  --bs-btn-color: var(--bexte-accent-ink);
+  --bs-btn-hover-bg: var(--bexte-accent-hover);
+  --bs-btn-hover-border-color: var(--bexte-accent-hover);
+  --bs-btn-hover-color: var(--bexte-accent-ink);
+  --bs-btn-active-bg: var(--bexte-accent-hover);
+  --bs-btn-active-border-color: var(--bexte-accent-hover);
+  --bs-btn-active-color: var(--bexte-accent-ink);
+  --bs-btn-disabled-bg: var(--bexte-accent);
+  --bs-btn-disabled-border-color: var(--bexte-accent);
+  --bs-btn-disabled-color: var(--bexte-accent-ink);
 }
 
 .btn-danger {
   --bs-btn-bg: transparent;
-  --bs-btn-color: var(--rbext-danger);
-  --bs-btn-border-color: var(--rbext-hairline-strong);
-  --bs-btn-hover-bg: var(--rbext-danger-quiet);
-  --bs-btn-hover-color: var(--rbext-danger);
-  --bs-btn-hover-border-color: var(--rbext-danger);
-  --bs-btn-active-bg: var(--rbext-danger-quiet);
-  --bs-btn-active-color: var(--rbext-danger);
-  --bs-btn-active-border-color: var(--rbext-danger);
+  --bs-btn-color: var(--bexte-danger);
+  --bs-btn-border-color: var(--bexte-hairline-strong);
+  --bs-btn-hover-bg: var(--bexte-danger-quiet);
+  --bs-btn-hover-color: var(--bexte-danger);
+  --bs-btn-hover-border-color: var(--bexte-danger);
+  --bs-btn-active-bg: var(--bexte-danger-quiet);
+  --bs-btn-active-color: var(--bexte-danger);
+  --bs-btn-active-border-color: var(--bexte-danger);
 }
 
-.rbext-actions {
+.bexte-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.rbext-actions .btn {
+.bexte-actions .btn {
   margin: 0;
 }
 
@@ -419,35 +419,35 @@ a:focus-visible {
 
 // ---- Status messages -------------------------------------------------------
 
-.rbext-status {
+.bexte-status {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
-  border: 1px solid var(--rbext-hairline);
+  border: 1px solid var(--bexte-hairline);
   border-radius: 6px;
   padding: 0.6rem 0.75rem;
   font-size: 0.875rem;
   margin-top: 0.75rem;
 }
 
-.rbext-status-ok {
-  background-color: var(--rbext-accent-quiet);
-  border-color: var(--rbext-accent);
-  color: var(--rbext-ink);
+.bexte-status-ok {
+  background-color: var(--bexte-accent-quiet);
+  border-color: var(--bexte-accent);
+  color: var(--bexte-ink);
 }
 
-.rbext-status-error {
-  background-color: var(--rbext-danger-quiet);
-  border-color: var(--rbext-danger);
-  color: var(--rbext-ink);
+.bexte-status-error {
+  background-color: var(--bexte-danger-quiet);
+  border-color: var(--bexte-danger);
+  color: var(--bexte-ink);
 }
 
-.rbext-workload,
-.rbext-loaded {
-  background-color: var(--rbext-sunken);
-  border: 1px solid var(--rbext-hairline);
+.bexte-workload,
+.bexte-loaded {
+  background-color: var(--bexte-sunken);
+  border: 1px solid var(--bexte-hairline);
   border-radius: 6px;
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
   display: flex;
   flex-direction: column;
   font-size: 0.8125rem;
@@ -455,9 +455,9 @@ a:focus-visible {
   padding: 0.6rem 0.75rem;
 }
 
-.rbext-workload strong,
-.rbext-loaded strong {
-  color: var(--rbext-ink);
+.bexte-workload strong,
+.bexte-loaded strong {
+  color: var(--bexte-ink);
   font-weight: 600;
 }
 
@@ -473,26 +473,26 @@ a:focus-visible {
   --shiny-fade-opacity: 1;
 }
 
-.rbext-readout {
+.bexte-readout {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem 1.5rem;
 }
 
-.rbext-state {
+.bexte-state {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: 1px solid var(--rbext-hairline-strong);
+  border: 1px solid var(--bexte-hairline-strong);
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
 }
 
-.rbext-state::before {
+.bexte-state::before {
   content: "";
   width: 7px;
   height: 7px;
@@ -500,60 +500,60 @@ a:focus-visible {
   background-color: currentColor;
 }
 
-.rbext-state-live {
-  border-color: var(--rbext-accent);
-  color: var(--rbext-accent);
+.bexte-state-live {
+  border-color: var(--bexte-accent);
+  color: var(--bexte-accent);
 }
 
-.rbext-state-live::before {
-  animation: rbext-pulse 1.6s ease-in-out infinite;
+.bexte-state-live::before {
+  animation: bexte-pulse 1.6s ease-in-out infinite;
 }
 
-.rbext-state-failed {
-  border-color: var(--rbext-danger);
-  color: var(--rbext-danger);
+.bexte-state-failed {
+  border-color: var(--bexte-danger);
+  color: var(--bexte-danger);
 }
 
-@keyframes rbext-pulse {
+@keyframes bexte-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.25; }
 }
 
-.rbext-metric {
+.bexte-metric {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
 }
 
-.rbext-metric-value {
+.bexte-metric-value {
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
 }
 
-.rbext-metric-label {
+.bexte-metric-label {
   font-size: 0.75rem;
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
 }
 
 .progress {
-  background-color: var(--rbext-sunken);
+  background-color: var(--bexte-sunken);
   border-radius: 999px;
   height: 6px;
 }
 
 .progress-bar {
-  background-color: var(--rbext-accent);
+  background-color: var(--bexte-accent);
 }
 
-.rbext-log {
-  background-color: var(--rbext-sunken);
-  border: 1px solid var(--rbext-hairline);
+.bexte-log {
+  background-color: var(--bexte-sunken);
+  border: 1px solid var(--bexte-hairline);
   border-radius: 6px;
-  color: var(--rbext-ink);
-  font-family: var(--rbext-font-mono);
+  color: var(--bexte-ink);
+  font-family: var(--bexte-font-mono);
   font-size: 0.8125rem;
   line-height: 1.5;
   margin: 0;
@@ -563,17 +563,17 @@ a:focus-visible {
   white-space: pre;
 }
 
-.rbext-log:empty::before {
+.bexte-log:empty::before {
   content: "Waiting for the first log line.";
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
 }
 
-.rbext-trace {
-  background-color: var(--rbext-danger-quiet);
-  border: 1px solid var(--rbext-danger);
+.bexte-trace {
+  background-color: var(--bexte-danger-quiet);
+  border: 1px solid var(--bexte-danger);
   border-radius: 6px;
-  color: var(--rbext-ink);
-  font-family: var(--rbext-font-mono);
+  color: var(--bexte-ink);
+  font-family: var(--bexte-font-mono);
   font-size: 0.8125rem;
   margin: 0.75rem 0 0;
   max-height: 14rem;
@@ -584,30 +584,30 @@ a:focus-visible {
 // ---- Analyze: plots and tables ---------------------------------------------
 
 .nav-tabs {
-  --bs-nav-tabs-border-color: var(--rbext-hairline);
-  --bs-nav-tabs-link-active-bg: var(--rbext-surface);
-  --bs-nav-tabs-link-active-color: var(--rbext-ink);
-  --bs-nav-tabs-link-active-border-color: var(--rbext-hairline) var(--rbext-hairline) var(--rbext-surface);
-  --bs-nav-link-color: var(--rbext-ink-muted);
-  --bs-nav-link-hover-color: var(--rbext-ink);
+  --bs-nav-tabs-border-color: var(--bexte-hairline);
+  --bs-nav-tabs-link-active-bg: var(--bexte-surface);
+  --bs-nav-tabs-link-active-color: var(--bexte-ink);
+  --bs-nav-tabs-link-active-border-color: var(--bexte-hairline) var(--bexte-hairline) var(--bexte-surface);
+  --bs-nav-link-color: var(--bexte-ink-muted);
+  --bs-nav-link-hover-color: var(--bexte-ink);
 }
 
 .plotly .main-svg {
   background: transparent !important;
 }
 
-.rbext-plot-context {
-  color: var(--rbext-ink-muted);
+.bexte-plot-context {
+  color: var(--bexte-ink-muted);
   display: block;
   font-size: 0.75rem;
   font-weight: 400;
   margin-top: 0.15rem;
 }
 
-.rbext-empty {
-  border: 1px dashed var(--rbext-hairline-strong);
+.bexte-empty {
+  border: 1px dashed var(--bexte-hairline-strong);
   border-radius: 6px;
-  color: var(--rbext-ink-muted);
+  color: var(--bexte-ink-muted);
   padding: 2rem 1rem;
   text-align: center;
 }
@@ -615,24 +615,24 @@ a:focus-visible {
 // DataTables paints its own chrome and does not read Bootstrap's variables.
 .dataTables_wrapper,
 .dt-container {
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
   font-size: 0.875rem;
 }
 
 table.dataTable {
-  border-color: var(--rbext-hairline);
-  color: var(--rbext-ink);
+  border-color: var(--bexte-hairline);
+  color: var(--bexte-ink);
 }
 
 table.dataTable thead th,
 table.dataTable thead td {
-  border-bottom: 1px solid var(--rbext-hairline-strong) !important;
-  color: var(--rbext-ink-muted);
+  border-bottom: 1px solid var(--bexte-hairline-strong) !important;
+  color: var(--bexte-ink-muted);
   font-weight: 600;
 }
 
 table.dataTable tbody td {
-  border-top: 1px solid var(--rbext-hairline);
+  border-top: 1px solid var(--bexte-hairline);
 }
 
 table.dataTable tbody tr {
@@ -641,7 +641,7 @@ table.dataTable tbody tr {
 
 table.dataTable.hover tbody tr:hover,
 table.dataTable tbody tr:hover {
-  background-color: var(--rbext-sunken);
+  background-color: var(--bexte-sunken);
 }
 
 .dataTables_wrapper .dataTables_length,
@@ -649,77 +649,77 @@ table.dataTable tbody tr:hover {
 .dataTables_wrapper .dataTables_info,
 .dataTables_wrapper .dataTables_paginate,
 .dataTables_wrapper .dataTables_paginate .paginate_button {
-  color: var(--rbext-ink) !important;
+  color: var(--bexte-ink) !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current,
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-  background: var(--rbext-accent-quiet) !important;
-  border-color: var(--rbext-hairline-strong) !important;
-  color: var(--rbext-ink) !important;
+  background: var(--bexte-accent-quiet) !important;
+  border-color: var(--bexte-hairline-strong) !important;
+  color: var(--bexte-ink) !important;
 }
 
 .dataTables_wrapper .dataTables_filter input,
 .dataTables_wrapper .dataTables_length select {
-  background-color: var(--rbext-surface);
-  border: 1px solid var(--rbext-hairline-strong);
+  background-color: var(--bexte-surface);
+  border: 1px solid var(--bexte-hairline-strong);
   border-radius: 6px;
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
 }
 
 // ---- Shell -----------------------------------------------------------------
 
-.rbext-page {
+.bexte-page {
   margin: 0 auto;
   max-width: 1180px;
   padding: 1.25rem 0.25rem 3rem;
 }
 
-.rbext-page > * + * {
+.bexte-page > * + * {
   margin-top: 1rem;
 }
 
-.rbext-lede {
-  color: var(--rbext-ink-muted);
+.bexte-lede {
+  color: var(--bexte-ink-muted);
   max-width: 68ch;
   margin-bottom: 1.25rem;
 }
 
 .shiny-notification {
-  background-color: var(--rbext-surface);
-  border: 1px solid var(--rbext-hairline-strong);
+  background-color: var(--bexte-surface);
+  border: 1px solid var(--bexte-hairline-strong);
   border-radius: 6px;
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
   box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rbext-state-live::before,
+  .bexte-state-live::before,
   .progress-bar-animated {
     animation: none;
   }
 }
 
 @media (max-width: 575.98px) {
-  .rbext-page {
+  .bexte-page {
     padding-left: 0;
     padding-right: 0;
   }
 
-  .rbext-field-grid,
-  .rbext-split,
-  .rbext-card-grid {
+  .bexte-field-grid,
+  .bexte-split,
+  .bexte-card-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-.rbext-card-grid {
+.bexte-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
 }
 
-.rbext-card-grid .card > .card-header {
+.bexte-card-grid .card > .card-header {
   font-size: 0.875rem;
 }
 
@@ -728,8 +728,8 @@ table.dataTable tbody tr:hover {
 // column of controls under it, so it is sized like one.
 
 .bslib-sidebar-layout > .sidebar .sidebar-title {
-  border-bottom: 1px solid var(--rbext-hairline);
-  color: var(--rbext-ink-muted);
+  border-bottom: 1px solid var(--bexte-hairline);
+  color: var(--bexte-ink-muted);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -744,26 +744,26 @@ table.dataTable tbody tr:hover {
 
 // A sidebar is too narrow for two buttons side by side without their labels
 // wrapping, so each takes its own full-width row.
-.bslib-sidebar-layout > .sidebar .rbext-actions .btn {
+.bslib-sidebar-layout > .sidebar .bexte-actions .btn {
   flex: 1 1 100%;
 }
 
 // One frame is enough: inside the page column the cards already carry the
 // borders, so the layout itself only keeps the rule beside the sidebar.
-.rbext-page > .bslib-sidebar-layout {
+.bexte-page > .bslib-sidebar-layout {
   border: none;
 }
 
-.rbext-page > .bslib-sidebar-layout > .sidebar {
+.bexte-page > .bslib-sidebar-layout > .sidebar {
   background-color: transparent;
-  border-right: 1px solid var(--rbext-hairline);
+  border-right: 1px solid var(--bexte-hairline);
 }
 
-.rbext-page > .bslib-sidebar-layout > .main {
+.bexte-page > .bslib-sidebar-layout > .main {
   padding-right: 0;
 }
 
-.rbext-page > .bslib-sidebar-layout .card + .card {
+.bexte-page > .bslib-sidebar-layout .card + .card {
   margin-top: 1rem;
 }
 
@@ -771,36 +771,36 @@ table.dataTable tbody tr:hover {
 // DT renders Bootstrap 5 pagination markup, which needs the tokens applied.
 
 .page-link {
-  background-color: var(--rbext-surface);
-  border-color: var(--rbext-hairline);
-  color: var(--rbext-ink);
+  background-color: var(--bexte-surface);
+  border-color: var(--bexte-hairline);
+  color: var(--bexte-ink);
 }
 
 .page-link:hover {
-  background-color: var(--rbext-sunken);
-  border-color: var(--rbext-hairline-strong);
-  color: var(--rbext-ink);
+  background-color: var(--bexte-sunken);
+  border-color: var(--bexte-hairline-strong);
+  color: var(--bexte-ink);
 }
 
 .page-item.active .page-link {
-  background-color: var(--rbext-accent);
-  border-color: var(--rbext-accent);
-  color: var(--rbext-accent-ink);
+  background-color: var(--bexte-accent);
+  border-color: var(--bexte-accent);
+  color: var(--bexte-accent-ink);
 }
 
 .page-item.disabled .page-link {
-  background-color: var(--rbext-sunken);
-  border-color: var(--rbext-hairline);
-  color: var(--rbext-ink-muted);
+  background-color: var(--bexte-sunken);
+  border-color: var(--bexte-hairline);
+  color: var(--bexte-ink-muted);
 }
 
 .dataTables_wrapper input[type="search"],
 .dt-container input[type="search"],
 .dataTables_wrapper select,
 .dt-container select {
-  background-color: var(--rbext-surface);
-  border: 1px solid var(--rbext-hairline-strong);
+  background-color: var(--bexte-surface);
+  border: 1px solid var(--bexte-hairline-strong);
   border-radius: 6px;
-  color: var(--rbext-ink);
+  color: var(--bexte-ink);
   padding: 0.2rem 0.5rem;
 }

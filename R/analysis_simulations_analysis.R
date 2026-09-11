@@ -42,8 +42,8 @@ simulation_analysis <- function(env,
   run_in_parallel <- analysis_runs_in_parallel(parallelization)
 
   results_dir <- paste0("./results/", env)
-  outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "RBExT"))
-  simulation_config <- read_config(system.file("conf/simulation_config.yml", package = "RBExT"), simulation_config_schema)
+  outputs_config <- yaml::read_yaml(system.file("conf/outputs_config.yml", package = "BExTE"))
+  simulation_config <- read_config(system.file("conf/simulation_config.yml", package = "BExTE"), simulation_config_schema)
 
   freq_filename <- paste0(results_dir,
                           "/",

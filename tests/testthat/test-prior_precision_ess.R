@@ -16,6 +16,6 @@ test_that("prior_precision_ess subtracts the target sample size", {
       expect_equal(result, 100)
     },
     gaussian_mix_precision_ess = mock_posterior_precision_ess,
-    .package = "RBExT"
+    .package = "BExTE"
   )
 })

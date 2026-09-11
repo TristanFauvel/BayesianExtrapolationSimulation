@@ -994,7 +994,7 @@ stan_draws_directory <- function(case_study, method, process_id = Sys.getpid()) 
   # system.file() returns "" for a directory absent from the installed package,
   # so build the path from the package root, which always exists.
   file.path(
-    system.file(package = "RBExT"),
+    system.file(package = "BExTE"),
     "stan",
     "draws",
     paste0(tolower(case_study), "_", method, "_", process_id)
@@ -1035,7 +1035,7 @@ clear_stan_draws <- function(case_study,
 #' Directory holding the compiled Stan models
 #'
 #' @description `inst/stan` is excluded from the built package, so
-#'   `system.file("stan", package = "RBExT")` returns `""` once RBExT is
+#'   `system.file("stan", package = "BExTE")` returns `""` once BExTE is
 #'   installed and every model path would resolve to the filesystem root.
 #'   Compiled models are build artifacts rather than package contents, so
 #'   they belong in the user cache directory, which stays writable even when
@@ -1044,7 +1044,7 @@ clear_stan_draws <- function(case_study,
 #' @return Path of the directory, created if it does not exist.
 #' @noRd
 stan_model_directory <- function() {
-  directory <- file.path(tools::R_user_dir("RBExT", "cache"), "stan")
+  directory <- file.path(tools::R_user_dir("BExTE", "cache"), "stan")
   dir.create(directory, showWarnings = FALSE, recursive = TRUE)
   directory
 }
@@ -1099,7 +1099,7 @@ load_data <- function(results_row, type, reload_data_objects = FALSE, case_studi
 
   if (reload_data_objects) {
     if (is.null(case_studies_config_dir)) {
-      case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "RBExT"), "/")
+      case_studies_config_dir <- paste0(system.file("conf/case_studies", package = "BExTE"), "/")
     }
     case_study_config <- yaml::yaml.load_file(paste0(case_studies_config_dir, results_row$case_study, ".yml"))
 
@@ -1313,7 +1313,7 @@ check_simulation_completeness <- function(results_dir = results_dir, ocs_filenam
   for (case_study in scenarios_config$case_studies){
     case_study_config <- yaml::yaml.load_file(system.file(
       paste0("conf/case_studies/", case_study, ".yml"),
-      package = "RBExT"
+      package = "BExTE"
     ))
     for (method in scenarios_config$method){
       file_path <- paste0(results_dir, 'frequentist/', case_study, '/', method, '/', ocs_filename)

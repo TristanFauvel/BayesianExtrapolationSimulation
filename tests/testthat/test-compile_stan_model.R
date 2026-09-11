@@ -62,7 +62,7 @@ test_that("compile_stan_model rebuilds after changing the Stan source", {
       .package = "cmdstanr"
     ),
     write_stan_file_if_changed = function(...) TRUE,
-    .package = "RBExT"
+    .package = "BExTE"
   )
 
   expect_identical(result, "compiled model")
@@ -72,7 +72,7 @@ test_that("compile_stan_model rebuilds after changing the Stan source", {
 
 test_that("compile_stan_model caches the model outside the package library", {
   # inst/stan is excluded from the build (.Rbuildignore), so
-  # system.file("stan", package = "RBExT") is "" for an installed copy and
+  # system.file("stan", package = "BExTE") is "" for an installed copy and
   # pasting a model name onto it writes to the filesystem root. Even when the
   # directory does exist, a managed R installation keeps the library
   # read-only, so the compiled model cannot live there either.
@@ -88,10 +88,10 @@ test_that("compile_stan_model caches the model outside the package library", {
       .package = "cmdstanr"
     ),
     write_stan_file_if_changed = function(...) TRUE,
-    .package = "RBExT"
+    .package = "BExTE"
   )
 
-  cache_dir <- tools::R_user_dir("RBExT", "cache")
+  cache_dir <- tools::R_user_dir("BExTE", "cache")
 
   expect_true(startsWith(calls$args[[1]], cache_dir))
   expect_true(startsWith(calls$args$exe_file, cache_dir))
@@ -103,7 +103,7 @@ test_that("clear_stan_model_cache empties the model cache", {
   file.create(file.path(cache, c("a_model.stan", "a_model.exe")))
 
   # inst/scripts/main.R clears the cache to force a recompile. It used to do
-  # that by listing system.file("stan", package = "RBExT"), which stopped
+  # that by listing system.file("stan", package = "BExTE"), which stopped
   # being where the models live.
   removed <- clear_stan_model_cache(cache)
 
