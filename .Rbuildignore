@@ -21,3 +21,4 @@
 ^tests$
 ^user_configs$
 ^\.pre-commit-config\.yaml$
+^specs$
